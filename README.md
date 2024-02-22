@@ -1,2 +1,2 @@
-# tree-covariance-matrix-sparsification
-A collection of tools for sparsifying covariance matrices describing hierarchical data
+# phylogenetic-covariance-matrix-sparsification
+A tool to produce a sparse representation of a phylogenetic covariance matrix from its Newick format.
