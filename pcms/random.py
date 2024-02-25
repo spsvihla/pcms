@@ -17,7 +17,7 @@ import ete3
 #
 #  Parameters:
 #    @param int   k          The number of children descending from each node.
-#    @param int   max_size   The maximum size of the tree.
+#    @param int   max_size   The maximum number of internal nodes.
 #    @param float lam        Birth rate.
 #    @param flaot mu         Death rate.
 #  
@@ -43,8 +43,8 @@ def k_regular(k, max_size, lam, mu):
         leaf = leaves.pop(indx)
         n_leaves += -1
 
-        # if there is a birth (speciation event), then 'leaf' becomes
-        # a parent; otherwise, the lineage is extinct
+        # if there is a birth, then 'leaf' becomes a parent; otherwise, 
+        # the lineage is extinct
         if np.random.uniform() < threshold:
             for __ in range(k):
                 leaves.append(leaf.add_child(dist=np.random.exponential(rate)))
@@ -55,4 +55,4 @@ def k_regular(k, max_size, lam, mu):
         if n_leaves == 0:
             break
 
-    return root, size
+    return root
