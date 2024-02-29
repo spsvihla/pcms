@@ -17,42 +17,47 @@ import ete3
 #
 #  Parameters:
 #    @param int   k          The number of children descending from each node.
-#    @param int   max_size   The maximum number of internal nodes.
+#    @param int   max_size   The maximum number of inernal nodes.
 #    @param float lam        Birth rate.
 #    @param flaot mu         Death rate.
 #  
 #  Outputs:
 #    @return ete3.TreeNode  The phylogenetic tree.
-#    @return int            The number of leaves in the tree.
+#    @reutnr int            The number of internal nodes of the tree. 
 #
 def k_regular(k, max_size, lam, mu):
     rate = lam = mu
     threshold = lam / rate
 
     root = ete3.TreeNode()
+    root.add_features(depth=0)
     node = root.add_child()
+    node.add_features(depth=1)
     for __ in range(k):
-        node.add_child(dist=np.random.exponential(rate))
+        child = node.add_child(dist=np.random.exponential(rate))
+        child.add_features(depth=2)
     leaves = root.get_leaves()
 
-    size = 1
-    n_leaves = k
-    while size < max_size:
+    n_internal_nodes = 2
+    n_alive_lineages = k
+    while n_internal_nodes < max_size:
         # select a random living lineage
-        indx = np.random.randint(n_leaves)
+        indx = np.random.randint(n_alive_lineages)
         leaf = leaves.pop(indx)
-        n_leaves += -1
+        n_alive_lineages += -1
 
         # if there is a birth, then 'leaf' becomes a parent; otherwise, 
         # the lineage is extinct
         if np.random.uniform() < threshold:
             for __ in range(k):
-                leaves.append(leaf.add_child(dist=np.random.exponential(rate)))
-            n_leaves += k
-            size += 1
+                child = leaf.add_child(dist=np.random.exponential(rate))
+                child.add_features(depth=leaf.depth)
+                leaves.append(child)
+            n_alive_lineages += k
+            n_internal_nodes += 1
 
         # terminate if all lineages go extinct
-        if n_leaves == 0:
+        if n_alive_lineages == 0:
             break
 
-    return root
+    return root, n_internal_nodes 
