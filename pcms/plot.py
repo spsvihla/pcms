@@ -17,12 +17,11 @@ import matplotlib.pyplot as plt
 #
 #  @param scipy.sparse.csr_matrix   C           The parse phylogenetic 
 #                                                   covariance matrix.
-#  @param scipy.sparse.csr_matrix   Q           Haar-like wavelet basis matrix.
+#  @param scipy.sparse.csr_matrix   Q           Wavelet basis matrix.
 #  @param int                       decimation  Factor for downsampling.
-#  @param                           *args,      Parameters to be passed to 
-#                                   **kwargs         matplotlib.pyplot.spy.
+#  @param str                       cmap        Name of a color map. 
 #
-def spy_dense(C, Q, decimation, *args, **kwargs):
+def spy_dense(C, Q, decimation, cmap='hot'):
     n, m = C.shape
     T = scipy.sparse.csc_matrix(
             (np.ones((m,)), np.arange(m), 
@@ -36,4 +35,5 @@ def spy_dense(C, Q, decimation, *args, **kwargs):
         )
     QT = Q.transpose()
     CD = S @ Q @ C @ QT @ T
-    plt.spy(CD, args, kwargs)
+    plt.imshow(CD.todense(), cmap=cmap, interpolation='nearest')
+    plt.colorbar()
