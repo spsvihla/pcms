@@ -66,7 +66,7 @@ def _parse_newick(tokens):
                 valsB.extend(lvalvec*tbl[a:b])
 
                 # right subtree
-                rval = np.sqrt(L0 / L1 / L)
+                rval = -np.sqrt(L0 / L1 / L)
                 rvalvec = np.full((L1,), rval, dtype=float)
                 valsQ.extend(rvalvec)
                 valsB.extend(rvalvec*tbl[b:c])
