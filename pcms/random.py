@@ -25,8 +25,8 @@ import ete3
 #    @return ete3.TreeNode  The phylogenetic tree.
 #    @reutnr int            The number of internal nodes of the tree. 
 #
-def k_regular(k, max_size, lam, mu):
-    rate = lam = mu
+def k_regular(k, max_size, lam=1.0, mu=0.0):
+    rate = lam + mu
     threshold = lam / rate
 
     root = ete3.TreeNode()
