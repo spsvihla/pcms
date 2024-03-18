@@ -25,11 +25,11 @@ NEWICK_PATTERN = r"([,();])([^:;,()\s]*)(?:\s*:\s*([\d.e-]+)\s*)?"
 #                             the newick string according to NEWICK_PATTERN.
 #    
 #  Outputs:
-#    @return scipy.sparse.csr_matrix Q
+#    @return scipy.sparse.csc_matrix Q
 #                         A sparse matrix containing the Haar-like wavelet
 #                             basis for the tree. Leaves are indexed by row
 #                             and wavelets are indexed by column.
-#    @return scipy.sparse.csr_matrix B
+#    @return scipy.sparse.csc_matrix B
 #                         The same as Q, except that the wavelet values include
 #                             a factor of the trace branch length from each
 #                             to the internal node associated with the wavelet.
@@ -132,9 +132,9 @@ def _parse_newick(newick):
     indx += L
 
     # might have over-allocated, so just take the first 'indx' entries
-    Q = scipy.sparse.csr_array((valsQ[:indx], (rows[:indx], cols[:indx])),
+    Q = scipy.sparse.csc_array((valsQ[:indx], (rows[:indx], cols[:indx])),
                                shape=(L,L))
-    B = scipy.sparse.csr_array((valsB[:indx], (rows[:indx], cols[:indx])),
+    B = scipy.sparse.csc_array((valsB[:indx], (rows[:indx], cols[:indx])),
                                shape=(L,L))
     return Q, B
 
