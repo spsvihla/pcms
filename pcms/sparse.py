@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-## @file sparsify.py
+## @file sparse.py
 #  @brief Phylogenetic covariance matrix sparsification.
 #  @author Sean Svihla
 #
