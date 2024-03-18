@@ -33,13 +33,10 @@ def k_regular(k, max_size, lam=1.0, mu=0.0):
     root.add_features(depth=0)
     node = root.add_child()
     node.add_features(depth=1)
-    for __ in range(k):
-        child = node.add_child(dist=np.random.exponential(rate))
-        child.add_features(depth=2)
-    leaves = root.get_leaves()
+    leaves = [node]
 
     n_internal_nodes = 2
-    n_alive_lineages = k
+    n_alive_lineages = 1
     while n_internal_nodes < max_size:
         # select a random living lineage
         indx = np.random.randint(n_alive_lineages)
