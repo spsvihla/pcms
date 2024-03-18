@@ -51,7 +51,7 @@ def k_regular(k, max_size, lam=1.0, mu=0.0):
         if np.random.uniform() < threshold:
             for __ in range(k):
                 child = leaf.add_child(dist=np.random.exponential(rate))
-                child.add_features(depth=leaf.depth)
+                child.add_features(depth=leaf.depth+1)
                 leaves.append(child)
             n_alive_lineages += k
             n_internal_nodes += 1
