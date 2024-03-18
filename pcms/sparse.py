@@ -20,16 +20,19 @@ NEWICK_PATTERN = r"([,();])([^:;,()\s]*)(?:\s*:\s*([\d.e-]+)\s*)?"
 #  matrices returned can be used to construct the sparse covariance matrix
 #  of the tree, namely, C = Q.transpose()@B.
 #
-#  @param list  tokens  A list containing re.Match objects, parsed from
-#                           the newick string according to NEWICK_PATTERN.
-#  @return scipy.sparse.csr_matrix Q
-#                       A sparse matrix containing the Haar-like wavelet
-#                           basis for the tree. Leaves are indexed by row
-#                           and wavelets are indexed by column.
-#  @return scipy.sparse.csr_matrix B
-#                       The same as Q, except that the wavelet values include
-#                           a factor of the trace branch length from each
-#                           to the internal node associated with the wavelet.
+#  Parameters:
+#    @param list  tokens  A list containing re.Match objects, parsed from
+#                             the newick string according to NEWICK_PATTERN.
+#    
+#  Outputs:
+#    @return scipy.sparse.csr_matrix Q
+#                         A sparse matrix containing the Haar-like wavelet
+#                             basis for the tree. Leaves are indexed by row
+#                             and wavelets are indexed by column.
+#    @return scipy.sparse.csr_matrix B
+#                         The same as Q, except that the wavelet values include
+#                             a factor of the trace branch length from each
+#                             to the internal node associated with the wavelet.
 #
 def _parse_newick(tokens):
     rows  = []
