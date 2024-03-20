@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 #  Note that this function does not check that the decimation factor is
 #  sufficient to store the decimated dense matrix in memory.
 #
-#  @param scipy.sparse.csr_matrix   C           The parse phylogenetic 
+#  @param scipy.sparse.csr_matrix   C           The sparse phylogenetic 
 #                                                   covariance matrix.
 #  @param scipy.sparse.csr_matrix   Q           Wavelet basis matrix.
 #  @param int                       decimation  Factor for downsampling.
