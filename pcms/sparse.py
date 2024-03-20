@@ -17,7 +17,7 @@ NEWICK_PATTERN = r"([,();])([^:;,()\s]*)(?:\s*:\s*([\d.e-]+)\s*)?"
 #
 #  This function parses a newick string representing a phylogenetic tree. It
 #  is assumed that each node has an associated edge length. The sparse
-#  matrices returned can be used to construct the sparse covariance matrix
+#  matrices returned can be used to construct the dense covariance matrix
 #  of the tree, namely, C = Q.transpose()@B.
 #
 #  Parameters:
