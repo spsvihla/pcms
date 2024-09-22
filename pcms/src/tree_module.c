@@ -294,6 +294,8 @@ Tree_add_child(PyObject *self, PyObject *args)
         if(child == NULL)
         {
             // PyErr_SetString in create_child
+            Py_CLEAR(Tree_init_args);
+            Py_CLEAR(Tree_init_kwargs);
             return NULL;
         }
     }
@@ -323,6 +325,7 @@ Tree_add_child(PyObject *self, PyObject *args)
         if(child == NULL)
         {
             // PyErr_SetString in create_child
+            Py_CLEAR(Tree_init_args);
             Py_CLEAR(Tree_init_kwargs);
             return NULL;
         }
@@ -331,6 +334,7 @@ Tree_add_child(PyObject *self, PyObject *args)
     {
         PyErr_SetString(PyExc_TypeError, 
                         "Expected Tree object, float, or None");
+        Py_CLEAR(Tree_init_kwargs);
         return NULL;
     }
 
