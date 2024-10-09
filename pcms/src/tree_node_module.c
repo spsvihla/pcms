@@ -226,17 +226,55 @@ static PyGetSetDef TreeNode_getsetters[] = {
  *                         TreeNode method definitions                       *
  *****************************************************************************/
 
-/* A helper function for TreeNode_add_child to create new children */
+/* convenience wrapper for TreeNode_init */
 static inline PyObject*
-create_child(PyObject *args, PyObject *kwargs)
+_TreeNode_init(PyObject *args, PyObject *kwargs)
 {
     PyObject *child;
+    int       didCreateArgs, didCreateKwargs;
+
+    // make empty args tuple if none given
+    if(args == NULL)
+    {
+        args = PyTuple_New(0);
+        if(args == NULL)
+        {
+            PyErr_SetString(PyExc_RuntimeError,
+                            "Failed to create new PyTuple object");
+            return NULL;
+        }
+        didCreateArgs = 1;
+    }
+
+    // make empty dict is none given
+    if(kwargs == NULL)
+    {
+        kwargs = PyDict_New();
+        if(kwargs == NULL)
+        {
+            PyErr_SetString(PyExc_RuntimeError,
+                            "Failed to create new PyDict object");
+            if(didCreateArgs)
+            {
+                Py_CLEAR(args);
+            }
+            return NULL;
+        }
+    }
 
     child = TreeNode_new(&TreeNode_Type, NULL, NULL);
     if(child == NULL)
     {
         PyErr_SetString(PyExc_RuntimeError,
                         "Failed to create new child TreeNode");
+        if(didCreateArgs)
+        {
+            Py_CLEAR(args);
+        }
+        if(didCreateKwargs)
+        {
+            Py_CLEAR(kwargs);
+        }
         return NULL;
     }
 
@@ -244,6 +282,14 @@ create_child(PyObject *args, PyObject *kwargs)
     {
         PyErr_SetString(PyExc_RuntimeError,
                         "Failed to initialize child TreeNode");
+        if(didCreateArgs)
+        {
+            Py_CLEAR(args);
+        }
+        if(didCreateKwargs)
+        {
+            Py_CLEAR(kwargs);
+        }
         Py_CLEAR(child);
         return NULL;
     }
@@ -255,41 +301,21 @@ static PyObject*
 TreeNode_add_child(PyObject *self, PyObject *args)
 {
     TreeNodeStruct *tree = (TreeNodeStruct *)self;
-    PyObject   *child, *arg = NULL, *TreeNode_init_args, *TreeNode_init_kwargs;
+    PyObject       *child, *arg = NULL, *TreeNode_init_args;
 
     if(!PyArg_ParseTuple(args, "|O", &arg))
     {
         return NULL;
     }
 
-    TreeNode_init_kwargs = PyDict_New();
-    if(TreeNode_init_kwargs == NULL)
-    {
-        PyErr_SetString(PyExc_RuntimeError,
-                        "Failed to create new PyTuple object");
-        return NULL;
-    }
-
     if(arg == NULL || arg == Py_None)
     {
-        // arg is NULL or None, so create a empty args tuple so that the new
-        // child has default values for its members   
-         
-        TreeNode_init_args = PyTuple_New(0);
-        if(TreeNode_init_args == NULL)
-        {
-            PyErr_SetString(PyExc_RuntimeError,
-                            "Failed to create new PyTuple object");
-            Py_CLEAR(TreeNode_init_kwargs);
-            return NULL;
-        }
+        // arg is NULL or None, so set default values for new TreeNode members   
 
-        child = create_child(TreeNode_init_args, TreeNode_init_kwargs);
+        child = _TreeNode_init(NULL, NULL);
         if(child == NULL)
         {
-            // PyErr_SetString in create_child
-            Py_CLEAR(TreeNode_init_args);
-            Py_CLEAR(TreeNode_init_kwargs);
+            // PyErr_SetString in _TreeNode_init
             return NULL;
         }
     }
@@ -308,19 +334,17 @@ TreeNode_add_child(PyObject *self, PyObject *args)
         {
             PyErr_SetString(PyExc_RuntimeError,
                             "Failed to create new PyTuple object");
-            Py_CLEAR(TreeNode_init_kwargs);
             return NULL;
         }
         PyTuple_SET_ITEM(TreeNode_init_args, 0, Py_None);
         PyTuple_SET_ITEM(TreeNode_init_args, 1, Py_None);
         PyTuple_SET_ITEM(TreeNode_init_args, 2, arg);
 
-        child = create_child(TreeNode_init_args, TreeNode_init_kwargs);
+        child = _TreeNode_init(TreeNode_init_args, NULL);
         if(child == NULL)
         {
-            // PyErr_SetString in create_child
+            // PyErr_SetString in _TreeNode_init
             Py_CLEAR(TreeNode_init_args);
-            Py_CLEAR(TreeNode_init_kwargs);
             return NULL;
         }
     }
@@ -328,7 +352,6 @@ TreeNode_add_child(PyObject *self, PyObject *args)
     {
         PyErr_SetString(PyExc_TypeError, 
                         "Expected TreeNode object, numeric, or None");
-        Py_CLEAR(TreeNode_init_kwargs);
         return NULL;
     }
 
@@ -349,7 +372,6 @@ TreeNode_add_child(PyObject *self, PyObject *args)
     }
 
     Py_CLEAR(TreeNode_init_args);
-    Py_CLEAR(TreeNode_init_kwargs);
     return child;
 }
 
