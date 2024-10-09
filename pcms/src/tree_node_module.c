@@ -135,7 +135,7 @@ TreeNode_set_sibling(PyObject *self, PyObject *value, PyObject *closure)
 
 /* A helper function for TreeNode_init to check arguments and set default values */
 static inline int
-check_arg_with_default(PyObject **arg, PyTypeObject *expected_type, 
+typecheck_default(PyObject **arg, PyTypeObject *expected_type, 
                        PyObject *default_value, const char *error_message)
 {
     if(*arg == NULL || *arg == Py_None)
@@ -166,14 +166,14 @@ TreeNode_init(TreeNodeStruct *tree, PyObject *args, PyObject *kwargs)
         return -1;
     }
 
-    if(check_arg_with_default(&child, &TreeNode_Type, NULL,
+    if(typecheck_default(&child, &TreeNode_Type, NULL,
                       "Expected TreeNode type or None for child") == -1)
     {
         return -1;
     }
     TreeNode_set_child((PyObject *)tree, child, NULL);
 
-    if(check_arg_with_default(&sibling, &TreeNode_Type, NULL,
+    if(typecheck_default(&sibling, &TreeNode_Type, NULL,
                       "Expected TreeNode type or None for sibling") == -1)
     {
         return -1;
@@ -187,7 +187,7 @@ TreeNode_init(TreeNodeStruct *tree, PyObject *args, PyObject *kwargs)
                         "Failed to create new PyFloat object");
         return -1;
     }
-    if(check_arg_with_default(&edge_length, &PyFloat_Type, default_value,
+    if(typecheck_default(&edge_length, &PyFloat_Type, default_value,
                       "Expected float or None for edge_length") == -1)
     {
         return -1;
