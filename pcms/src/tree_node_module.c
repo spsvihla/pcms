@@ -167,6 +167,7 @@ TreeNode_init(TreeNodeStruct *tree, PyObject *args, PyObject *kwargs)
         return -1;
     }
 
+    // set child
     if(typecheck_default(&child, &TreeNode_Type, NULL,
                       "Expected TreeNode type or None for child") == -1)
     {
@@ -174,6 +175,7 @@ TreeNode_init(TreeNodeStruct *tree, PyObject *args, PyObject *kwargs)
     }
     TreeNode_set_child((PyObject *)tree, child, NULL);
 
+    // set sibling
     if(typecheck_default(&sibling, &TreeNode_Type, NULL,
                       "Expected TreeNode type or None for sibling") == -1)
     {
@@ -181,17 +183,25 @@ TreeNode_init(TreeNodeStruct *tree, PyObject *args, PyObject *kwargs)
     }
     TreeNode_set_sibling((PyObject *)tree, sibling, NULL);
 
-    default_value = PyFloat_FromDouble(0.0);
+    // set edge_length
     if(default_value == NULL)
     {
         PyErr_SetString(PyExc_RuntimeError,
                         "Failed to create new PyFloat object");
         return -1;
     }
-    if(typecheck_default(&edge_length, &PyFloat_Type, default_value,
-                      "Expected float or None for edge_length") == -1)
+    if(edge_length == NULL || edge_length == Py_None)
     {
+        edge_length = PyFloat_FromDouble(0.0); // default value
+    }
+    else
+    {
+        if(!PyNumber_Check(edge_length))
+        {
+            PyErr_SetString(PyExc_ValueError,
+                            "Expected numeric or None for edge_length");
         return -1;
+    }
     }
     tree->edge_length = (float)PyFloat_AsDouble(edge_length);
 
@@ -288,9 +298,9 @@ TreeNode_add_child(PyObject *self, PyObject *args)
         // the new child is given, so use it
         child = arg;
     }
-    else if(PyFloat_Check(arg))
+    else if(PyNumber_Check(arg))
     {
-        // arg is a PyFloat object, so create a PyTuple "TreeNode_init_args" to 
+        // arg is a numeric object, so create a PyTuple "TreeNode_init_args" to 
         // pass to TreeNode_init
 
         TreeNode_init_args = PyTuple_New(3);
@@ -317,7 +327,7 @@ TreeNode_add_child(PyObject *self, PyObject *args)
     else
     {
         PyErr_SetString(PyExc_TypeError, 
-                        "Expected TreeNode object, float, or None");
+                        "Expected TreeNode object, numeric, or None");
         Py_CLEAR(TreeNode_init_kwargs);
         return NULL;
     }
