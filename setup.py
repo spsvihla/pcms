@@ -6,7 +6,7 @@ from glob import glob
 PKG="pcms"
 SRC=PKG+"/src/"
 INC=PKG+"/include/"
-CMOD="tree"
+CMOD="tree_node"
 
 ext_mod = Extension(
     name=PKG+"."+CMOD,
