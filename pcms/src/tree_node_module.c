@@ -10,7 +10,7 @@
 extern PyTypeObject TreeNode_Type; // forward declare to type check in getsetters
 
 /*****************************************************************************
- *                           TreeNode class definition                           *
+ *                           TreeNode class definition                       *
  *****************************************************************************/
 
 static int
@@ -87,9 +87,10 @@ TreeNode_get_sibling(PyObject *self, PyObject *closure)
     return get_TreeNode_member(&tree->sibling);
 }
 
-/* A helper function for setters to set a member of TreeNode */
+/* helper function for setters to set a member of TreeNode */
 static inline int
-set_TreeNode_member(PyObject **member, PyObject *value, const char error_message)
+set_TreeNode_member(PyObject **member, PyObject *value, 
+                    const char error_message)
 {
     if(value == NULL || value == Py_None)
     {
@@ -133,7 +134,7 @@ TreeNode_set_sibling(PyObject *self, PyObject *value, PyObject *closure)
                            "Expected TreeNode type or None for sibling");
 }
 
-/* A helper function for TreeNode_init to check arguments and set default values */
+/* helper function for TreeNode_init to type check and set defaults */
 static inline int
 typecheck_default(PyObject **arg, PyTypeObject *expected_type, 
                        PyObject *default_value, const char *error_message)
@@ -212,7 +213,7 @@ static PyGetSetDef TreeNode_getsetters[] = {
 };
 
 /*****************************************************************************
- *                         TreeNode method definitions                           *
+ *                         TreeNode method definitions                       *
  *****************************************************************************/
 
 /* A helper function for TreeNode_add_child to create new children */
@@ -343,7 +344,8 @@ TreeNode_add_child(PyObject *self, PyObject *args)
 }
 
 static PyMethodDef TreeNode_methods[] = {
-    {"add_child", TreeNode_add_child, METH_VARARGS, "Add a child node to the tree"},
+    {"add_child", TreeNode_add_child, METH_VARARGS, 
+     "Add a child node to the tree"},
     {NULL}  /* Sentinel */
 };
 
@@ -374,7 +376,7 @@ static PyMethodDef TreeNodeMethods[] = {
 
 /*****************************************************************************
  *                            module definition                              *
- ******************************************************************************/
+ *****************************************************************************/
 
 static PyModuleDef treenodemodule = {
     PyModuleDef_HEAD_INIT,
