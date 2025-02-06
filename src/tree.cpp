@@ -39,6 +39,9 @@ Tree::Tree(int n_nodes)
     }
 }
 
+// destructor
+Tree::~Tree() {}
+
 int 
 Tree::get_size() const
 {
@@ -198,7 +201,7 @@ Tree::find_support(int u) const
 
         for(int c = nodes.at(v).child; c != -1; c = nodes.at(c).sibling)
         {
-            stack.push({c, depth + 1});
+            stack.push(std::make_pair(c, depth + 1));
         }
     }
     return std::make_pair(support, depths);
@@ -224,7 +227,16 @@ Tree::find_path(int u, int v) const
 int
 Tree::find_root() const
 {
-    return find_ancestors(0).back();
+    std::vector<int> ancestors = find_ancestors(0);
+    if(!ancestors.empty())
+    {
+        return ancestors.back();
+    }
+    else
+    {
+        // no ancestors, so node 0 is root
+        return 0;
+    }
 }
 
 std::pair<std::vector<int>,std::vector<int>>

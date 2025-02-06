@@ -53,11 +53,11 @@ critical_beta_splitting_distribution::critical_beta_splitting_distribution(int n
     }
 
     cdf[0] = pmf[0];
-    for(int i = 1; i < n - 1; i++) 
+    for(int i = 1; i < n - 2; i++) 
     {
         cdf[i] = cdf[i-1] + pmf[i];
     }
-    cdf[n-1] = 1.0;
+    cdf[n-2] = 1.0;
 
     cache[n] = {pmf, cdf};
 }
@@ -92,7 +92,7 @@ remy(int n_leaves, unsigned int seed)
     std::default_random_engine rng(seed);
     std::uniform_int_distribution<int> bern(0,1); // Bernoulli(p=0.5)
 
-    auto tree = std::make_unique<Tree>(2 * n_leaves - 1);
+    Tree* tree = new Tree(2 * n_leaves - 1);
     for(int node = 1; node < 2 * n_leaves - 1; node += 2)
     {
         std::uniform_int_distribution<int> unif(0, node-1);
@@ -108,8 +108,8 @@ remy(int n_leaves, unsigned int seed)
         tree->link(right_child, node);
         tree->link(left_child, node);
     }
-    
-    return tree.release();
+
+    return tree;
 }
 
 void 
@@ -154,7 +154,7 @@ cbst(int n_leaves, unsigned int seed)
     }
     std::mt19937 rng(seed);
 
-    std::unique_ptr<Tree> tree = std::make_unique<Tree>(2 * n_leaves - 1);
-    _cbst(tree.get(), 0, tree->get_size()-1, n_leaves, rng);
-    return tree.release();
+    Tree* tree = new Tree(2 * n_leaves - 1);
+    _cbst(tree, 0, tree->get_size() - 1, n_leaves, rng);
+    return tree;
 }

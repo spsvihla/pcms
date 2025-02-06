@@ -12,6 +12,10 @@ namespace py = pybind11;
 // Pybind11 code to expose the Tree class to Python
 PYBIND11_MODULE(tree, m) {
     py::class_<Tree>(m, "Tree")
+        .def(
+            py::init<int>(), 
+            py::arg("n_nodes") = 1
+        )
         .def
         (
             "get_size", 
@@ -124,13 +128,15 @@ PYBIND11_MODULE(tree, m) {
         "remy", 
         &remy,
         py::arg("n_leaves"), 
-        py::arg("seed") = 0
+        py::arg("seed") = 0,
+        py::return_value_policy::take_ownership
     );
     m.def
     (
         "cbst",
         &cbst,
         py::arg("n_leaves"),
-        py::arg("seed") = 0
+        py::arg("seed") = 0,
+        py::return_value_policy::take_ownership
     );
 }

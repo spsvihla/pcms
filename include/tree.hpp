@@ -63,6 +63,11 @@ public:
     Tree(int size);
 
     /**
+     * @brief Default destructor.
+     */
+    ~Tree();
+
+    /**
      * @brief Gets the size of the tree.
      * 
      * @return The number of nodes in the tree.
