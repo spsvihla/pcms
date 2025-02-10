@@ -221,7 +221,7 @@ public:
      * This function starts from the root and prints the tree structure using
      * ASCII characters to represent the hierarchy of nodes.
      */
-    void print() const;
+    void print(bool do_label) const;
 
 private:
     int n_nodes;     ///< Number of nodes in the tree.
@@ -234,7 +234,8 @@ private:
      * @param prefix The prefix string used to format the tree output.
      * @param is_last Whether this node is the last child of its parent.
      */
-    void print_node(int node, const std::string& prefix, bool is_last) const;
+    void print_node(int node, const std::string& prefix, bool is_last, 
+                    bool do_label) const;
 };
 
 #endif // TREE_HPP

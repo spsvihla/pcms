@@ -121,7 +121,8 @@ PYBIND11_MODULE(tree, m) {
         .def
         (
             "print",
-            &Tree::print
+            &Tree::print,
+            py::arg("do_label") = false
         );
     m.def
     (

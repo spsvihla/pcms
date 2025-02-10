@@ -253,25 +253,35 @@ Tree::find_epl() const
 }
 
 void
-Tree::print() const
+Tree::print(bool do_label) const
 {
     int root = find_root();
-    print_node(root, "", true);
+    print_node(root, "", true, do_label);
 }
 
 void
-Tree::print_node(int node, const std::string& prefix, bool is_last) const
+Tree::print_node(int node, const std::string& prefix, bool is_last, 
+                 bool do_label) const
 {
     std::cout << prefix;
 
+    // add branches
     if (is_last) {
-        std::cout << "└── X" << std::endl;
+        std::cout << "└── ";
     } else {
-        std::cout << "├── X" << std::endl;
+        std::cout << "├── ";
+    }
+    
+    // add labels or X marker
+    if (do_label) {
+        std::cout << node << std::endl;
+    } else {
+        std::cout << "X" << std::endl;
     }
 
     std::vector<int> children = find_children(node);
     for (size_t i = 0; i < children.size(); ++i) {
-        print_node(children[i], prefix + (is_last ? "    " : "│   "), i == children.size() - 1);
+        print_node(children[i], prefix + (is_last ? "    " : "│   "), 
+                   i == children.size() - 1, do_label);
     }
 }
