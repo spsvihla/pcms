@@ -65,7 +65,7 @@ public:
                 return i + 1;
             }
         }
-        return n-1;
+        return n-1; // this line shouldn't be reached
     }
 
 private:
@@ -74,17 +74,6 @@ private:
     std::vector<double> cdf; ///< Cumulative distribution function (CDF) values
 
     static std::unordered_map<int, std::pair<std::vector<double>, std::vector<double>>> cache;
-
-    /**
-     * @brief Computes the harmonic number for a given n.
-     * 
-     * The harmonic number is defined as the sum of the reciprocals of the integers
-     * from 1 to n.
-     * 
-     * @param n The value for which the harmonic number is computed.
-     * @return The harmonic number.
-     */
-    double harmonic_number(int n);
 };
 
 /**
