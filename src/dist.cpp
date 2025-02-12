@@ -17,6 +17,9 @@
 #include <tuple>
 #include <unordered_map>
 
+// Other system library includes
+#include <gsl/gsl_integration.h>
+
 // Project-specific includes
 #include "dist.hpp"
 #include "tree.hpp"
@@ -32,13 +35,50 @@ constexpr double GAMMA = 0.57721566490153286060; // Euler-Mascheroni constant
 
 std::unordered_map<int, std::pair<std::vector<double>, std::vector<double>>> critical_beta_splitting_distribution::cache;
 
+/* Integrand to compute harmonic numbers by Euler's formula  */
+double 
+integrand(double x, void* params) {
+    int n = *(int*)params;
+    return (1 - pow(x, n)) / (1 - x);
+}
+
+/* Computes the harmonic number for a given n. */
+double 
+harmonic_number(int n) 
+{
+    gsl_integration_workspace* workspace = gsl_integration_workspace_alloc(1000);
+
+    // define integrand
+    gsl_function F;
+    F.function = &integrand;
+    F.params = &n;
+
+    // numerical integration
+    double result, error;
+    gsl_integration_qags(
+        &F,   // Function to integrate (gsl_function struct)
+        0,    // Lower limit of integration
+        1,    // Upper limit of integration
+        1e-7, // Absolute error tolerance
+        1e-7, // Relative error tolerance
+        1000, // Maximum number of subintervals
+        workspace, // Integration workspace
+        &result,   // Pointer to store the integral result
+        &error     // Pointer to store the estimated error
+    );    
+
+    gsl_integration_workspace_free(workspace);
+    return result;
+}
+
 critical_beta_splitting_distribution::critical_beta_splitting_distribution(int n)
 : n(n), pmf(n-1), cdf(n-1) 
 {
     assert(n >= 2);
 
     auto cache_iter = cache.find(n);
-    if(cache_iter != cache.end()) {
+    if(cache_iter != cache.end()) 
+    {
         pmf = cache_iter->second.first;
         cdf = cache_iter->second.second;
         return;
@@ -60,24 +100,6 @@ critical_beta_splitting_distribution::critical_beta_splitting_distribution(int n
     cdf[n-2] = 1.0;
 
     cache[n] = {pmf, cdf};
-}
-
-double
-critical_beta_splitting_distribution::harmonic_number(int n)
-{
-    if(n <= 30)
-    {
-        double hn = 0.0;
-        for(int i = 1; i <= n; i++)
-        {
-            hn += 1.0 / i;
-        }
-        return hn;
-    }
-    else
-    {
-        return log(n) + GAMMA;
-    }
 }
 
 Tree*
