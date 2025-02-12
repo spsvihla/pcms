@@ -131,7 +131,7 @@ _cbst(Tree* tree, int start, int end, int n0, std::mt19937 &rng)
             continue;
         }
 
-        critical_beta_splitting_distribution dist(n0 - 1);
+        critical_beta_splitting_distribution dist(n0);
         int x = dist(rng);
         int n1 = 2 * x - 1;
 
