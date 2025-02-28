@@ -60,6 +60,19 @@ PYBIND11_MODULE(tree, m) {
         )
         .def
         (
+            "get_name", 
+            &Tree::get_name, 
+            py::arg("u")
+        )
+        .def
+        (
+            "set_name", 
+            &Tree::set_name, 
+            py::arg("u"), 
+            py::arg("value")
+        )
+        .def
+        (
             "link", 
             &Tree::link, 
             py::arg("u"), 
@@ -122,8 +135,15 @@ PYBIND11_MODULE(tree, m) {
         (
             "print",
             &Tree::print,
-            py::arg("do_label") = false
+            py::arg("label") = "none"
         );
+    m.def
+    (
+        "nwk2tree",
+        &nwk2tree,
+        py::arg("filename"),
+        py::return_value_policy::take_ownership    
+    );
     m.def
     (
         "remy", 
