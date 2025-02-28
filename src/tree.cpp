@@ -1,5 +1,5 @@
 /**
- * @file tree_node.c
+ * @file tree_node.cpp
  * 
  * Contains the implementation of the TreeNode class and related functions.
  * This file handles tree node operations such as swapping subtrees and computing 
@@ -8,17 +8,20 @@
  * @author Sean Svihla
  */
 
-// Standard library includes
+// standard library includes
+#include <fstream>
 #include <iostream>
 #include <numeric>
 #include <random>
 #include <stack>
+#include <string>
+#include <string_view>
 #include <vector>
 
-// Project-specific includes
+// project-specific includes
 #include "tree.hpp"
 
-// Pybind11 includes
+// pybind11 includes
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
@@ -27,17 +30,7 @@ namespace py = pybind11;
 
 // constructor
 Tree::Tree(int n_nodes)
-: n_nodes(n_nodes), nodes(n_nodes)
-{
-    for(int i = 0; i < n_nodes; i++)
-    {
-        nodes.at(i).parent = -1;
-        nodes.at(i).child = -1;
-        nodes.at(i).sibling = -1;
-        nodes.at(i).subtree_size = 1;
-        nodes.at(i).edge_length = 1.0f;
-    }
-}
+: n_nodes(n_nodes), topology(n_nodes), numerics(n_nodes), names(n_nodes) {}
 
 // destructor
 Tree::~Tree() {}
@@ -51,68 +44,94 @@ Tree::get_size() const
 int 
 Tree::get_parent(int u) const
 {
-    return nodes.at(u).parent;
+    return topology.at(u).parent;
 }
 
 int 
 Tree::get_child(int u) const
 {
-    return nodes.at(u).child;
+    return topology.at(u).child;
 }
 
 int 
 Tree::get_sibling(int u) const
 {
-    return nodes.at(u).sibling;
+    return topology.at(u).sibling;
 }
 
 int 
 Tree::get_subtree_size(int u) const
 {
-    return nodes.at(u).subtree_size;
+    return numerics.subtree_size.at(u);
 }
 
-float 
+double 
 Tree::get_edge_length(int u) const
 {
-    return nodes.at(u).edge_length;
+    return numerics.edge_length.at(u);
 }
 
 void 
-Tree::set_edge_length(int u, float value)
+Tree::set_edge_length(int u, double value)
 {
-    nodes.at(u).edge_length = value;
+    numerics.edge_length.at(u) = value;
+}
+
+std::string
+Tree::get_name(int u) const
+{
+    return names.at(u);
+}
+
+void
+Tree::set_name(int u, const std::string& value)
+{
+    names.at(u) = value;
 }
 
 void 
 Tree::link(int u, int v)
 {
-    assert(nodes.at(u).parent == -1);
-
-    if(v == -1)
+    // Check bounds
+    if(u < 0 || u >= n_nodes || v < -1 || v >= n_nodes)
     {
-        return;
+        throw std::out_of_range("Node indices out of bounds");
     }
 
-    int is_leaf = nodes.at(v).child == -1 ? 1 : 0;
+    // Check if u is already linked
+    if(topology[u].parent != -1) 
+    {
+        throw std::runtime_error("Cannot link a node before cutting");
+    }
+
+    if(v == -1) return;
+
+    int is_leaf = (topology[v].child == -1);
 
     // update pointers
-    nodes.at(u).parent = v;
-    nodes.at(u).sibling = nodes.at(v).child;
-    nodes.at(v).child = u;
+    topology[u].parent = v;
+    topology[u].sibling = topology[v].child;
+    topology[v].child = u;
 
     // update subtree_size
-    int diff = nodes.at(u).subtree_size - is_leaf;
-    for(; v != -1; v = nodes.at(v).parent)
+    int diff = numerics.subtree_size[u] - is_leaf;
+    while(v >= 0)
     {
-        nodes.at(v).subtree_size += diff;
+        numerics.subtree_size[v] += diff;
+        v = topology[v].parent;
     }
 }
 
 void 
 Tree::cut(int u)
 {
-    int p = nodes.at(u).parent;
+    // Check bounds
+    if(u < 0 || u >= n_nodes)
+    {
+        throw std::out_of_range("Node indices out of bounds");
+    }
+
+    int p = topology[u].parent;
     if(p == -1)
     {
         // node is an orphan
@@ -120,37 +139,37 @@ Tree::cut(int u)
     }
 
     // update pointers
-    if(nodes.at(p).child == u)
+    if(topology[p].child == u)
     {
-        nodes.at(p).child = nodes.at(u).sibling;
+        topology[p].child = topology[u].sibling;
     }
     else
     {
-        int c = nodes.at(p).child;
-        while(nodes.at(c).sibling != u)
+        int c = topology[p].child;
+        while(topology[c].sibling != u)
         {
-            c = nodes.at(c).sibling;
+            c = topology[c].sibling;
         }
-        nodes.at(c).sibling = nodes.at(u).sibling;
+        topology[c].sibling = topology[u].sibling;
     }
-    int is_leaf = nodes.at(p).child == -1 ? 1 : 0;
+    int is_leaf = (topology[p].child == -1);
 
     // update subtree_size
-    int diff = is_leaf - nodes.at(u).subtree_size;
-    for(; p != -1; p = nodes.at(p).parent)
+    int diff = is_leaf - numerics.subtree_size[u];
+    for(; p != -1; p = topology[p].parent)
     {
-        nodes.at(p).subtree_size += diff;
+        numerics.subtree_size[p] += diff;
     }
 
-    nodes.at(u).parent = -1;
-    nodes.at(u).sibling = -1;
+    topology[u].parent = -1;
+    topology[u].sibling = -1;
 }
 
 void 
 Tree::swap(int u, int v)
 {
-    int pu = nodes.at(u).parent;
-    int pv = nodes.at(v).parent;
+    int pu = topology.at(u).parent;
+    int pv = topology.at(v).parent;
     cut(u);
     cut(v);
     link(u, pv);
@@ -161,7 +180,7 @@ std::vector<int>
 Tree::find_children(int u) const
 {
     std::vector<int> children;
-    for(int c = nodes.at(u).child; c != -1; c = nodes.at(c).sibling)
+    for(int c = topology.at(u).child; c != -1; c = topology.at(c).sibling)
     {
         children.push_back(c);
     }
@@ -172,7 +191,7 @@ std::vector<int>
 Tree::find_ancestors(int u) const
 {
     std::vector<int> ancestors;
-    for(u = nodes.at(u).parent; u != -1; u = nodes.at(u).parent)
+    for(u = topology.at(u).parent; u != -1; u = topology.at(u).parent)
     {
         ancestors.push_back(u);
     }
@@ -193,13 +212,13 @@ Tree::find_support(int u) const
         int depth = stack.top().second;
         stack.pop();
 
-        if(nodes.at(v).child == -1)
+        if(topology.at(v).child == -1)
         {
             support.push_back(v);     // leaf
             depths.push_back(depth);  // depth
         }
 
-        for(int c = nodes.at(v).child; c != -1; c = nodes.at(c).sibling)
+        for(int c = topology.at(v).child; c != -1; c = topology.at(c).sibling)
         {
             stack.push(std::make_pair(c, depth + 1));
         }
@@ -253,35 +272,165 @@ Tree::find_epl() const
 }
 
 void
-Tree::print(bool do_label) const
+Tree::print(const std::string& label) const
 {
     int root = find_root();
-    print_node(root, "", true, do_label);
+    print_node(root, "", true, label);
 }
 
 void
 Tree::print_node(int node, const std::string& prefix, bool is_last, 
-                 bool do_label) const
+                 const std::string& label) const
 {
     std::cout << prefix;
 
     // add branches
-    if (is_last) {
+    if (is_last) 
+    {
         std::cout << "└── ";
-    } else {
+    } 
+    else 
+    {
         std::cout << "├── ";
     }
-    
+
     // add labels or X marker
-    if (do_label) {
+    if(label == "index") 
+    {
         std::cout << node << std::endl;
-    } else {
+    } 
+    else if(label == "name")
+    {
+        std::cout << names.at(node) << std::endl;
+    }
+    else if(label == "none")
+    {
         std::cout << "X" << std::endl;
+    }
+    else
+    {
+        throw py::value_error("Unrecognized labelling: " + label);
     }
 
     std::vector<int> children = find_children(node);
-    for (size_t i = 0; i < children.size(); ++i) {
+    for(size_t i = 0; i < children.size(); ++i) 
+    {
         print_node(children[i], prefix + (is_last ? "    " : "│   "), 
-                   i == children.size() - 1, do_label);
+                   i == children.size() - 1, label);
     }
+}
+
+std::string
+read_nwk(std::string filename)
+{
+    std::ifstream file(filename);
+    if(!file)
+    {
+        throw std::runtime_error("Could not open file " + filename);
+    }
+
+    std::string nwk_str;
+    std::getline(file, nwk_str); // read the entire Newick string from the file
+
+    file.close();
+    
+    return nwk_str;
+}
+
+/* first pass: count the number of nodes in the tree */
+int 
+count_nodes(std::string_view nwk_str)
+{
+    int count = 1;
+    for(char c: nwk_str)
+    {
+        if(c == '(' || c == ',')
+        {
+            count++;
+        }
+    }
+    return count;
+}
+
+void
+flush_buffer(int& curr_node, Tree* tree, std::vector<char>& char_buf, 
+             std::stack<int>& stack, bool is_name)
+{
+    if (char_buf.empty()) return;
+
+    std::string str(char_buf.begin(), char_buf.end());  
+    char_buf.clear();
+
+    if(is_name)
+    {
+        tree->set_name(curr_node, str);
+    }
+    else
+    {
+        tree->set_edge_length(curr_node, std::stod(str));
+    }
+}
+
+/* second pass: assign parent-child relationships */
+Tree
+*nwk2tree(const std::string& filename)
+{
+    std::string nwk_str = read_nwk(filename);
+
+    // allocate a new Tree
+    int n_nodes = count_nodes(nwk_str);
+    Tree *tree = new Tree(n_nodes);
+
+    // create a stack for storing subtree parents
+    std::stack<int> stack;
+    int curr_node = 0;
+
+    bool is_name = true;
+    std::vector<char> char_buf;
+    for(int i = 0; i < static_cast<int>(nwk_str.size()); i++)
+    {
+        char c = nwk_str[i];
+
+        if(c == ';')
+        {
+            flush_buffer(curr_node, tree, char_buf, stack, is_name);
+        }
+        else if(c == '(')
+        {
+            stack.push(-1);
+        }
+        else if(c == ',')
+        {
+            flush_buffer(curr_node, tree, char_buf, stack, is_name);
+            stack.push(curr_node++);
+            is_name = true;
+        }
+        else if(c == ')')
+        {
+            flush_buffer(curr_node, tree, char_buf, stack, is_name);
+            stack.push(curr_node++);
+            while(!stack.empty() && stack.top() != -1)
+            {
+                int child = stack.top();
+                tree->link(child, curr_node);
+                stack.pop();
+            }
+            if(!stack.empty())
+            { 
+                stack.pop(); // pop the '-1' without storing it
+            }
+            is_name = true;
+        }
+        else if(c == ':')
+        {
+            flush_buffer(curr_node, tree, char_buf, stack, is_name);
+            is_name = false;
+        }
+        else if(isalnum(c) || c == '_' || c == '.')
+        {
+            char_buf.insert(char_buf.begin(), c);
+        }
+    }
+
+    return tree;
 }

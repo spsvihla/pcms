@@ -15,31 +15,62 @@
  * cutting edges, and swapping subtrees. Additionally, utility functions for traversing
  * the tree, finding leaves, and computing the effective path length (EPL) are included.
  * 
- * The `remy` function generates a random tree with a specified number of leaves.
- * 
- * This header is part of a larger project aimed at managing and manipulating tree data structures.
- * 
  * @author Sean Svihla
  */
 #ifndef TREE_HPP
 #define TREE_HPP
 
 // Standard library includes
+#include <immintrin.h>
+#include <memory>
+#include <string>
 #include <vector>
 
 /**
- * @struct TreeNode
- * @brief A structure to represent a node in the tree.
- *
- * Each node stores information about its parent, child, sibling,
- * its subtree size, and the edge length to its parent.
+ * @struct AlignedAllocator
  */
-struct TreeNode {
-    int parent;        ///< Parent node index (-1 if no parent)
-    int child;         ///< Child node index (-1 if no child)
-    int sibling;       ///< Sibling node index (-1 if no sibling)
-    int subtree_size;  ///< Size of the subtree rooted at this node
-    float edge_length; ///< Length of the edge to the parent node
+template <typename T, std::size_t Alignment>
+struct AlignedAllocator {
+    using value_type = T;
+
+    T* allocate(std::size_t n) {
+        void* ptr = nullptr;
+        if (posix_memalign(&ptr, Alignment, n * sizeof(T)) != 0) {
+            throw std::bad_alloc();
+        }
+        return static_cast<T*>(ptr);
+    }
+
+    void deallocate(T* ptr, std::size_t) noexcept {
+        free(ptr);
+    }
+
+    template <typename U>
+    struct rebind {
+        using other = AlignedAllocator<U, Alignment>;
+    };
+};
+
+/**
+ * @struct TreeTopology
+ * @brief A structure to represent parent-child relationships in the tree.
+ */
+struct TreeTopology {
+    int parent = -1;         ///< Parent node index (-1 if no parent)
+    int child = -1;          ///< Child node index (-1 if no child)
+    int sibling = -1;        ///< Sibling node index (-1 if no sibling)
+};
+
+/**
+ * @struct TreeNumerics
+ * @brief A structure to represent numerical tree attributes.
+ */
+struct TreeNumerics {
+    std::vector<int, AlignedAllocator<int, 32>> subtree_size;       ///< Number of children in the subtree
+    std::vector<double, AlignedAllocator<double, 32>> edge_length;  ///< Edge length to parent
+
+    TreeNumerics(size_t n_nodes) 
+    : subtree_size(n_nodes, 1), edge_length(n_nodes, 0.0) {} 
 };
 
 /**
@@ -79,7 +110,7 @@ public:
      * 
      * @param u The index of the node.
      * @return The index of the parent node.
-     * @throws py::value_error If the node index is out of bounds.
+     * @throws py::index_error If the node index is out of bounds.
      */
     int get_parent(int u) const;
 
@@ -88,7 +119,7 @@ public:
      * 
      * @param u The index of the node.
      * @return The index of the child node.
-     * @throws py::value_error If the node index is out of bounds.
+     * @throws py::index_error If the node index is out of bounds.
      */
     int get_child(int u) const;
 
@@ -97,7 +128,7 @@ public:
      * 
      * @param u The index of the node.
      * @return The index of the sibling node.
-     * @throws py::value_error If the node index is out of bounds.
+     * @throws py::index_error If the node index is out of bounds.
      */
     int get_sibling(int u) const;
 
@@ -106,7 +137,7 @@ public:
      * 
      * @param u The index of the node.
      * @return The size of the subtree.
-     * @throws py::value_error If the node index is out of bounds.
+     * @throws py::index_error If the node index is out of bounds.
      */
     int get_subtree_size(int u) const;
 
@@ -115,18 +146,36 @@ public:
      * 
      * @param u The index of the node.
      * @return The edge length to the parent.
-     * @throws py::value_error If the node index is out of bounds.
+     * @throws py::index_error If the node index is out of bounds.
      */
-    float get_edge_length(int u) const;
+    double get_edge_length(int u) const;
 
     /**
      * @brief Sets the edge length of the edge connecting a node to its parent.
      * 
      * @param u The index of the node.
      * @param value The new edge length to set.
-     * @throws py::value_error If the node index is out of bounds.
+     * @throws py::index_error If the node index is out of bounds.
      */
-    void set_edge_length(int u, float value);
+    void set_edge_length(int u, double value);
+
+    /**
+     * @brief Gets the name of the node.
+     * 
+     * @param u The index of the node.
+     * @return The namae of the node. 
+     * @throws py::index_error If the node index is out of bounds.
+     */
+    std::string get_name(int u) const;
+
+    /**
+     * @brief Sets the name of the node.
+     * 
+     * @param u The index of the node.
+     * @param value The new node name.
+     * @throws py::index_error If the node index is out of bounds.
+     */
+    void set_name(int u, const std::string& value);
 
     /**
      * @brief Links two nodes by making one the child of the other.
@@ -142,7 +191,7 @@ public:
      * @brief Cuts the link between a node and its parent.
      * 
      * @param u The index of the node to cut from its parent.
-     * @throws py::value_error If the node index is out of bounds.
+     * @throws py::index_error If the node index is out of bounds.
      */
     void cut(int u);
 
@@ -159,7 +208,7 @@ public:
      * 
      * @param u The index of the node.
      * @return A vector of child node indices.
-     * @throws py::value_error If the node index is out of bounds.
+     * @throws py::index_error If the node index is out of bounds.
      */
     std::vector<int> find_children(int u) const;
 
@@ -168,7 +217,7 @@ public:
      * 
      * @param u The index of the node.
      * @return A vector of ancestor node indices.
-     * @throws py::value_error If the node index is out of bounds.
+     * @throws py::index_error If the node index is out of bounds.
      */
     std::vector<int> find_ancestors(int u) const;
 
@@ -178,7 +227,7 @@ public:
      * @param u The index of the node.
      * @return A pair of vectors: the first contains support node indices,
      *         and the second contains their corresponding depths.
-     * @throws py::value_error If the node index is out of bounds.
+     * @throws py::index_error If the node index is out of bounds.
      */
     std::pair<std::vector<int>, std::vector<int>> find_support(int u) const;
 
@@ -189,7 +238,7 @@ public:
      * @param v The index of the second node.
      * @return A pair of vectors: the first contains the ancestors of the first
      *         node, and the second contains the ancestors of the second node.
-     * @throws py::value_error If any of the node indices are out of bounds.
+     * @throws py::index_error If any of the node indices are out of bounds.
      */
     std::pair<std::vector<int>, std::vector<int>> find_path(int u, int v) const;
 
@@ -220,12 +269,16 @@ public:
      * 
      * This function starts from the root and prints the tree structure using
      * ASCII characters to represent the hierarchy of nodes.
+     * 
+     * @param label The labelling style (none, index, or name).
      */
-    void print(bool do_label) const;
+    void print(const std::string& label) const;
 
 private:
-    int n_nodes;     ///< Number of nodes in the tree.
-    std::vector<TreeNode> nodes; ///< Array of tree nodes.
+    int n_nodes;                            ///< Number of nodes in the tree.
+    std::vector<TreeTopology> topology;     ///< Parent-child-sibling relationships
+    TreeNumerics numerics;                  ///< Edge length and subtree sizes
+    std::vector<std::string> names;         ///< Array of node names.
 
     /**
      * @brief Helper function to print a specific node and its children.
@@ -235,7 +288,9 @@ private:
      * @param is_last Whether this node is the last child of its parent.
      */
     void print_node(int node, const std::string& prefix, bool is_last, 
-                    bool do_label) const;
+                    const std::string& label) const;
 };
+
+Tree *nwk2tree(const std::string& filename);
 
 #endif // TREE_HPP
