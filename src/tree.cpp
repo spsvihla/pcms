@@ -367,7 +367,54 @@ flush_buffer(int& curr_node, Tree* tree, std::vector<char>& char_buf,
     }
     else
     {
-        tree->set_edge_length(curr_node, std::stod(str));
+        try
+        {
+            tree->set_edge_length(curr_node, std::stod(str));
+        }
+        catch(const std::invalid_argument& e)
+        {
+            throw py::value_error("Invalid edge length: " + str);
+        }
+    }
+}
+
+inline void
+parse_newick(char c, int& curr_node, Tree* tree, std::vector<char>& char_buf, 
+             std::stack<int>& stack, bool& is_name, bool is_valid_char[256])
+{
+    switch(c) 
+    {
+        case ';':   // root
+            flush_buffer(curr_node, tree, char_buf, stack, is_name); 
+            break;
+        case '(':   // subtree begin
+            stack.push(-1); 
+            break;
+        case ',':   // sibling 
+            flush_buffer(curr_node, tree, char_buf, stack, is_name);
+            stack.push(curr_node++);
+            is_name = true;
+            break;
+        case ')':   // subtree end
+        {
+            flush_buffer(curr_node, tree, char_buf, stack, is_name);
+            stack.push(curr_node++);
+            while(!stack.empty() && stack.top() != -1) 
+            {
+                int child = stack.top();
+                tree->link(child, curr_node);
+                stack.pop();
+            }
+            if(!stack.empty()) stack.pop(); // pop '-1'
+            is_name = true;
+            break;
+        }
+        case ':':   // edge length
+            flush_buffer(curr_node, tree, char_buf, stack, is_name);
+            is_name = false;
+            break;
+        default:
+            if(is_valid_char[(unsigned char)c]) char_buf.push_back(c);
     }
 }
 
@@ -385,50 +432,39 @@ Tree
     std::stack<int> stack;
     int curr_node = 0;
 
+    // create a lookup table for alpha-numeric characters
+    bool is_valid_char[256] = {false};
+
+    // initialize valid characters
+    for(char c = '0'; c <= '9'; c++) is_valid_char[(unsigned char)c] = true;
+    for(char c = 'A'; c <= 'Z'; c++) is_valid_char[(unsigned char)c] = true;
+    for(char c = 'a'; c <= 'z'; c++) is_valid_char[(unsigned char)c] = true;
+    is_valid_char[(unsigned char)'_'] = true;
+    is_valid_char[(unsigned char)'.'] = true;
+
+    // create a character buffer for temporary name/edge length storage
     bool is_name = true;
     std::vector<char> char_buf;
+
+    // all characters allowed if quoted
+    bool is_quoted = false;
+
     for(int i = 0; i < static_cast<int>(nwk_str.size()); i++)
     {
         char c = nwk_str[i];
 
-        if(c == ';')
+        if(c == '\'' || c == '\"') 
         {
-            flush_buffer(curr_node, tree, char_buf, stack, is_name);
-        }
-        else if(c == '(')
+            is_quoted ^= 1; // toggle quoting
+        } 
+        else if(is_quoted) 
         {
-            stack.push(-1);
-        }
-        else if(c == ',')
+            char_buf.push_back(c);
+        } 
+        else 
         {
-            flush_buffer(curr_node, tree, char_buf, stack, is_name);
-            stack.push(curr_node++);
-            is_name = true;
-        }
-        else if(c == ')')
-        {
-            flush_buffer(curr_node, tree, char_buf, stack, is_name);
-            stack.push(curr_node++);
-            while(!stack.empty() && stack.top() != -1)
-            {
-                int child = stack.top();
-                tree->link(child, curr_node);
-                stack.pop();
-            }
-            if(!stack.empty())
-            { 
-                stack.pop(); // pop the '-1' without storing it
-            }
-            is_name = true;
-        }
-        else if(c == ':')
-        {
-            flush_buffer(curr_node, tree, char_buf, stack, is_name);
-            is_name = false;
-        }
-        else if(isalnum(c) || c == '_' || c == '.')
-        {
-            char_buf.insert(char_buf.begin(), c);
+            parse_newick(c, curr_node, tree, char_buf, stack, is_name, 
+                         is_valid_char);
         }
     }
 
