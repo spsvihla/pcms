@@ -93,9 +93,13 @@ void
 Tree::link(int u, int v)
 {
     // Check bounds
-    if(u < 0 || u >= n_nodes || v < -1 || v >= n_nodes)
+    if(u < 0 || u >= n_nodes)
     {
-        throw std::out_of_range("Node indices out of bounds");
+        throw std::out_of_range("Node indices out of bounds: u = " + std::to_string(u));
+    }
+    if(v < -1 || v >= n_nodes)
+    {
+        throw std::out_of_range("Node indices out of bounds: v = " + std::to_string(v));
     }
 
     // Check if u is already linked
@@ -179,8 +183,14 @@ Tree::swap(int u, int v)
 std::vector<int> 
 Tree::find_children(int u) const
 {
+    // Check bounds
+    if(u < 0 || u >= n_nodes)
+    {
+        throw std::out_of_range("Node indices out of bounds");
+    }
+
     std::vector<int> children;
-    for(int c = topology.at(u).child; c != -1; c = topology.at(c).sibling)
+    for(int c = topology[u].child; c != -1; c = topology[c].sibling)
     {
         children.push_back(c);
     }
@@ -190,8 +200,14 @@ Tree::find_children(int u) const
 std::vector<int> 
 Tree::find_ancestors(int u) const
 {
+    // Check bounds
+    if(u < 0 || u >= n_nodes)
+    {
+        throw std::out_of_range("Node indices out of bounds");
+    }
+
     std::vector<int> ancestors;
-    for(u = topology.at(u).parent; u != -1; u = topology.at(u).parent)
+    for(u = topology[u].parent; u != -1; u = topology[u].parent)
     {
         ancestors.push_back(u);
     }
@@ -201,6 +217,12 @@ Tree::find_ancestors(int u) const
 std::pair<std::vector<int>, std::vector<int>> 
 Tree::find_support(int u) const
 {
+    // Check bounds
+    if(u < 0 || u >= n_nodes)
+    {
+        throw std::out_of_range("Node indices out of bounds");
+    }
+
     std::vector<int> support;
     std::vector<int> depths;
     std::stack<std::pair<int, int>> stack;
@@ -212,13 +234,13 @@ Tree::find_support(int u) const
         int depth = stack.top().second;
         stack.pop();
 
-        if(topology.at(v).child == -1)
+        if(topology[v].child == -1)
         {
             support.push_back(v);     // leaf
             depths.push_back(depth);  // depth
         }
 
-        for(int c = topology.at(v).child; c != -1; c = topology.at(c).sibling)
+        for(int c = topology[v].child; c != -1; c = topology[c].sibling)
         {
             stack.push(std::make_pair(c, depth + 1));
         }
@@ -229,6 +251,16 @@ Tree::find_support(int u) const
 std::pair<std::vector<int>,std::vector<int>> 
 Tree::find_path(int u, int v) const
 {
+    // Check bounds
+    if(u < 0 || u >= n_nodes)
+    {
+        throw std::out_of_range("Node indices out of bounds: u = " + std::to_string(u));
+    }
+    if(v < 0 || v >= n_nodes)
+    {
+        throw std::out_of_range("Node indices out of bounds: v = " + std::to_string(v));
+    }
+
     std::vector<int> u_path = find_ancestors(u);
     std::vector<int> v_path = find_ancestors(v);
     while(!u_path.empty() && !v_path.empty()) 
@@ -301,7 +333,7 @@ Tree::print_node(int node, const std::string& prefix, bool is_last,
     } 
     else if(label == "name")
     {
-        std::cout << names.at(node) << std::endl;
+        std::cout << names[node] << std::endl;
     }
     else if(label == "none")
     {
