@@ -42,4 +42,13 @@ setup(
     packages=find_packages(where='pcms'),
     cmdclass={'build_ext': build_ext},
     ext_modules=ext_modules,
+    extras_require={
+        'notebooks': [
+            'numpy',
+            'scipy',
+            'pandas',
+            'matplotlib',
+            'jupyter'
+        ],
+    },
 )
