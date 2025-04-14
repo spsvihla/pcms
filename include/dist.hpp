@@ -17,6 +17,8 @@
  * - Aldous, David. 1996. “Probability Distributions on Cladograms.” In Random Discrete Structures, edited by David Aldous and Robin Pemantle, 76:1–18. The IMA Volumes in Mathematics and Its Applications. New York, NY: Springer New York. https://doi.org/10.1007/978-1-4612-0719-1_1.
  * - Aldous, David, and Boris Pittel. 2023. “The Critical Beta-Splitting Random Tree I: Heights and Related Results.” arXiv. https://doi.org/10.48550/arXiv.2302.05066.
  * - Aldous, David J., and Svante Janson. 2024. “The Critical Beta-Splitting Random Tree II: Overview and Open Problems.” arXiv. https://doi.org/10.48550/arXiv.2303.02529.
+ * - Aldous, David J., and Svante Janson. 2024. “The Critical Beta-splitting Random Tree III: The exchangeable partition representation and the fringe tree.” arXiv. http://arxiv.org/abs/2412.09655.
+ * - Aldous, David J., and Svante Janson. 2024. “The Critical Beta-splitting Random Tree IV: Mellin analysis of Leaf Height.” arXiv. http://arxiv.org/abs/2412.12319.
  * 
  * @author Sean Svihla
  */
