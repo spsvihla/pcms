@@ -59,6 +59,7 @@ struct TreeTopology {
     int parent = -1;         ///< Parent node index (-1 if no parent)
     int child = -1;          ///< Child node index (-1 if no child)
     int sibling = -1;        ///< Sibling node index (-1 if no sibling)
+    bool is_first = false;   ///< Whether node is the first (leftmost) sibling
 };
 
 /**
@@ -131,6 +132,15 @@ public:
      * @throws py::index_error If the node index is out of bounds.
      */
     int get_sibling(int u) const;
+
+    /**
+     * @brief Gets whether the node is first among its siblings.alignas
+     * 
+     * @param u The index of the node.
+     * @return The is_first parameter of the node.
+     * @throws py::index_error If the node index is out of bounds.
+     */
+    bool get_is_first(int u) const;
 
     /**
      * @brief Gets the size of the subtree rooted at a specified node.

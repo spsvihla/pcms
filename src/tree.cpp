@@ -58,6 +58,12 @@ Tree::get_sibling(int u) const
     return topology.at(u).sibling;
 }
 
+bool
+Tree::get_is_first(int u) const
+{
+    return topology.at(u).is_first;
+}
+
 int 
 Tree::get_subtree_size(int u) const
 {
@@ -128,6 +134,10 @@ Tree::link(int u, int v)
     topology[u].sibling = topology[v].child;
     topology[v].child = u;
 
+    // update is_first
+    topology[u].is_first = true;
+    topology[topology[u].sibling].is_first = false;
+
     // update subtree_size
     int diff = numerics.subtree_size[u] - is_leaf;
     while(v >= 0)
@@ -157,6 +167,13 @@ Tree::cut(int u)
     if(topology[p].child == u)
     {
         topology[p].child = topology[u].sibling;
+
+        // update is_first
+        if(int s = topology[u].sibling; s != -1)
+        {
+            topology[u].is_first = false;
+            topology[s].is_first = true;
+        }
     }
     else
     {
