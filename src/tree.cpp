@@ -331,6 +331,61 @@ Tree::find_epl() const
     return std::accumulate(depths.begin(), depths.end(), 0.0);
 }
 
+double 
+Tree::find_tbl(int u) const 
+{
+    // check bounds
+    if(u < 0 || u >= n_nodes)
+    {
+        throw std::out_of_range("Node indices out of bounds: u = " + std::to_string(u));
+    }
+    return numerics.subtree_size[u] * numerics.edge_length[u];
+}
+
+double
+Tree::find_tbl(int u, int v) const
+{
+    // check bounds
+    if(u < 0 || u >= n_nodes)
+    {
+        throw std::out_of_range("Node indices out of bounds: u = " + std::to_string(u));
+    }
+    if(v < 0 || v >= n_nodes)
+    {
+        throw std::out_of_range("Node indices out of bounds: v = " + std::to_string(u));
+    }
+    auto [left, right] = find_path(u, v);
+    double left_sum = std::accumulate(
+        left.begin(), left.end(),
+        numerics.edge_length[u] * numerics.subtree_size[u],
+        [this](double sum, int w) {
+            return sum + this->numerics.edge_length[w] * this->numerics.subtree_size[w];
+        }
+    );
+    double right_sum = std::accumulate(
+        right.begin(), right.end(),
+        numerics.edge_length[v] * numerics.subtree_size[v],
+        [this](double sum, int w) {
+            return sum + this->numerics.edge_length[w] * this->numerics.subtree_size[w];
+        }
+    );
+    return left_sum + right_sum;
+}
+
+std::vector<double>
+Tree::find_tbl() const
+{
+    std::vector<double> tbl(n_nodes);
+    std::transform(
+        numerics.edge_length.begin(), numerics.edge_length.end(), 
+        numerics.subtree_size.begin(), tbl.begin(),
+        [](double x, double y) {
+            return x * y;
+        }
+    );
+    return tbl;
+}
+
 void
 Tree::print(const std::string& label) const
 {
