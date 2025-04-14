@@ -42,14 +42,24 @@ PYBIND11_MODULE(tree, m) {
         .def
         (
             "get_subtree_size", 
-            &Tree::get_subtree_size, 
+            static_cast<int (Tree::*)(int) const>(&Tree::get_subtree_size),
             py::arg("u")
         )
         .def
         (
+            "get_subtree_sizes", 
+            static_cast<const std::vector<int, AlignedAllocator<int, 32>>& (Tree::*)() const>(&Tree::get_subtree_size)
+        )
+        .def
+        (
             "get_edge_length", 
-            &Tree::get_edge_length, 
+            static_cast<double (Tree::*)(int) const>(&Tree::get_edge_length),
             py::arg("u")
+        )
+        .def
+        (
+            "get_edge_lengths", 
+            static_cast<const std::vector<double, AlignedAllocator<double, 32>>& (Tree::*)() const>(&Tree::get_edge_length)
         )
         .def
         (

@@ -142,6 +142,13 @@ public:
     int get_subtree_size(int u) const;
 
     /**
+     * @brief Gets the entire subtree size vector for the tree.
+     * 
+     * @return The subtree size vector.
+     */
+    const std::vector<int, AlignedAllocator<int, 32>>& get_subtree_size() const;
+
+    /**
      * @brief Gets the edge length of the edge connecting a node to its parent.
      * 
      * @param u The index of the node.
@@ -149,6 +156,13 @@ public:
      * @throws py::index_error If the node index is out of bounds.
      */
     double get_edge_length(int u) const;
+
+    /**
+     * @brief Gets the entire edge length vector of the tree.alignas
+     * 
+     * @return The edge length vector.
+     */
+    const std::vector<double, AlignedAllocator<double, 32>>& get_edge_length() const;
 
     /**
      * @brief Sets the edge length of the edge connecting a node to its parent.
