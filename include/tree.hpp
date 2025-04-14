@@ -264,6 +264,33 @@ public:
     int find_epl() const;
 
     /**
+     * @brief Finds the trace length of the edge above the node.
+     * 
+     * @param u
+     * @return The trace length of the edge to the parent. 
+     * @throws py::index_error If the node index is out of bounds.
+     */
+    double find_tbl(int u) const;
+
+    /**
+     * @brief Finds the trace length of the unique shortest path between
+     *        two nodes.
+     * 
+     * @param u
+     * @param v
+     * @return The trace length of the path between u and v.
+     * @throws py::index_error If the node index is out of bounds.
+     */
+    double find_tbl(int u, int v) const;
+
+    /**
+     * @brief Finds the trace length of all nodes in the tree.
+     * 
+     * @return A vector of the trace length of each node.
+     */
+    std::vector<double> find_tbl() const;
+
+    /**
      * @brief Prints the tree in an ASCII-art format.
      * 
      * This function starts from the root and prints the tree structure using
