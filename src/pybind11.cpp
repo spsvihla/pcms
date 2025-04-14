@@ -3,6 +3,7 @@
 #include "tree.hpp"
 
 // Pybind11 includes
+#include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
@@ -14,7 +15,7 @@ PYBIND11_MODULE(tree, m) {
     py::class_<Tree>(m, "Tree")
         .def(
             py::init<int>(), 
-            py::arg("n_nodes") = 1
+            py::arg("n_nodes")
         )
         .def
         (
@@ -42,24 +43,34 @@ PYBIND11_MODULE(tree, m) {
         .def
         (
             "get_subtree_size", 
-            static_cast<int (Tree::*)(int) const>(&Tree::get_subtree_size),
-            py::arg("u")
-        )
-        .def
-        (
-            "get_subtree_sizes", 
-            static_cast<const std::vector<int, AlignedAllocator<int, 32>>& (Tree::*)() const>(&Tree::get_subtree_size)
+            [](const Tree& tree, std::optional<int> u) -> py::object {
+                if(u.has_value())
+                {
+                    return py::cast(tree.get_subtree_size(u.value()));
+                }
+                else
+                {
+                    const std::vector<int, AlignedAllocator<int, 32>> arr = tree.get_subtree_size();
+                    return py::array_t<int>(arr.size(), arr.data());
+                }
+            },
+            py::arg("u") = std::nullopt
         )
         .def
         (
             "get_edge_length", 
-            static_cast<double (Tree::*)(int) const>(&Tree::get_edge_length),
-            py::arg("u")
-        )
-        .def
-        (
-            "get_edge_lengths", 
-            static_cast<const std::vector<double, AlignedAllocator<double, 32>>& (Tree::*)() const>(&Tree::get_edge_length)
+            [](const Tree& tree, std::optional<int> u) -> py::object {
+                if(u.has_value())
+                {
+                    return py::cast(tree.get_edge_length(u.value()));
+                }
+                else
+                {
+                    const std::vector<double, AlignedAllocator<double, 32>> arr = tree.get_edge_length();
+                    return py::array_t<double>(arr.size(), arr.data());
+                }
+            },
+            py::arg("u") = std::nullopt
         )
         .def
         (
@@ -103,38 +114,59 @@ PYBIND11_MODULE(tree, m) {
         )
         .def
         (
-            "find_children", 
-            &Tree::find_children, 
+            "find_children",
+            [](const Tree &tree, int u) {
+                const std::vector<int> &children = tree.find_children(u);
+                return py::array_t<int>(children.size(), children.data());
+            }, 
             py::arg("u")
         )
         .def
         (
             "find_ancestors", 
-            &Tree::find_ancestors, 
+            [](const Tree &tree, int u) {
+                const std::vector<int> &ancestors = tree.find_ancestors(u);
+                return py::array_t<int>(ancestors.size(), ancestors.data());
+            }, 
             py::arg("u")
         )
         .def
         (
             "find_support", 
-            &Tree::find_support, 
+            [](const Tree& tree, int u) {
+                auto [a, b] = tree.find_support(u);
+                py::array_t<int> arr_a(a.size(), a.data());
+                py::array_t<int> arr_b(b.size(), b.data());
+                return py::make_tuple(arr_a, arr_b);
+            }, 
             py::arg("u")
         )
         .def
         (
             "find_path", 
-            &Tree::find_path, 
+            [](const Tree& tree, int u, int v) {
+                auto [a, b] = tree.find_path(u, v);
+                py::array_t<int> arr_a(a.size(), a.data());
+                py::array_t<int> arr_b(b.size(), b.data());
+                return py::make_tuple(arr_a, arr_b);
+            }, 
             py::arg("u"), 
             py::arg("v")
         )
         .def
         (
-            "find_root", 
+            "find_root",
             &Tree::find_root
         )
         .def
         (
-            "find_leaves", 
-            &Tree::find_leaves
+            "find_leaves",
+            [](const Tree& tree) {
+                auto [a, b] = tree.find_leaves();
+                py::array_t<int> arr_a(a.size(), a.data());
+                py::array_t<int> arr_b(b.size(), b.data());
+                return py::make_tuple(arr_a, arr_b);
+            }
         )
         .def
         (
