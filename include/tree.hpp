@@ -27,31 +27,6 @@
 #include <vector>
 
 /**
- * @struct AlignedAllocator
- */
-template <typename T, std::size_t Alignment>
-struct AlignedAllocator {
-    using value_type = T;
-
-    T* allocate(std::size_t n) {
-        void* ptr = nullptr;
-        if (posix_memalign(&ptr, Alignment, n * sizeof(T)) != 0) {
-            throw std::bad_alloc();
-        }
-        return static_cast<T*>(ptr);
-    }
-
-    void deallocate(T* ptr, std::size_t) noexcept {
-        free(ptr);
-    }
-
-    template <typename U>
-    struct rebind {
-        using other = AlignedAllocator<U, Alignment>;
-    };
-};
-
-/**
  * @struct TreeTopology
  * @brief A structure to represent parent-child relationships in the tree.
  */
@@ -67,8 +42,8 @@ struct TreeTopology {
  * @brief A structure to represent numerical tree attributes.
  */
 struct TreeNumerics {
-    std::vector<int, AlignedAllocator<int, 32>> subtree_size;       ///< Number of children in the subtree
-    std::vector<double, AlignedAllocator<double, 32>> edge_length;  ///< Edge length to parent
+    std::vector<int> subtree_size;       ///< Number of children in the subtree
+    std::vector<double> edge_length;     ///< Edge length to parent
 
     TreeNumerics(size_t n_nodes) 
     : subtree_size(n_nodes, 1), edge_length(n_nodes, 0.0) {} 
@@ -156,7 +131,7 @@ public:
      * 
      * @return The subtree size vector.
      */
-    const std::vector<int, AlignedAllocator<int, 32>>& get_subtree_size() const;
+    const std::vector<int>& get_subtree_size() const;
 
     /**
      * @brief Gets the edge length of the edge connecting a node to its parent.
@@ -172,7 +147,7 @@ public:
      * 
      * @return The edge length vector.
      */
-    const std::vector<double, AlignedAllocator<double, 32>>& get_edge_length() const;
+    const std::vector<double>& get_edge_length() const;
 
     /**
      * @brief Sets the edge length of the edge connecting a node to its parent.

@@ -50,7 +50,7 @@ PYBIND11_MODULE(tree, m) {
                 }
                 else
                 {
-                    const std::vector<int, AlignedAllocator<int, 32>> arr = tree.get_subtree_size();
+                    const std::vector<int> arr = tree.get_subtree_size();
                     return py::array_t<int>(arr.size(), arr.data());
                 }
             },
@@ -66,7 +66,7 @@ PYBIND11_MODULE(tree, m) {
                 }
                 else
                 {
-                    const std::vector<double, AlignedAllocator<double, 32>> arr = tree.get_edge_length();
+                    const std::vector<double> arr = tree.get_edge_length();
                     return py::array_t<double>(arr.size(), arr.data());
                 }
             },

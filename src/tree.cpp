@@ -70,7 +70,7 @@ Tree::get_subtree_size(int u) const
     return numerics.subtree_size.at(u);
 }
 
-const std::vector<int, AlignedAllocator<int, 32>>&
+const std::vector<int>&
 Tree::get_subtree_size() const
 {
     return numerics.subtree_size;
@@ -82,7 +82,7 @@ Tree::get_edge_length(int u) const
     return numerics.edge_length.at(u);
 }
 
-const std::vector<double, AlignedAllocator<double, 32>>&
+const std::vector<double>&
 Tree::get_edge_length() const 
 {
     return numerics.edge_length;
