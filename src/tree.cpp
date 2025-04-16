@@ -59,7 +59,7 @@ Tree::get_sibling(int u) const
 }
 
 bool
-Tree::get_is_first(int u) const
+Tree::is_first(int u) const
 {
     return topology.at(u).is_first;
 }
@@ -153,7 +153,7 @@ Tree::cut(int u)
     // Check bounds
     if(u < 0 || u >= n_nodes)
     {
-        throw std::out_of_range("Node indices out of bounds");
+        throw std::out_of_range("Node indices out of bounds: u = " + std::to_string(u));
     }
 
     int p = topology[u].parent;
@@ -214,7 +214,7 @@ Tree::find_children(int u) const
     // Check bounds
     if(u < 0 || u >= n_nodes)
     {
-        throw std::out_of_range("Node indices out of bounds");
+        throw std::out_of_range("Node indices out of bounds: u = " + std::to_string(u));
     }
 
     std::vector<int> children;
@@ -231,7 +231,7 @@ Tree::find_ancestors(int u) const
     // Check bounds
     if(u < 0 || u >= n_nodes)
     {
-        throw std::out_of_range("Node indices out of bounds");
+        throw std::out_of_range("Node indices out of bounds: u = " + std::to_string(u));
     }
 
     std::vector<int> ancestors;
@@ -248,7 +248,7 @@ Tree::find_support(int u) const
     // Check bounds
     if(u < 0 || u >= n_nodes)
     {
-        throw std::out_of_range("Node indices out of bounds");
+        throw std::out_of_range("Node indices out of bounds: u = " + std::to_string(u));
     }
 
     std::vector<int> support;
@@ -564,7 +564,7 @@ Tree
     // all characters allowed if quoted
     bool is_quoted = false;
 
-    for(int i = 0; i < static_cast<int>(nwk_str.size()); i++)
+    for(size_t i = 0; i < nwk_str.size(); ++i)
     {
         char c = nwk_str[i];
 

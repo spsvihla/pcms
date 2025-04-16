@@ -20,8 +20,7 @@
 #ifndef TREE_HPP
 #define TREE_HPP
 
-// Standard library includes
-#include <immintrin.h>
+// standard library includes
 #include <memory>
 #include <string>
 #include <vector>
@@ -109,13 +108,13 @@ public:
     int get_sibling(int u) const;
 
     /**
-     * @brief Gets whether the node is first among its siblings.alignas
+     * @brief Gets whether the node is first among its siblings.
      * 
      * @param u The index of the node.
      * @return The is_first parameter of the node.
      * @throws py::index_error If the node index is out of bounds.
      */
-    bool get_is_first(int u) const;
+    bool is_first(int u) const;
 
     /**
      * @brief Gets the size of the subtree rooted at a specified node.
@@ -301,10 +300,10 @@ public:
     void print(const std::string& label) const;
 
 private:
-    int n_nodes;                            ///< Number of nodes in the tree.
-    std::vector<TreeTopology> topology;     ///< Parent-child-sibling relationships
-    TreeNumerics numerics;                  ///< Edge length and subtree sizes
-    std::vector<std::string> names;         ///< Array of node names.
+    int n_nodes;                        ///< Number of nodes in the tree.
+    std::vector<TreeTopology> topology; ///< Parent-child-sibling relationships
+    TreeNumerics numerics;              ///< Edge length and subtree sizes
+    std::vector<std::string> names;     ///< Array of node names.
 
     /**
      * @brief Helper function to print a specific node and its children.
