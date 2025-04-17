@@ -290,6 +290,25 @@ public:
     std::vector<double> find_tbl() const;
 
     /**
+     * @brief Constructs wavelets associated to an interior node.
+     * 
+     * Note that the wavelets are only constructed for their values. The
+     * support of each wavelet is not computed.
+     * 
+     * @param u
+     * @return 
+     * @throws py::index_error If the node index is out of bounds or a leaf.
+     */
+    std::vector<std::vector<double>> make_hlw(int u) const;
+
+    /**
+     * @brief
+     * 
+     * @return
+     */
+    int find_nnz() const;
+
+    /**
      * @brief Prints the tree in an ASCII-art format.
      * 
      * This function starts from the root and prints the tree structure using
