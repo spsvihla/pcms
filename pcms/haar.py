@@ -9,8 +9,10 @@ from typing import Union, Sequence
 import numpy as np
 from scipy.special import factorial
 from scipy.stats import beta
+from scipy.sparse import csc_matrix
 
 import pcms._haar 
+import pcms.tree
 from pcms.tree import CriticalBetaSplittingDistribution 
 
 
@@ -69,3 +71,27 @@ def cdf_rand_func(
     a = np.sqrt((subtree_size - split_size) / split_size / subtree_size)
     b = np.sqrt(split_size / (subtree_size - split_size) / subtree_size)
     return beta.cdf((ys + b) / (a + b), split_size, subtree_size - split_size)
+
+
+def sparsify(input: pcms.tree.Tree | str) -> csc_matrix:
+    """
+    @brief Convert a tree into a sparse Haar wavelet basis and covariance matrix.
+
+    @param input A `pcms.tree.Tree` object or a string path to a Newick-formatted file 
+                that can be parsed into a tree.
+
+    @return A tuple (basis, covariance), where:
+        - `basis` is the Haar wavelet basis matrix (scipy.sparse.csc_matrix),
+        - `covariance` is the corresponding covariance matrix (scipy.sparse.csc_matrix).
+
+    @exception ValueError If `input` is not a `pcms.tree.Tree` instance or a string.
+    """
+    if isinstance(input, pcms.tree.Tree):
+        basis, cov = pcms._haar.sparsify(input)
+        return csc_matrix(basis), csc_matrix(cov)
+    elif isinstance(input, str):
+        tree = pcms.tree.nwk2tree(input)
+        basis, cov = pcms._haar.sparsify(tree)
+        return csc_matrix(basis), csc_matrix(cov)
+    else:
+        raise ValueError("Expected pcms.tree.Tree or string (filename)")

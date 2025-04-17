@@ -386,6 +386,38 @@ Tree::find_tbl() const
     return tbl;
 }
 
+std::vector<std::vector<double>>
+Tree::make_hlw(int u) const
+{
+    std::vector<int> children = find_children(u);
+    std::vector<std::vector<double>> wavelets(children.size()-1);
+    int l0 = numerics.subtree_size[children[0]];
+    for(int i = 1; i < static_cast<int>(children.size()); ++i)
+    {
+        int l1 = numerics.subtree_size[children[i]];
+        int s = l0 + l1;
+        double val0 = sqrt(l1 / l0 / s);
+        double val1 = sqrt(l0 / l1 / s);
+        wavelets[i-1].resize(s);
+        for(int j = 0; j < l0; ++j)
+        {
+            wavelets[i-1][j] = val0;
+        }
+        for(int j = l0; j < s; ++j)
+        {
+            wavelets[i-1][j] = val1;
+        }
+        l0 += l1;
+    }
+    return wavelets;
+}
+
+int
+Tree::find_nnz() const
+{
+    // TODO: implement
+}
+
 void
 Tree::print(const std::string& label) const
 {
@@ -428,10 +460,10 @@ Tree::print_node(int node, const std::string& prefix, bool is_last,
     }
 
     std::vector<int> children = find_children(node);
-    for(size_t i = 0; i < children.size(); ++i) 
+    for(int i = 0; i < static_cast<int>(children.size()); ++i) 
     {
         print_node(children[i], prefix + (is_last ? "    " : "│   "), 
-                   i == children.size() - 1, label);
+                   i == static_cast<int>(children.size()) - 1, label);
     }
 }
 
@@ -564,7 +596,7 @@ Tree
     // all characters allowed if quoted
     bool is_quoted = false;
 
-    for(size_t i = 0; i < nwk_str.size(); ++i)
+    for(int i = 0; i < static_cast<int>(nwk_str.size()); ++i)
     {
         char c = nwk_str[i];
 
