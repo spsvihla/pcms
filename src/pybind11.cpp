@@ -115,8 +115,8 @@ PYBIND11_MODULE(tree, m) {
         .def
         (
             "find_children",
-            [](const Tree &tree, int u) {
-                const std::vector<int> &children = tree.find_children(u);
+            [](const Tree& tree, int u) {
+                const std::vector<int>& children = tree.find_children(u);
                 return py::array_t<int>(children.size(), children.data());
             }, 
             py::arg("u")
@@ -124,8 +124,8 @@ PYBIND11_MODULE(tree, m) {
         .def
         (
             "find_ancestors", 
-            [](const Tree &tree, int u) {
-                const std::vector<int> &ancestors = tree.find_ancestors(u);
+            [](const Tree& tree, int u) {
+                const std::vector<int>& ancestors = tree.find_ancestors(u);
                 return py::array_t<int>(ancestors.size(), ancestors.data());
             }, 
             py::arg("u")
@@ -175,7 +175,7 @@ PYBIND11_MODULE(tree, m) {
         )
         .def(
             "find_tbl",
-            [](const Tree &tree, std::optional<int> u, std::optional<int> v) -> py::object {
+            [](const Tree& tree, std::optional<int> u, std::optional<int> v) -> py::object {
                 if(!u.has_value() && !v.has_value()) 
                 {
                     return py::cast(tree.find_tbl());
@@ -201,6 +201,26 @@ PYBIND11_MODULE(tree, m) {
             "print",
             &Tree::print,
             py::arg("label") = "none"
+        );
+    py::class_<critical_beta_splitting_distribution>(m, "CriticalBetaSplittingDistribution")
+        .def(
+            py::init<int>(), 
+            py::arg("n")
+        )
+        .def(
+            "__call__", 
+            [](critical_beta_splitting_distribution& dist) {
+                static thread_local std::mt19937 rng(std::random_device{}());
+                return dist(rng);
+            }
+        )
+        .def(
+            "get_pmf",
+            &critical_beta_splitting_distribution::get_pmf
+        )
+        .def(
+            "get_cdf",
+            &critical_beta_splitting_distribution::get_cdf
         );
     m.def
     (

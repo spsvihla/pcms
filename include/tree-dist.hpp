@@ -32,6 +32,12 @@
 // Project-specific includes
 #include "tree.hpp"
 
+// Pybind11 includes
+#include <pybind11/numpy.h>
+#include <pybind11/pybind11.h>
+
+namespace py = pybind11;
+
 /**
  * @brief A distribution that implements the critical beta splitting distribution.
  * 
@@ -46,7 +52,7 @@ public:
      * 
      * @param n The number of leaf nodes in the tree.
      */
-    critical_beta_splitting_distribution(int n);
+    critical_beta_splitting_distribution(py::ssize_t n);
 
     /**
      * @brief Samples from the critical beta splitting distribution.
@@ -58,11 +64,12 @@ public:
     template<typename Generator> int
     operator()(Generator &rng)
     {
+        auto cdf_ = cdf.unchecked<1>();
         std::uniform_real_distribution<double> unif(0.0, 1.0);
         double u = unif(rng);
-        for(int i = 0; i < n-1; i++)
+        for(py::ssize_t i = 0; i < n-1; i++)
         {
-            if(cdf[i] >= u)
+            if(cdf_[i] >= u)
             {
                 return i + 1;
             }
@@ -70,12 +77,22 @@ public:
         return n-1; // this line shouldn't be reached
     }
 
-private:
-    int n; ///< The number of leaves (size of the tree)
-    std::vector<double> pmf; ///< Probability mass function (PMF) values
-    std::vector<double> cdf; ///< Cumulative distribution function (CDF) values
+    /**
+     * @brief Get the probability mass function (PMF)
+     * @return The PMF of the splitting distribution
+     */
+    py::array_t<double> get_pmf() const;
 
-    static std::unordered_map<int, std::pair<std::vector<double>, std::vector<double>>> cache;
+    /**
+     * @brief Get the cumulative distribution function (CDF)
+     * @return The CDF of the splitting distribution
+     */
+    py::array_t<double> get_cdf() const;
+
+private:
+    py::ssize_t n; ///< The number of leaves (size of the tree)
+    py::array_t<double> pmf; ///< Probability mass function (PMF) values
+    py::array_t<double> cdf; ///< Cumulative distribution function (CDF) values
 };
 
 /**
