@@ -1,5 +1,5 @@
 /**
- * @file critical_beta_splitting_distribution.cpp
+ * @file tree-dist.cpp
  * 
  * This file implements the `critical_beta_splitting_distribution` class and 
  * the functions `remy` and `cbst` for generating random trees.
@@ -21,7 +21,7 @@
 #include <gsl/gsl_integration.h>
 
 // Project-specific includes
-#include "dist.hpp"
+#include "tree-dist.hpp"
 #include "tree.hpp"
 
 // Pybind11 includes

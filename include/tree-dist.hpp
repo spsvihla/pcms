@@ -1,5 +1,5 @@
 /**
- * @file critical_beta_splitting_distribution.hpp
+ * @file tree-dist.hpp
  * @brief Defines the critical_beta_splitting_distribution class and utility 
  *        functions for sampling critical beta-splitting and uniformly random binary trees.
  * 
@@ -22,8 +22,8 @@
  * 
  * @author Sean Svihla
  */
-#ifndef DIST_H
-#define DIST_H
+#ifndef TREE_DIST_H
+#define TREE_DIST_H
 
 // Standard library includes
 #include <random>
@@ -100,4 +100,4 @@ Tree *remy(int n_leaves, unsigned int seed = 0);
  */
 Tree *cbst(int n_leaves, unsigned int seed = 0);
 
-#endif // DIST_H
+#endif // TREE_DIST_H

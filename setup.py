@@ -22,7 +22,7 @@ ext_modules = [
         'pcms.tree',
         [
             'src/tree.cpp',
-            'src/dist.cpp',
+            'src/tree-dist.cpp',
             'src/pybind11.cpp'
         ],
         include_dirs=['include/'] + get_gsl_flags("--cflags"),

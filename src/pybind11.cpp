@@ -1,5 +1,5 @@
 // Project-specific includes
-#include "dist.hpp"
+#include "tree-dist.hpp"
 #include "tree.hpp"
 
 // Pybind11 includes
