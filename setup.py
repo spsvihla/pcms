@@ -21,11 +21,11 @@ ext_modules = [
     Pybind11Extension(
         'pcms.tree',
         [
-            'src/tree.cpp',
-            'src/tree-dist.cpp',
-            'src/pybind11.cpp'
+            'src/tree/tree.cpp',
+            'src/tree/tree-dist.cpp',
+            'src/tree/pybind11.cpp'
         ],
-        include_dirs=['include/'] + get_gsl_flags("--cflags"),
+        include_dirs=['include/'],
         library_dirs=get_gsl_flags("--libs") + get_gsl_flags("--prefix") + ["/usr/lib", "/usr/local/lib"],
         libraries=[
             "gsl", 
@@ -34,12 +34,22 @@ ext_modules = [
         extra_compile_args=extra_compile_args,
         extra_link_args=get_gsl_flags("--libs"),
     ),
+    Pybind11Extension(
+        'pcms._haar',
+        sources=[
+            'src/tree/tree.cpp',
+            'src/haar/haar-dist.cpp',
+            'src/haar/pybind11.cpp'
+        ],
+        include_dirs=['include/'],
+        extra_compile_args=extra_compile_args       
+    )
 ]
 
 setup(
     name='pcms',
     version="0.1.0",
-    packages=find_packages(where='pcms'),
+    packages=find_packages(),
     cmdclass={'build_ext': build_ext},
     ext_modules=ext_modules,
     extras_require={
