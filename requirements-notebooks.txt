@@ -1,0 +1,11 @@
+# requirements-notebooks.txt
+
+# Include the base requirements
+-r requirements.txt
+
+# Additional packages for notebook support
+numpy
+scipy
+pandas
+matplotlib
+jupyter
