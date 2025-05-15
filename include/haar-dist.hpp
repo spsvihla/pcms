@@ -40,5 +40,5 @@
                                     const py::array_t<double>& func, 
                                     const py::array_t<double>& cdf, 
                                     int num_iter, unsigned int seed = 0);
- 
+
  #endif // HAAR_DIST_H 

@@ -79,7 +79,7 @@ update_total(const py::detail::unchecked_reference<double, 1L>& ys_,
         // TODO: SIMD inner loop
         for(py::ssize_t k = 0; k < n; ++k)
         {
-            val += pmf_[k] * (coords_[k] <= ys_(j));
+            val += pmf_[k] * static_cast<double>(coords_[k] <= ys_(j));
         }
         total_(j) += val;
     }

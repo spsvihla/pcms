@@ -1,2 +1,4 @@
 wheel
 pybind11>=2.13.0
+scipy
+numpy
