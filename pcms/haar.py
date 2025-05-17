@@ -28,7 +28,7 @@ def cdf_rand_basis(
            split below φ varies randomly according to the critical beta-splitting
            split distribution q(n,i).
 
-    @param y Point(s) to evaluate the CDF.
+    @param ys Point(s) to evaluate the CDF.
     @param func Function on the leaves of T(v).
     @param eps Desired precision.
     @param delta Probability estimate falls within desired precision.
@@ -65,6 +65,7 @@ def cdf_rand_func(
 
     @return Estimate(s) of the CDF at the point(s).
     """
+    ys = np.asarray(ys)
     a = np.sqrt((subtree_size - split_size) / split_size / subtree_size)
     b = np.sqrt(split_size / (subtree_size - split_size) / subtree_size)
     return beta.cdf((ys + b) / (a + b), split_size, subtree_size - split_size)
