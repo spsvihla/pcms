@@ -421,8 +421,11 @@ Tree::find_nnz() const
 void
 Tree::print(const std::string& label) const
 {
-    int root = find_root();
-    print_node(root, "", true, label);
+    if(!(label == "index" | label == "name" | label == "none"))
+    {
+        throw py::value_error("Unrecognized labelling: " + label);
+    }
+    print_node(find_root(), "", true, label);
 }
 
 void
@@ -453,10 +456,6 @@ Tree::print_node(int node, const std::string& prefix, bool is_last,
     else if(label == "none")
     {
         std::cout << "X" << std::endl;
-    }
-    else
-    {
-        throw py::value_error("Unrecognized labelling: " + label);
     }
 
     std::vector<int> children = find_children(node);
