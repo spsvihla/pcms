@@ -154,7 +154,7 @@ populate_matrices(Tree* tree, std::vector<double> tbl_values,
         }
         else                                // interior node
         {
-            add_column(tbl, tree->make_hlw(i), tbl_values, hlw_values, rowidx,
+            add_column(tbl, tree->find_wavelets(i), tbl_values, hlw_values, rowidx,
                        colptr, col_counter, val_idx, stack.top());
         }
 

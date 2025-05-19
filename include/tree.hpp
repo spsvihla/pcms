@@ -220,16 +220,6 @@ public:
     std::vector<int> find_ancestors(int u) const;
 
     /**
-     * @brief Finds the support nodes and their depths for a specified node.
-     * 
-     * @param u The index of the node.
-     * @return A pair of vectors: the first contains support node indices,
-     *         and the second contains their corresponding depths.
-     * @throws py::index_error If the node index is out of bounds.
-     */
-    std::pair<std::vector<int>, std::vector<int>> find_support(int u) const;
-
-    /**
      * @brief Finds the path from one node to another.
      * 
      * @param u The index of the first node.
@@ -246,6 +236,16 @@ public:
      * @return The index of the root node.
      */
     int find_root() const;
+
+    /**
+     * @brief Finds the leafs nodes and their depths beneath a specified node.
+     * 
+     * @param u The index of the node.
+     * @return A pair of vectors: the first contains the leaf node indices,
+     *         and the second contains their corresponding depths.
+     * @throws py::index_error If the node index is out of bounds.
+     */
+    std::pair<std::vector<int>, std::vector<int>> find_leaves(int u) const;
 
     /**
      * @brief Finds the leaves of the tree.
@@ -293,13 +293,23 @@ public:
      * @brief Constructs wavelets associated to an interior node.
      * 
      * Note that the wavelets are only constructed for their values. The
-     * support of each wavelet is not computed.
+     * support of each wavelet is not computed, but may be computed by 
+     * calling Tree::find_supports.
      * 
      * @param u
      * @return 
      * @throws py::index_error If the node index is out of bounds or a leaf.
      */
-    std::vector<std::vector<double>> make_hlw(int u) const;
+    std::vector<std::vector<double>> find_wavelets(int u) const;
+
+    /**
+     * @brief Finds supports of wavelets associated to an interior node. 
+     * 
+     * @param u
+     * @return 
+     * @throws py::index_error If the node index is out of bounds or a leaf.
+     */
+    std::pair<std::vector<int>, std::vector<int>> find_supports(int u) const;
 
     /**
      * @brief

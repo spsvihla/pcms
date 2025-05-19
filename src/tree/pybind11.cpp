@@ -132,17 +132,6 @@ PYBIND11_MODULE(tree, m) {
         )
         .def
         (
-            "find_support", 
-            [](const Tree& tree, int u) {
-                auto [a, b] = tree.find_support(u);
-                py::array_t<int> arr_a(a.size(), a.data());
-                py::array_t<int> arr_b(b.size(), b.data());
-                return py::make_tuple(arr_a, arr_b);
-            }, 
-            py::arg("u")
-        )
-        .def
-        (
             "find_path", 
             [](const Tree& tree, int u, int v) {
                 auto [a, b] = tree.find_path(u, v);
@@ -158,15 +147,20 @@ PYBIND11_MODULE(tree, m) {
             "find_root",
             &Tree::find_root
         )
-        .def
-        (
+        .def(
             "find_leaves",
-            [](const Tree& tree) {
-                auto [a, b] = tree.find_leaves();
+            [](const Tree& tree, std::optional<int> u) {
+                std::vector<int> a, b;
+                if (u.has_value()) {
+                    std::tie(a, b) = tree.find_leaves(u.value());
+                } else {
+                    std::tie(a, b) = tree.find_leaves();
+                }
                 py::array_t<int> arr_a(a.size(), a.data());
                 py::array_t<int> arr_b(b.size(), b.data());
                 return py::make_tuple(arr_a, arr_b);
-            }
+            },
+            py::arg("u") = py::none()
         )
         .def
         (

@@ -242,40 +242,6 @@ Tree::find_ancestors(int u) const
     return ancestors;
 }
 
-std::pair<std::vector<int>, std::vector<int>> 
-Tree::find_support(int u) const
-{
-    // Check bounds
-    if(u < 0 || u >= n_nodes)
-    {
-        throw std::out_of_range("Node indices out of bounds: u = " + std::to_string(u));
-    }
-
-    std::vector<int> support;
-    std::vector<int> depths;
-    std::stack<std::pair<int, int>> stack;
-    stack.push(std::make_pair(u, 0));
-
-    while(!stack.empty())
-    {
-        int v = stack.top().first;
-        int depth = stack.top().second;
-        stack.pop();
-
-        if(topology[v].child == -1)
-        {
-            support.push_back(v);     // leaf
-            depths.push_back(depth);  // depth
-        }
-
-        for(int c = topology[v].child; c != -1; c = topology[c].sibling)
-        {
-            stack.push(std::make_pair(c, depth + 1));
-        }
-    }
-    return std::make_pair(support, depths);
-}
-
 std::pair<std::vector<int>,std::vector<int>> 
 Tree::find_path(int u, int v) const
 {
@@ -318,10 +284,44 @@ Tree::find_root() const
     }
 }
 
+std::pair<std::vector<int>, std::vector<int>> 
+Tree::find_leaves(int u) const
+{
+    // Check bounds
+    if(u < 0 || u >= n_nodes)
+    {
+        throw std::out_of_range("Node indices out of bounds: u = " + std::to_string(u));
+    }
+
+    std::vector<int> support;
+    std::vector<int> depths;
+    std::stack<std::pair<int, int>> stack;
+    stack.push(std::make_pair(u, 0));
+
+    while(!stack.empty())
+    {
+        int v = stack.top().first;
+        int depth = stack.top().second;
+        stack.pop();
+
+        if(topology[v].child == -1)
+        {
+            support.push_back(v);     // leaf
+            depths.push_back(depth);  // depth
+        }
+
+        for(int c = topology[v].child; c != -1; c = topology[c].sibling)
+        {
+            stack.push(std::make_pair(c, depth + 1));
+        }
+    }
+    return std::make_pair(support, depths);
+}
+
 std::pair<std::vector<int>,std::vector<int>>
 Tree::find_leaves() const
 {
-    return find_support(find_root());
+    return find_leaves(find_root());
 }
 
 int
@@ -387,8 +387,17 @@ Tree::find_tbl() const
 }
 
 std::vector<std::vector<double>>
-Tree::make_hlw(int u) const
+Tree::find_wavelets(int u) const
 {
+    // check bounds
+    if(u < 0 || u >= n_nodes)
+    {
+        throw std::out_of_range("Node indices out of bounds: u = " + std::to_string(u));
+    }
+    if(topology[u].child == -1)
+    {
+        throw py::value_error("Node must be an interior node.");
+    }
     std::vector<int> children = find_children(u);
     std::vector<std::vector<double>> wavelets(children.size()-1);
     int l0 = numerics.subtree_size[children[0]];
@@ -410,6 +419,30 @@ Tree::make_hlw(int u) const
         l0 += l1;
     }
     return wavelets;
+}
+
+std::pair<std::vector<int>, std::vector<int>>
+Tree::find_supports(int u) const
+{
+    // check bounds
+    if(u < 0 || u >= n_nodes)
+    {
+        throw std::out_of_range("Node indices out of bounds: u = " + std::to_string(u));
+    }
+    if(topology[u].child == -1)
+    {
+        throw py::value_error("Node must be an interior node.");
+    }
+    auto [leaves, depths] = find_leaves(u);
+    std::vector<int> children = find_children(u);
+    size_t n_children = children.size();
+    std::vector<int> partition(n_children + 1);
+    partition[0] = 0;
+    for(size_t i = 0; i < n_children; ++i)
+    {
+        partition[i + 1] = partition[i] + get_subtree_size(children[i]);
+    }
+    return std::make_pair(leaves, partition);
 }
 
 int
