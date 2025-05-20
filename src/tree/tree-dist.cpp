@@ -110,18 +110,10 @@ critical_beta_splitting_distribution::get_cdf() const
 }
 
 Tree*
-remy(int n_leaves, unsigned int seed)
+remy(int n_leaves, std::optional<unsigned int> seed)
 {
-    if(n_leaves < 2)
-    {
-        throw py::value_error("Number of leaves must be at least 2.");
-    }
-
-    if(seed == 0)
-    {
-        seed = std::random_device{}();
-    }
-    std::default_random_engine rng(seed);
+    unsigned int seed_ = seed.value_or(std::random_device{}());
+    std::default_random_engine rng(seed_);
     std::uniform_int_distribution<int> bern(0,1); // Bernoulli(p=0.5)
 
     Tree* tree = new Tree(2 * n_leaves - 1);
@@ -176,20 +168,12 @@ _cbst(Tree* tree, int start, int end, int n0, std::mt19937 &rng)
 }
 
 Tree*
-cbst(int n_leaves, unsigned int seed)
+cbst(int n_leaves, std::optional<unsigned int> seed)
 {
-    if(n_leaves < 2)
-    {
-        throw py::value_error("Number of leaves must be at least 2.");
-    }
-
-    if(seed == 0)
-    {
-        seed = std::random_device{}();
-    }
-    std::mt19937 rng(seed);
+    unsigned int seed_ = seed.value_or(std::random_device{}());
+    std::mt19937 rng(seed_);
 
     Tree* tree = new Tree(2 * n_leaves - 1);
-    _cbst(tree, 0, tree->get_size() - 1, n_leaves, rng);
+    _cbst(tree, 0, tree->get_n_nodes() - 1, n_leaves, rng);
     return tree;
 }

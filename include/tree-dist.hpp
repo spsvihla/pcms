@@ -104,7 +104,7 @@ private:
  * @param seed The seed for the random number generator (default is 0).
  * @return A pointer to the newly created tree.
  */
-Tree *remy(int n_leaves, unsigned int seed = 0);
+Tree *remy(int n_leaves, std::optional<unsigned int> seed = std::nullopt);
 
 /**
  * @brief Samples a critical beta-splitting tree.
@@ -115,6 +115,6 @@ Tree *remy(int n_leaves, unsigned int seed = 0);
  * @param seed The seed for the random number generator (default is 0).
  * @return A pointer to the newly created tree.
  */
-Tree *cbst(int n_leaves, unsigned int seed = 0);
+Tree *cbst(int n_leaves, std::optional<unsigned int> seed = std::nullopt);
 
 #endif // TREE_DIST_H

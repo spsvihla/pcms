@@ -34,270 +34,160 @@ Tree::Tree(int n_nodes)
 // destructor
 Tree::~Tree() {}
 
-int 
-Tree::get_size() const
-{
-    return n_nodes;
-}
-
-int 
-Tree::get_parent(int u) const
-{
-    return topology.at(u).parent;
-}
-
-int 
-Tree::get_child(int u) const
-{
-    return topology.at(u).child;
-}
-
-int 
-Tree::get_sibling(int u) const
-{
-    return topology.at(u).sibling;
-}
-
-bool
-Tree::is_first(int u) const
-{
-    return topology.at(u).is_first;
-}
-
-int 
-Tree::get_subtree_size(int u) const
-{
-    return numerics.subtree_size.at(u);
-}
-
-const std::vector<int>&
-Tree::get_subtree_size() const
-{
-    return numerics.subtree_size;
-}
-
-double 
-Tree::get_edge_length(int u) const
-{
-    return numerics.edge_length.at(u);
-}
-
-const std::vector<double>&
-Tree::get_edge_length() const 
-{
-    return numerics.edge_length;
-}
-
-void 
-Tree::set_edge_length(int u, double value)
-{
-    numerics.edge_length.at(u) = value;
-}
-
-std::string
-Tree::get_name(int u) const
-{
-    return names.at(u);
-}
-
-void
-Tree::set_name(int u, const std::string& value)
-{
-    names.at(u) = value;
-}
-
 void 
 Tree::link(int u, int v)
 {
-    // Check bounds
-    if(u < 0 || u >= n_nodes)
+    if(v == -1) 
     {
-        throw std::out_of_range("Node indices out of bounds: u = " + std::to_string(u));
-    }
-    if(v < -1 || v >= n_nodes)
-    {
-        throw std::out_of_range("Node indices out of bounds: v = " + std::to_string(v));
+        return;
     }
 
-    // Check if u is already linked
-    if(topology[u].parent != -1) 
-    {
-        throw std::runtime_error("Cannot link a node before cutting");
-    }
-
-    if(v == -1) return;
-
-    int is_leaf = (topology[v].child == -1);
+    int is_leaf = (get_child(v) == -1);
 
     // update pointers
-    topology[u].parent = v;
-    topology[u].sibling = topology[v].child;
-    topology[v].child = u;
+    set_parent(u, v);
+    set_sibling(u, get_child(v));
+    set_child(v, u);
 
     // update is_first
-    topology[u].is_first = true;
-    topology[topology[u].sibling].is_first = false;
+    set_is_first(u, true);
+    set_is_first(get_sibling(u), false);
 
     // update subtree_size
-    int diff = numerics.subtree_size[u] - is_leaf;
-    while(v >= 0)
+    int diff = get_subtree_size(u) - is_leaf;
+    for(; v >= 0; v = get_parent(v))
     {
-        numerics.subtree_size[v] += diff;
-        v = topology[v].parent;
+        set_subtree_size(v, get_subtree_size(v) + diff);
     }
 }
 
 void 
 Tree::cut(int u)
 {
-    // Check bounds
-    if(u < 0 || u >= n_nodes)
-    {
-        throw std::out_of_range("Node indices out of bounds: u = " + std::to_string(u));
-    }
-
-    int p = topology[u].parent;
+    int p = get_parent(u);
+    
     if(p == -1)
     {
-        // node is an orphan
         return;
     }
 
     // update pointers
-    if(topology[p].child == u)
+    if(get_child(p) == u)
     {
-        topology[p].child = topology[u].sibling;
+        set_child(p, get_sibling(u));
 
         // update is_first
-        if(int s = topology[u].sibling; s != -1)
+        if(int s = get_sibling(u); s != -1)
         {
-            topology[u].is_first = false;
-            topology[s].is_first = true;
+            set_is_first(u, false);
+            set_is_first(s, true);
         }
     }
     else
     {
-        int c = topology[p].child;
-        while(topology[c].sibling != u)
+        int c = get_child(p);
+        while(get_sibling(c) != u)
         {
-            c = topology[c].sibling;
+            c = get_sibling(c);
         }
-        topology[c].sibling = topology[u].sibling;
+        set_sibling(c, get_sibling(u));
     }
-    int is_leaf = (topology[p].child == -1);
+    int is_leaf = (get_child(p) == -1);
 
     // update subtree_size
-    int diff = is_leaf - numerics.subtree_size[u];
-    for(; p != -1; p = topology[p].parent)
+    int diff = is_leaf - get_subtree_size(u);
+    for(; p != -1; p = get_parent(p))
     {
-        numerics.subtree_size[p] += diff;
+        set_subtree_size(p, get_subtree_size(p) + diff);
     }
 
-    topology[u].parent = -1;
-    topology[u].sibling = -1;
+    set_parent(u, -1);
+    set_sibling(u, -1);
 }
 
 void 
 Tree::swap(int u, int v)
 {
-    int pu = topology.at(u).parent;
-    int pv = topology.at(v).parent;
+    int pu = get_parent(u);
+    int pv = get_parent(v);
     cut(u);
     cut(v);
     link(u, pv);
     link(v, pu);
 }
 
-std::vector<int> 
+py::array_t<int> 
 Tree::find_children(int u) const
 {
-    // Check bounds
-    if(u < 0 || u >= n_nodes)
-    {
-        throw std::out_of_range("Node indices out of bounds: u = " + std::to_string(u));
-    }
-
     std::vector<int> children;
-    for(int c = topology[u].child; c != -1; c = topology[c].sibling)
+    for(int c = get_child(u); c != -1; c = get_sibling(c))
     {
         children.push_back(c);
     }
-    return children;
+    return py::array_t<int>(children.size(), children.data());
 }
 
-std::vector<int> 
+std::vector<int>
+Tree::find_ancestors_(int u) const
+{
+    std::vector<int> ancestors;
+    for(int p = get_parent(u); p != -1; p = get_parent(p))
+    {
+        ancestors.push_back(p);
+    }
+}
+
+py::array_t<int> 
 Tree::find_ancestors(int u) const
 {
-    // Check bounds
-    if(u < 0 || u >= n_nodes)
-    {
-        throw std::out_of_range("Node indices out of bounds: u = " + std::to_string(u));
-    }
-
-    std::vector<int> ancestors;
-    for(u = topology[u].parent; u != -1; u = topology[u].parent)
-    {
-        ancestors.push_back(u);
-    }
-    return ancestors;
+    std::vector<int> ancestors = find_ancestors_(u);
+    return py::array_t<int>(ancestors.size(), ancestors.data());
 }
 
-std::pair<std::vector<int>,std::vector<int>> 
+std::pair<py::array_t<int>,py::array_t<int>> 
 Tree::find_path(int u, int v) const
 {
-    // Check bounds
-    if(u < 0 || u >= n_nodes)
+    std::vector<int> u_path = find_ancestors_(u);
+    std::vector<int> v_path = find_ancestors_(v);
+    while(!u_path.empty() && !v_path.empty() && u_path.back() == v_path.back()) 
     {
-        throw std::out_of_range("Node indices out of bounds: u = " + std::to_string(u));
-    }
-    if(v < 0 || v >= n_nodes)
-    {
-        throw std::out_of_range("Node indices out of bounds: v = " + std::to_string(v));
-    }
-
-    std::vector<int> u_path = find_ancestors(u);
-    std::vector<int> v_path = find_ancestors(v);
-    while(!u_path.empty() && !v_path.empty()) 
-    {
-        if(u_path.back() != v_path.back())
-        {
-            break;
-        }
         u_path.pop_back();
         v_path.pop_back();
     }
-    return make_pair(u_path, v_path);
+    return std::make_pair(
+        py::array_t<int>(u_path.size(), u_path.data()), 
+        py::array_t<int>(v_path.size(), v_path.data())
+    );
 }
 
 int
 Tree::find_root() const
 {
-    std::vector<int> ancestors = find_ancestors(0);
-    if(!ancestors.empty())
+    py::array_t<int> ancestors = find_ancestors(0);
+    if(!ancestors.size() > 0)
     {
-        return ancestors.back();
+        auto ancestors_ = ancestors.unchecked<1>();
+        return ancestors_[ancestors.size() - 1];
     }
     else
     {
-        // no ancestors, so node 0 is root
         return 0;
     }
 }
 
-std::pair<std::vector<int>, std::vector<int>> 
+std::pair<py::array_t<int>, py::array_t<int>> 
 Tree::find_leaves(int u) const
 {
-    // Check bounds
-    if(u < 0 || u >= n_nodes)
-    {
-        throw std::out_of_range("Node indices out of bounds: u = " + std::to_string(u));
-    }
+    py::array_t<int> support(get_subtree_size(u));
+    py::array_t<int> depths(get_subtree_size(u));
 
-    std::vector<int> support;
-    std::vector<int> depths;
+    auto support_ = support.mutable_unchecked<1>();
+    auto depths_ = depths.mutable_unchecked<1>();
+    
+    // depth-first search
+    int idx = 0;
     std::stack<std::pair<int, int>> stack;
     stack.push(std::make_pair(u, 0));
-
     while(!stack.empty())
     {
         int v = stack.top().first;
@@ -306,8 +196,8 @@ Tree::find_leaves(int u) const
 
         if(topology[v].child == -1)
         {
-            support.push_back(v);     // leaf
-            depths.push_back(depth);  // depth
+            support_(idx) = v;
+            depths_(idx++) = depth;
         }
 
         for(int c = topology[v].child; c != -1; c = topology[c].sibling)
@@ -315,133 +205,107 @@ Tree::find_leaves(int u) const
             stack.push(std::make_pair(c, depth + 1));
         }
     }
-    return std::make_pair(support, depths);
-}
 
-std::pair<std::vector<int>,std::vector<int>>
-Tree::find_leaves() const
-{
-    return find_leaves(find_root());
+    return std::make_pair(support, depths);
 }
 
 int
 Tree::find_epl() const
 {
-    auto [leaves, depths] = find_leaves();
-    return std::accumulate(depths.begin(), depths.end(), 0.0);
-}
-
-double 
-Tree::find_tbl(int u) const 
-{
-    // check bounds
-    if(u < 0 || u >= n_nodes)
+    auto [leaves, depths] = find_leaves(find_root());
+    auto depths_ = depths.mutable_unchecked<1>();
+    int epl = 0;
+    for(py::ssize_t i = 0; i < depths.size(); ++i)
     {
-        throw std::out_of_range("Node indices out of bounds: u = " + std::to_string(u));
+        epl += depths_[i];
     }
-    return numerics.subtree_size[u] * numerics.edge_length[u];
+    return epl;
 }
 
 double
 Tree::find_tbl(int u, int v) const
 {
-    // check bounds
-    if(u < 0 || u >= n_nodes)
+    auto [u_path, v_path] = find_path(u, v);
+    
+    auto u_path_ = u_path.unchecked<1>();
+    auto v_path_ = v_path.unchecked<1>();
+    
+    double u_sum = find_tbl(u);
+    double v_sum = find_tbl(v);
+    for(py::ssize_t i = 0; i < u_path.size(); ++i)
     {
-        throw std::out_of_range("Node indices out of bounds: u = " + std::to_string(u));
+        u_sum += find_tbl(u_path_[i]);
     }
-    if(v < 0 || v >= n_nodes)
+    for(py::ssize_t i = 0; i < v_path.size(); ++i)
     {
-        throw std::out_of_range("Node indices out of bounds: v = " + std::to_string(u));
+        v_sum += find_tbl(v_path_[i]);
     }
-    auto [left, right] = find_path(u, v);
-    double left_sum = std::accumulate(
-        left.begin(), left.end(),
-        numerics.edge_length[u] * numerics.subtree_size[u],
-        [this](double sum, int w) {
-            return sum + this->numerics.edge_length[w] * this->numerics.subtree_size[w];
-        }
-    );
-    double right_sum = std::accumulate(
-        right.begin(), right.end(),
-        numerics.edge_length[v] * numerics.subtree_size[v],
-        [this](double sum, int w) {
-            return sum + this->numerics.edge_length[w] * this->numerics.subtree_size[w];
-        }
-    );
-    return left_sum + right_sum;
+
+    return u_sum + v_sum;
 }
 
-std::vector<double>
+py::array_t<double>
 Tree::find_tbl() const
 {
-    std::vector<double> tbl(n_nodes);
-    std::transform(
-        numerics.edge_length.begin(), numerics.edge_length.end(), 
-        numerics.subtree_size.begin(), tbl.begin(),
-        [](double x, double y) {
-            return x * y;
-        }
-    );
+    py::array_t<double> tbl(n_nodes);
+    auto tbl_ = tbl.mutable_unchecked<1>();
+    for(py::ssize_t i = 0; i < static_cast<py::ssize_t>(n_nodes); ++i)
+    {
+        tbl_(i) = find_tbl(static_cast<int>(i));
+    }
     return tbl;
 }
 
-std::vector<std::vector<double>>
+py::list
 Tree::find_wavelets(int u) const
 {
-    // check bounds
-    if(u < 0 || u >= n_nodes)
+    py::array_t<int> children = find_children(u);
+    auto children_ = children.unchecked<1>();
+
+    py::list wavelets;
+
+    int l0 = get_subtree_size(children_[0]);
+    for(py::ssize_t i = 1; i < children.size(); ++i)
     {
-        throw std::out_of_range("Node indices out of bounds: u = " + std::to_string(u));
-    }
-    if(topology[u].child == -1)
-    {
-        throw py::value_error("Node must be an interior node.");
-    }
-    std::vector<int> children = find_children(u);
-    std::vector<std::vector<double>> wavelets(children.size()-1);
-    int l0 = numerics.subtree_size[children[0]];
-    for(int i = 1; i < static_cast<int>(children.size()); ++i)
-    {
-        int l1 = numerics.subtree_size[children[i]];
+        int l1 = get_subtree_size(children_[i]);
         int s = l0 + l1;
         double val0 = sqrt(l1 / l0 / s);
         double val1 = sqrt(l0 / l1 / s);
-        wavelets[i-1].resize(s);
+
+        py::array_t<double> wavelet(s);
+        auto wavelet_ = wavelet.mutable_unchecked<1>();
         for(int j = 0; j < l0; ++j)
         {
-            wavelets[i-1][j] = val0;
+            wavelet_(j) = val0;
         }
         for(int j = l0; j < s; ++j)
         {
-            wavelets[i-1][j] = val1;
+            wavelet_(j) = val1;
         }
+
+        wavelets.append(wavelet);
         l0 += l1;
     }
+
     return wavelets;
 }
 
-std::pair<std::vector<int>, std::vector<int>>
+std::pair<py::array_t<int>, py::array_t<int>>
 Tree::find_supports(int u) const
 {
-    // check bounds
-    if(u < 0 || u >= n_nodes)
-    {
-        throw std::out_of_range("Node indices out of bounds: u = " + std::to_string(u));
-    }
-    if(topology[u].child == -1)
-    {
-        throw py::value_error("Node must be an interior node.");
-    }
     auto [leaves, depths] = find_leaves(u);
-    std::vector<int> children = find_children(u);
-    size_t n_children = children.size();
-    std::vector<int> partition(n_children + 1);
-    partition[0] = 0;
-    for(size_t i = 0; i < n_children; ++i)
+
+    py::array_t<int> children = find_children(u);
+    auto children_= children.unchecked<1>();
+
+    py::array_t<int> partition(children.size() + 1);
+    auto partition_ = partition.mutable_unchecked<1>();
+
+    for(py::ssize_t i = 0; i < children.size(); ++i)
     {
-        partition[i + 1] = partition[i] + get_subtree_size(children[i]);
+        partition_(i + 1) = partition_[i] + get_subtree_size(children_[i]);
     }
+
     return std::make_pair(leaves, partition);
 }
 
@@ -451,69 +315,54 @@ Tree::find_nnz() const
     // TODO: implement
 }
 
-void
-Tree::print(const std::string& label) const
+std::string
+Tree::to_string(const std::string& label) const
 {
-    if(!(label == "index" | label == "name" | label == "none"))
+    if (!(label == "index" || label == "name" || label == "none"))
     {
         throw py::value_error("Unrecognized labelling: " + label);
     }
-    print_node(find_root(), "", true, label);
-}
-
-void
-Tree::print_node(int node, const std::string& prefix, bool is_last, 
-                 const std::string& label) const
-{
-    std::cout << prefix;
-
-    // add branches
-    if (is_last) 
-    {
-        std::cout << "└── ";
-    } 
-    else 
-    {
-        std::cout << "├── ";
-    }
-
-    // add labels or X marker
-    if(label == "index") 
-    {
-        std::cout << node << std::endl;
-    } 
-    else if(label == "name")
-    {
-        std::cout << names[node] << std::endl;
-    }
-    else if(label == "none")
-    {
-        std::cout << "X" << std::endl;
-    }
-
-    std::vector<int> children = find_children(node);
-    for(int i = 0; i < static_cast<int>(children.size()); ++i) 
-    {
-        print_node(children[i], prefix + (is_last ? "    " : "│   "), 
-                   i == static_cast<int>(children.size()) - 1, label);
-    }
+    return to_string_(find_root(), "", true, label);
 }
 
 std::string
-read_nwk(std::string filename)
+Tree::to_string_(int node, const std::string& prefix, bool is_last,
+                 const std::string& label) const
 {
-    std::ifstream file(filename);
-    if(!file)
+    std::string result = prefix;
+
+    // add branches
+    if (is_last)
     {
-        throw std::runtime_error("Could not open file " + filename);
+        result += "└── ";
+    }
+    else
+    {
+        result += "├── ";
     }
 
-    std::string nwk_str;
-    std::getline(file, nwk_str); // read the entire Newick string from the file
+    // add labels or X marker
+    if (label == "index")
+    {
+        result += std::to_string(node) + "\n";
+    }
+    else if (label == "name")
+    {
+        result += names[node] + "\n";
+    }
+    else if (label == "none")
+    {
+        result += "X\n";
+    }
 
-    file.close();
-    
-    return nwk_str;
+    py::array_t<int> children = find_children(node);
+    auto children_ = children.unchecked<1>();
+    for (int i = 0; i < static_cast<int>(children.size()); ++i)
+    {
+        result += to_string_(children_[i], prefix + (is_last ? "    " : "│   "),
+                             i == static_cast<int>(children.size()) - 1, label);
+    }
+    return result;
 }
 
 /* first pass: count the number of nodes in the tree */
@@ -552,7 +401,7 @@ flush_buffer(int& curr_node, Tree* tree, std::vector<char>& char_buf,
         }
         catch(const std::invalid_argument& e)
         {
-            throw py::value_error("Invalid edge length: " + str);
+            throw std::runtime_error("Invalid edge length: " + str);
         }
     }
 }
@@ -599,10 +448,8 @@ parse_newick(char c, int& curr_node, Tree* tree, std::vector<char>& char_buf,
 
 /* second pass: assign parent-child relationships */
 Tree
-*nwk2tree(const std::string& filename)
+*nwk2tree(const std::string& nwk_str)
 {
-    std::string nwk_str = read_nwk(filename);
-
     // allocate a new Tree
     int n_nodes = count_nodes(nwk_str);
     Tree *tree = new Tree(n_nodes);

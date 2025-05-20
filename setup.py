@@ -19,7 +19,7 @@ def get_gsl_flags(flag):
 
 ext_modules = [
     Pybind11Extension(
-        'pcms.tree',
+        'pcms._tree',
         [
             'src/tree/tree.cpp',
             'src/tree/tree-dist.cpp',
