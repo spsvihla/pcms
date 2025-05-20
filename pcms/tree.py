@@ -520,7 +520,7 @@ class Tree:
         return self.tree.find_tbl(u, v)
     
     @check_node_index
-    def find_wavelets(self, u: int) -> List[NDArray]:
+    def compute_wavelets(self, u: int) -> Union[NDArray, List[NDArray]]:
         """
         Constructs wavelets associated to an interior node.
 
@@ -542,10 +542,11 @@ class Tree:
         """
         if self.get_child(u) == -1:
             raise ValueError("Node must be an interior node, not a leaf.")
-        return self.tree.find_wavelets(u)
+        wavelets = self.tree.compute_wavelets(u)
+        return wavelets if len(wavelets) > 1 else wavelets[0]
     
     @check_node_index
-    def find_supports(self, u: int) -> List[NDArray]:
+    def compute_supports(self, u: int) -> Union[NDArray, List[NDArray]]:
         """
         Finds supports of wavelets associated to an interior node.
 
@@ -577,11 +578,13 @@ class Tree:
         """
         if self.get_child(u) == -1:
             return [np.array([u])]
-        return self.tree.find_supports(u)
-    
-    def find_nnz(self) -> int:
+        supports = self.tree.compute_supports(u)
+        return supports if len(supports) > 1 else supports[0]
+
+    def find_nnz_max(self) -> int:
         """
-        Find number of non-zero entries in sparsified matrix.
+        Find an upper bound on the number of non-zero entries in 
+        sparsified matrix.
 
         Returns
         -------
@@ -593,7 +596,7 @@ class Tree:
         IndexError
             If the node index is out of bounds.
         """
-        pass
+        return self.tree.find_nnz_max()
 
 
 def nwk2tree(filename: str) -> Tree:

@@ -209,6 +209,17 @@ Tree::find_leaves(int u) const
     return std::make_pair(support, depths);
 }
 
+int 
+Tree::find_n_leaves() const
+{
+    int counter = 0;
+    for(int i = 0; i < get_n_nodes(); ++i)
+    {
+        counter += static_cast<int>(get_child(i) == -1);
+    }
+    return counter;
+}
+
 int
 Tree::find_epl() const
 {
@@ -257,7 +268,7 @@ Tree::find_tbl() const
 }
 
 py::list
-Tree::find_wavelets(int u) const
+Tree::compute_wavelets(int u) const
 {
     py::array_t<int> children = find_children(u);
     auto children_ = children.unchecked<1>();
@@ -265,6 +276,23 @@ Tree::find_wavelets(int u) const
     py::list wavelets;
 
     int l0 = get_subtree_size(children_[0]);
+
+    // mother wavelet
+    if(children.size() == 1)
+    {
+        double val = 1 / sqrt(l0);
+        
+        py::array_t<double> wavelet(l0);
+        auto wavelet_ = wavelet.mutable_unchecked<1>();
+        for(int j = 0; j < l0; ++j)
+        {
+            wavelet_(j) = val;
+        }
+        wavelets.append(wavelet);
+        return wavelets;
+    }
+
+    // daughter wavelet
     for(py::ssize_t i = 1; i < children.size(); ++i)
     {
         int l1 = get_subtree_size(children_[i]);
@@ -276,41 +304,50 @@ Tree::find_wavelets(int u) const
         auto wavelet_ = wavelet.mutable_unchecked<1>();
         for(int j = 0; j < l0; ++j)
         {
-            wavelet_(j) = val0;
+            wavelet_(static_cast<py::ssize_t>(j)) = val0;
         }
         for(int j = l0; j < s; ++j)
         {
-            wavelet_(j) = val1;
+            wavelet_(static_cast<py::ssize_t>(j)) = val1;
         }
 
         wavelets.append(wavelet);
         l0 += l1;
     }
-
     return wavelets;
 }
 
-std::pair<py::array_t<int>, py::array_t<int>>
-Tree::find_supports(int u) const
+py::list
+Tree::compute_supports(int u) const
 {
     auto [leaves, depths] = find_leaves(u);
+    auto leaves_ = leaves.unchecked<1>();
 
     py::array_t<int> children = find_children(u);
     auto children_= children.unchecked<1>();
 
-    py::array_t<int> partition(children.size() + 1);
-    auto partition_ = partition.mutable_unchecked<1>();
+    py::list supports;
 
-    for(py::ssize_t i = 0; i < children.size(); ++i)
+    int s = get_subtree_size(children_[0]);
+    for(py::ssize_t i = 1; i < children.size(); ++i)
     {
-        partition_(i + 1) = partition_[i] + get_subtree_size(children_[i]);
+        s += get_subtree_size(children_[i]);
+
+        py::array_t<int> support(s);
+        auto support_ = support.mutable_unchecked<1>();
+        for(int j = 0; j < s; ++j)
+        {
+            support_(static_cast<py::ssize_t>(j)) = leaves_[s];
+        }
+
+        supports.append(support);
     }
 
-    return std::make_pair(leaves, partition);
+    return supports;
 }
 
 int
-Tree::find_nnz() const
+Tree::find_nnz_max() const
 {
     // TODO: implement
 }

@@ -231,6 +231,12 @@ public:
     std::pair<py::array_t<int>, py::array_t<int>> find_leaves(int u) const;
 
     /**
+     * @brief Computes the number of leaves in the tree. 
+     * @return The number of leaves in the tree.
+     */
+    int find_n_leaves() const;
+
+    /**
      * @brief Finds the expected path length (EPL) of the tree.
      * @return The expected path length.
      */
@@ -264,7 +270,13 @@ public:
      * @return A list of NumPy arrays, each containing the values of a wavelet
      *         associated with the Target node index.
      */
-    py::list find_wavelets(int u) const;
+    py::list compute_wavelets(int u) const;
+
+    /**
+     * @brief 
+     * @return 
+     */
+    int find_nnz_max() const;
 
     /**
      * @brief Finds supports of wavelets associated to an interior node. 
@@ -282,13 +294,7 @@ public:
      *         nodes in the support, the second the boundaries between 
      *         partitions of the support.
      */
-    std::pair<py::array_t<int>, py::array_t<int>> find_supports(int u) const;
-
-    /**
-     * @brief Find number of non-zero entries in sparisifed matrix.
-     * @return The number of non-zero entries in sparsified matrix.
-     */
-    int find_nnz() const;
+    py::list compute_supports(int u) const;
 
     /**
      * @brief Prints the tree in an ASCII-art format.

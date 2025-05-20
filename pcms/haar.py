@@ -1,7 +1,7 @@
 """
-@file haar.py
-@brief A .py wrapper for the pcms._haar package.
-@author Sean Svihla
+haar.py
+
+A wrapper for the pcms._haar package.
 """
 
 from typing import Union, Sequence
@@ -24,19 +24,30 @@ def cdf_rand_basis(
     seed: int = 0
 ) -> Union[float, np.ndarray]:
     """
-    @brief Evaluates the CDF of <f,φ> where φ is the Haar-like wavelet associated
-           with an interior node 'v' of a critical beta-splitting tree T and f 
-           is a non-random function on the leaves of the sub-tree T(v). The 
-           split below φ varies randomly according to the critical beta-splitting
-           split distribution q(n,i).
+    Evaluate the CDF of ⟨f, φ⟩ for a Haar-like wavelet φ on a critical beta-splitting tree.
 
-    @param ys Point(s) to evaluate the CDF.
-    @param func Function on the leaves of T(v).
-    @param eps Desired precision.
-    @param delta Probability estimate falls within desired precision.
-    @param seed A random seed.
+    φ is associated with an interior node v of a critical beta-splitting tree T,
+    and f is a non-random function on the leaves of the subtree T(v). The split 
+    below φ is sampled randomly according to the critical beta-splitting 
+    distribution q(n, i).
 
-    @return Estimate(s) of the CDF at the point(s).
+    Parameters
+    ----------
+    ys: float or array-like
+        Points at which to evaluate the CDF.
+    func: array-like
+        Function values on the leaves of T(v).
+    eps: float
+        Desired precision of the estimate.
+    delta: float
+        Probability that the estimate lies within the desired precision.
+    seed: int, optional
+        Random seed (default is 0).
+
+    Returns
+    -------
+    float or np.ndarray
+        Estimate(s) of the CDF at the given point(s).
     """
     ys_arr = np.atleast_1d(ys).astype(np.float64)
     func_arr = np.asarray(func, dtype=np.float64)
@@ -55,17 +66,25 @@ def cdf_rand_func(
     subtree_size: int
 ) -> float:
     """
-    @brief Evaluates the CDF of <f,φ> where φ us the Haar-like wavelet associated
-           with an interior node with 'subtree_size' descendent leaves and a 
-           split of size 'split_size'. In this case, the distribution is 
-           an affine transform of a Beta(split_size, subtree_size-split_size)
-           distribution
+    Evaluate the CDF of ⟨f, φ⟩ where φ is a Haar-like wavelet over a fixed split.
 
-    @param ys Point(s) to evaluate the CDF.
-    @param split_size The split size beneath the node.
-    @param subtree_size The size of the subtree rooted at the node.
+    φ is associated with an interior node that has `subtree_size` descendant leaves
+    and a split of size `split_size`. In this case, the distribution of ⟨f, φ⟩ 
+    is an affine transformation of a Beta(split_size, subtree_size - split_size) distribution.
 
-    @return Estimate(s) of the CDF at the point(s).
+    Parameters
+    ----------
+    ys: float or array-like
+        Points at which to evaluate the CDF.
+    split_size: int
+        Size of one side of the split.
+    subtree_size: int
+        Total number of leaves in the subtree.
+
+    Returns
+    -------
+    float or np.ndarray
+        Value(s) of the CDF at the specified point(s).
     """
     ys = np.asarray(ys)
     a = np.sqrt((subtree_size - split_size) / split_size / subtree_size)
@@ -75,16 +94,22 @@ def cdf_rand_func(
 
 def sparsify(input: pcms.tree.Tree | str) -> csc_matrix:
     """
-    @brief Convert a tree into a sparse Haar wavelet basis and covariance matrix.
+    Convert a tree to sparse Haar wavelet basis and covariance matrices.
 
-    @param input A `pcms.tree.Tree` object or a string path to a Newick-formatted file 
-                that can be parsed into a tree.
+    Parameters
+    ----------
+    input: pcms.tree.Tree or str
+        A `Tree` object or a string path to a Newick-formatted file.
 
-    @return A tuple (basis, covariance), where:
-        - `basis` is the Haar wavelet basis matrix (scipy.sparse.csc_matrix),
-        - `covariance` is the corresponding covariance matrix (scipy.sparse.csc_matrix).
+    Returns
+    -------
+    scipy.sparse.csc_matrix
+        The Haar basis matrix and corresponding covariance matrix.
 
-    @exception ValueError If `input` is not a `pcms.tree.Tree` instance or a string.
+    Raises
+    ------
+    ValueError
+        If `input` is neither a `Tree` instance nor a valid filename.
     """
     if isinstance(input, pcms.tree.Tree):
         basis, cov = pcms._haar.sparsify(input)

@@ -9,6 +9,12 @@
 // project-specific includes
 #include "tree.hpp"
 
+// Pybind11 includes
+#include <pybind11/numpy.h>
+#include <pybind11/pybind11.h>
+
+namespace py = pybind11;
+
 /**
  * @struct SparseMatrix
  * @brief 
@@ -16,9 +22,9 @@
  */
 template <typename ValueType>
 struct SparseMatrix {
-    std::vector<ValueType> values;
-    std::vector<int> rowidx;
-    std::vector<int> colptr;
+    py::array_t<ValueType> values;
+    py::array_t<py::ssize_t> rowidx;
+    py::array_t<py::ssize_t> colptr;
 };
 
 /**
