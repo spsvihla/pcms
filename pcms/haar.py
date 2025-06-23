@@ -55,7 +55,7 @@ def cdf_rand_basis(
     num_iter = int(np.ceil(1.0 / (4 * eps**2 * delta)))
     if factorial(n) < num_iter:
         num_iter = n
-    pmf = CriticalBetaSplittingDistribution(n).get_pmf()
+    pmf = CriticalBetaSplittingDistribution(n).pmf
     result = pcms._haar.cdf_rand_basis(ys_arr, func_arr, pmf, int(num_iter), int(seed))
     return result.item() if np.isscalar(ys) else result
 
@@ -112,11 +112,11 @@ def sparsify(input: pcms.tree.Tree | str) -> csc_matrix:
         If `input` is neither a `Tree` instance nor a valid filename.
     """
     if isinstance(input, pcms.tree.Tree):
-        basis, cov = pcms._haar.sparsify(input)
+        basis, cov = pcms._haar.sparsify(input._tree)
         return csc_matrix(basis), csc_matrix(cov)
     elif isinstance(input, str):
         tree = pcms.tree.nwk2tree(input)
-        basis, cov = pcms._haar.sparsify(tree)
+        basis, cov = pcms._haar.sparsify(tree._tree)
         return csc_matrix(basis), csc_matrix(cov)
     else:
         raise ValueError("Expected pcms.tree.Tree or string (filename)")

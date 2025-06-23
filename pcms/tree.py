@@ -43,20 +43,27 @@ class Tree:
         """
         if not isinstance(n_nodes, int):
             raise TypeError("Expected 'n_nodes' to have type 'int'")
-        self.tree = pcms._tree.Tree(n_nodes)
-        self.print_label = "none"
+        self._tree = pcms._tree.Tree(n_nodes)
+        self._print_label = "none"
+
+    @classmethod
+    def _from_cpp_tree(self, tree: pcms._tree.Tree) -> "Tree":
+        obj = self.__new__(self)  # bypass __init__
+        obj._tree = tree
+        obj._print_label = "none"
+        return obj
 
     def __del__(self) -> None:
         """Default destructor."""
         pass
 
     def __str__(self):
-        return self.tree.to_string(self.print_label)
+        return self._tree.to_string(self._print_label)
 
     @property
     def print_label(self) -> str:
         """Return the label format used when printing the tree."""
-        return self.print_label
+        return self._print_label
 
     @print_label.setter
     def print_label(self, value: str) -> None:
@@ -75,7 +82,7 @@ class Tree:
         """
         if value not in ["index", "name", "none"]:
             raise ValueError(f"Print label must be 'index', 'name', or 'none', not {value}")
-        self.print_label = value
+        self._print_label = value
 
     @property
     def n_nodes(self) -> None:
@@ -87,7 +94,7 @@ class Tree:
         int
             The number of nodes in the tree.
         """
-        return self.tree.get_n_nodes()
+        return self._tree.get_n_nodes()
 
     @check_node_index 
     def get_parent(self, u: int) -> int:
@@ -109,7 +116,7 @@ class Tree:
         IndexError
             If the node index is out of bounds.
         """
-        return self.tree.get_parent(u)
+        return self._tree.get_parent(u)
     
     @check_node_index
     def get_child(self, u: int) -> int:
@@ -131,7 +138,7 @@ class Tree:
         IndexError
             If the node index is out of bounds.
         """
-        return self.tree.get_parent(u)
+        return self._tree.get_parent(u)
     
     @check_node_index
     def get_sibling(self, u: int) -> int:
@@ -153,7 +160,7 @@ class Tree:
         IndexError
             If the node index is out of bounds.
         """
-        return self.tree.get_sibling(u)
+        return self._tree.get_sibling(u)
     
     @check_node_index
     def get_is_first(self, u: int) -> bool:
@@ -175,7 +182,7 @@ class Tree:
         IndexError
             If the node index is out of bounds.
         """
-        return self.tree.get_is_first(u)
+        return self._tree.get_is_first(u)
     
     def get_subtree_size(self, u: Optional[int]) -> Union[int, NDArray]:
         """
@@ -198,11 +205,11 @@ class Tree:
             If the node index is out of bounds.
         """
         if u is None:
-            return self.tree.get_subtree_size_()
+            return self._tree.get_subtree_size_()
         else:
             if not (0 <= u < self.n_nodes):
                 raise IndexError(f"Node index {u} out of bounds.")
-            return self.tree.get_subtree_size(u)
+            return self._tree.get_subtree_size(u)
         
     def get_edge_length(self, u: Optional[int]) -> Union[float, NDArray]:
         """
@@ -225,11 +232,11 @@ class Tree:
             If the node index is out of bounds.
         """
         if u is None:
-            return self.tree.get_edge_length_()
+            return self._tree.get_edge_length_()
         else:
             if not (0 <= u < self.n_nodes):
                 raise IndexError(f"Node index {u} out of bounds.")
-            return self.tree.get_edge_length(u)
+            return self._tree.get_edge_length(u)
         
     @check_node_index
     def set_edge_length(self, u: int, value: float) -> None:
@@ -248,7 +255,7 @@ class Tree:
         IndexError
             If the node index is out of bounds.
         """
-        self.tree.set_edge_length(u, value)
+        self._tree.set_edge_length(u, value)
 
     @check_node_index
     def get_name(self, u: int) -> str:
@@ -270,7 +277,7 @@ class Tree:
         IndexError
             If the node index is out of bounds.
         """
-        return self.tree.get_name(u)
+        return self._tree.get_name(u)
     
     @check_node_index
     def set_name(self, u: int, value: str) -> None:
@@ -289,7 +296,7 @@ class Tree:
         IndexError
             If the node index is out of bounds.
         """
-        self.tree.set_name(u, value)
+        self._tree.set_name(u, value)
 
     @check_node_index 
     def link(self, u: int, v: int) -> None:
@@ -312,7 +319,7 @@ class Tree:
             raise IndexError(f"Node index v = {v} out of bounds.")
         if self.get_parent(u) != -1:
             raise RuntimeError("Cannot link a node before cutting.")
-        self.tree.link(u, v)
+        self._tree.link(u, v)
 
     @check_node_index
     def cut(self, u: int) -> None:
@@ -329,7 +336,7 @@ class Tree:
         IndexError
             If the node index is out of bounds.
         """
-        self.tree.cut(u)
+        self._tree.cut(u)
     
     @check_node_index
     def swap(self, u: int, v: int) -> None:
@@ -350,7 +357,7 @@ class Tree:
         """
         if v < 0 or v >= self.n_nodes:
             raise IndexError(f"Node index v = {u} out of bounds.")
-        self.tree.swap(u, v)
+        self._tree.swap(u, v)
 
     @check_node_index
     def find_children(self, u: int) -> NDArray:
@@ -372,7 +379,7 @@ class Tree:
         IndexError
             If the node index is out of bounds.
         """
-        return self.tree.find_children(u)
+        return self._tree.find_children(u)
     
     @check_node_index
     def find_ancestors(self, u: int) -> NDArray:
@@ -394,7 +401,7 @@ class Tree:
         IndexError
             If the node index is out of bounds.
         """
-        return self.tree.find_ancestors(u)
+        return self._tree.find_ancestors(u)
     
     @check_node_index
     def find_path(self, u: int, v: int) -> Tuple[NDArray, NDArray]:
@@ -421,7 +428,7 @@ class Tree:
         """
         if v < 0 or v >= self.n_nodes:
             raise IndexError(f"Node index v = {u} out of bounds.")
-        return self.tree.find_path(u, v)
+        return self._tree.find_path(u, v)
     
     def find_root(self) -> int:
         """
@@ -432,7 +439,7 @@ class Tree:
         int
             The index of the root node.
         """
-        return self.tree.find_root()
+        return self._tree.find_root()
     
     def find_leaves(self, u: Optional[int]) -> Tuple[NDArray, NDArray]:
         """
@@ -459,7 +466,7 @@ class Tree:
             u = self.find_root()
         if not (0 <= u < self.n_nodes):
             raise IndexError(f"Node index u = {u} out of bounds.")
-        return self.tree.find_leaves(u)
+        return self._tree.find_leaves(u)
     
     def find_subtree_start_indices(self) -> NDArray:
         """
@@ -473,7 +480,7 @@ class Tree:
         np.ndarray
             The subtree start index of each node in the tree.
         """
-        return self.tree.find_subtree_start_indices()
+        return self._tree.find_subtree_start_indices()
 
     def find_epl(self) -> int:
         """
@@ -489,7 +496,7 @@ class Tree:
         IndexError
             If the node index is out of bounds.
         """
-        return self.tree.find_epl()
+        return self._tree.find_epl()
     
     def find_tbl(self, u: Optional[int], v: Optional[int]) -> Union[float, NDArray]:
         """
@@ -520,18 +527,18 @@ class Tree:
         if u is None:
             if v is not None:
                 raise ValueError("Cannot have v != None while u == None.")
-            return self.tree.find_tbl()
+            return self._tree.find_tbl()
 
         if not (0 <= u < self.n_nodes):
             raise IndexError(f"Node index u = {u} out of bounds.")
 
         if v is None:
-            return self.tree.find_tbl(u)
+            return self._tree.find_tbl(u)
 
         if not (0 <= v < self.n_nodes):
             raise IndexError(f"Node index v = {v} out of bounds.")
 
-        return self.tree.find_tbl(u, v)
+        return self._tree.find_tbl(u, v)
     
     @check_node_index
     def compute_wavelets(self, u: int) -> Union[NDArray, List[NDArray]]:
@@ -556,7 +563,7 @@ class Tree:
         """
         if self.get_child(u) == -1:
             raise ValueError("Node must be an interior node, not a leaf.")
-        wavelets = self.tree.compute_wavelets(u)
+        wavelets = self._tree.compute_wavelets(u)
         return wavelets if len(wavelets) > 1 else wavelets[0]
     
     @check_node_index
@@ -594,7 +601,7 @@ class Tree:
         """
         if self.get_child(u) == -1:
             raise ValueError("Input 'u' cannot be a leaf node")
-        supports = self.tree.compute_supports(u)
+        supports = self._tree.compute_supports(u)
         return supports if len(supports) > 1 else supports[0]
 
     def find_nnz_max(self) -> int:
@@ -612,7 +619,7 @@ class Tree:
         IndexError
             If the node index is out of bounds.
         """
-        return self.tree.find_nnz_max()
+        return self._tree.find_nnz_max()
     
 
 class CriticalBetaSplittingDistribution:
@@ -625,10 +632,12 @@ class CriticalBetaSplittingDistribution:
         """Generate a single sample from the distribution."""
         return self._dist()
 
+    @property
     def pmf(self):
         """Return the probability mass function (PMF) as a list or array."""
         return self._dist.get_pmf()
 
+    @property
     def cdf(self):
         """Return the cumulative distribution function (CDF) as a list or array."""
         return self._dist.get_cdf()
@@ -650,10 +659,10 @@ def nwk2tree(filename: str) -> Tree:
     """
     with open(filename) as f:
         nwk_str = f.read()
-    return pcms._tree.nwk2tree(nwk_str)
+    return Tree._from_cpp_tree(pcms._tree.nwk2tree(nwk_str))
 
 
-def remy(n_leaves: int, seed: Optional[int]) -> Tree:
+def remy(n_leaves: int, seed: Optional[int] = None) -> Tree:
     """
     Construct a random Tree object from the uniform distribution.
 
@@ -676,10 +685,13 @@ def remy(n_leaves: int, seed: Optional[int]) -> Tree:
     """
     if n_leaves < 2:
         raise ValueError("Required n_leaves >= 2.")
-    return pcms._tree.remy(n_leaves, seed)
+    if seed:
+        return Tree._from_cpp_tree(pcms._tree.remy(n_leaves, seed))
+    else:
+        return Tree._from_cpp_tree(pcms._tree.remy(n_leaves))
 
 
-def cbst(n_leaves: int, seed: Optional[int]) -> Tree:
+def cbst(n_leaves: int, seed: Optional[int] = None) -> Tree:
     """
     Construct a random Tree object from the critical beta-splitting
     distribution.
@@ -703,4 +715,7 @@ def cbst(n_leaves: int, seed: Optional[int]) -> Tree:
     """
     if n_leaves < 2:
         raise ValueError("Required n_leaves >= 2.")
-    return pcms._tree.cbst(n_leaves, seed)
+    if seed:
+        return Tree._from_cpp_tree(pcms._tree.cbst(n_leaves, seed))
+    else:
+        return Tree._from_cpp_tree(pcms._tree.cbst(n_leaves))
