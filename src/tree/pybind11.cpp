@@ -183,7 +183,7 @@ PYBIND11_MODULE(_tree, m) {
         (
             "to_string",
             &Tree::to_string,
-            py::arg("label") = "none"
+            py::arg("label")
         );
     py::class_<critical_beta_splitting_distribution>(m, "CriticalBetaSplittingDistribution")
         .def(
