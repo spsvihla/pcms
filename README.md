@@ -8,7 +8,7 @@ Phylogenetic Covariance Matrix Sparisifcation
 We make use of the [Greengenes database](https://ftp.microbio.me/greengenes_release/) [1-3], the most up-to-date version of which can be found under `/greengenes_release/current` at the link provided.
 As an example, the `gg_13_8` dataset can be downloaded as follows:
 
-```
+```bash
 $ wget https://ftp.microbio.me/greengenes_release/gg_13_5/gg_13_8_otus.tar.gz
 $ tar -xzf gg_13_8_otus.tar.gz
 ```
@@ -17,7 +17,12 @@ $ tar -xzf gg_13_8_otus.tar.gz
 
 Other notebooks use the [Guerrero Negro microbial mat datasat](https://www.ncbi.nlm.nih.gov/nuccore/?term=JN427016%3AJN539989%5BAccession%5D) collected and analyzed by Harris, Caporaso, et al. [4].
 In particular, the sequences available on GenBank are used to pick OTUs clustered against the Greengenes database as described in [4].
-These data can be downloaded at the link provided by selecting `Send to > Gene features` above the search results and creating a file with the "FASTA Nucleotide" format.
+These data can be downloaded with Entrez Direct by the followig command:
+
+```bash
+$ esearch -db nucleotide -query "JN427016:JN539989[Accession]" \
+  | efetch -format fasta > sequences.fasta
+```
 
 ### Data directory structure
 
