@@ -21,6 +21,8 @@ These data can be downloaded with Entrez Direct by the followig command:
 
 ```bash
 esearch -db nucleotide -query "JN427016:JN539989[Accession]" \
+  | efetch -format acc > accession_list.txt
+esearch -db nucleotide -input accession_list.txt \
   | efetch -format fasta > sequences.fasta
 ```
 
