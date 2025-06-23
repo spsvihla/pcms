@@ -17,9 +17,10 @@ namespace py = pybind11;
 
 
 /**
- * @brief 
- * @param tree 
- * @return 
+ * @brief Computes the Haar-like wavelet basis and sparse covariance matrix of a tree.
+ * @param tree
+ * @return A pair of tuples containing the CSC representation of the wavelet basis 
+ *         matrix and sparsified covariance matrix of the tree.
  */
 py::tuple sparsify(Tree* tree);
 
