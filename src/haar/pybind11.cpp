@@ -11,7 +11,7 @@
 namespace py = pybind11;
 
 
-// pybind11 code to expose the module to Python
+// Pybind11 code to expose the module to Python
 PYBIND11_MODULE(_haar, m) {
     m.def
     (

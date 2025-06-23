@@ -29,12 +29,14 @@
   * in order to approximate summation over all permutations of 'f'. The value
   * of 'num_iter' should be chosen to ensure the desired convergence.
   * 
-  * @param ys      A 1D NumPy array of points at which to evaluate the estimated CDF.
-  * @param func    A 1D NumPy array representing the function f to project against the random basis.
-  * @param cdf     A 1D NumPy array representing the empirical CDF grid (or used for interpolation).
+  * @param ys A 1D NumPy array of points at which to evaluate the estimated CDF.
+  * @param func A 1D NumPy array representing the function f to project against 
+  *             the random basis.
+  * @param cdf A 1D NumPy array representing the CDF.
   * @param num_iter Number of Monte Carlo samples to use for estimation.
-  * @param seed    Random seed for reproducibility. If zero, a random seed is used.
-  * @return A 1D NumPy array of the same length as `ys`, containing estimated CDF values.
+  * @param seed Random seed for reproducibility. If zero, a random seed is used.
+  * @return A 1D NumPy array of the same length as `ys`, containing estimated 
+  *         CDF values.
   */
  py::array_t<double> cdf_rand_basis(const py::array_t<double>& ys, 
                                     const py::array_t<double>& func, 

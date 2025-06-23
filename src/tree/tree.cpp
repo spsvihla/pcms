@@ -425,7 +425,7 @@ Tree::to_string_(int node, const std::string& prefix, bool is_last,
     return result;
 }
 
-/* first pass: count the number of nodes in the tree */
+// first pass: count the number of nodes in the tree
 int 
 count_nodes(std::string_view nwk_str)
 {
@@ -506,7 +506,7 @@ parse_newick(char c, int& curr_node, Tree* tree, std::vector<char>& char_buf,
     }
 }
 
-/* second pass: assign parent-child relationships */
+// second pass: assign parent-child relationships
 Tree
 *nwk2tree(const std::string& nwk_str)
 {
