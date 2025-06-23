@@ -28,6 +28,17 @@
 namespace py = pybind11;
 
 
+inline py::array_t<int>
+std_vec2py_array_t_int(std::vector<int> arr)
+{
+    py::array_t<int> result(arr.size());
+    auto result_ = result.mutable_unchecked<1>();
+    for (ssize_t i = 0; i < static_cast<ssize_t>(arr.size()); ++i)
+        result_(i) = arr[i];
+    return result;
+}
+
+
 // constructor
 Tree::Tree(int n_nodes)
 : n_nodes(n_nodes), topology(n_nodes), numerics(n_nodes), names(n_nodes) {}
@@ -125,7 +136,7 @@ Tree::find_children(int u) const
     {
         children.push_back(c);
     }
-    return py::array_t<int>(children.size(), children.data());
+    return std_vec2py_array_t_int(children);
 }
 
 std::vector<int>
@@ -136,13 +147,18 @@ Tree::find_ancestors_(int u) const
     {
         ancestors.push_back(p);
     }
+    return ancestors;
 }
 
 py::array_t<int> 
 Tree::find_ancestors(int u) const
 {
     std::vector<int> ancestors = find_ancestors_(u);
-    return py::array_t<int>(ancestors.size(), ancestors.data());
+    if(ancestors.empty())
+    {
+        return py::array_t<int>();
+    }
+    return std_vec2py_array_t_int(ancestors);
 }
 
 std::pair<py::array_t<int>,py::array_t<int>> 
@@ -156,19 +172,18 @@ Tree::find_path(int u, int v) const
         v_path.pop_back();
     }
     return std::make_pair(
-        py::array_t<int>(u_path.size(), u_path.data()), 
-        py::array_t<int>(v_path.size(), v_path.data())
+        std_vec2py_array_t_int(u_path), 
+        std_vec2py_array_t_int(v_path)
     );
 }
 
 int
 Tree::find_root() const
 {
-    py::array_t<int> ancestors = find_ancestors(0);
-    if(!ancestors.size() > 0)
+    std::vector<int> ancestors = find_ancestors_(0);
+    if(!ancestors.empty())
     {
-        auto ancestors_ = ancestors.unchecked<1>();
-        return ancestors_[ancestors.size() - 1];
+        return ancestors.back();
     }
     else
     {
@@ -392,14 +407,7 @@ Tree::to_string_(int node, const std::string& prefix, bool is_last,
     std::string result = prefix;
 
     // add branches
-    if (is_last)
-    {
-        result += "└── ";
-    }
-    else
-    {
-        result += "├── ";
-    }
+    result += (is_last ? "└── " : "├── ");
 
     // add labels or X marker
     if (label == "index")
