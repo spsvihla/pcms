@@ -613,6 +613,25 @@ class Tree:
             If the node index is out of bounds.
         """
         return self.tree.find_nnz_max()
+    
+
+class CriticalBetaSplittingDistribution:
+    def __init__(self, n):
+        if n < 2:
+            raise ValueError("Number of leaves must be >= 2")
+        self._dist = pcms._tree.CriticalBetaSplittingDistribution(n)
+
+    def sample(self):
+        """Generate a single sample from the distribution."""
+        return self._dist()
+
+    def pmf(self):
+        """Return the probability mass function (PMF) as a list or array."""
+        return self._dist.get_pmf()
+
+    def cdf(self):
+        """Return the cumulative distribution function (CDF) as a list or array."""
+        return self._dist.get_cdf()
 
 
 def nwk2tree(filename: str) -> Tree:
