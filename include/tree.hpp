@@ -231,8 +231,8 @@ public:
     std::pair<py::array_t<int>, py::array_t<int>> find_leaves(int u) const;
 
     /**
-     * @brief
-     * @return
+     * @brief Finds the starting leaf-index (postorder indexing of leaves) of subtrees.
+     * @return A vector of starting leaf-index of subtrees for each node in the tree.
      */
     py::array_t<int> find_subtree_start_indices() const;
 
