@@ -9,7 +9,6 @@
 // standard library includes
 #include <algorithm>
 #include <numeric>
-#include <queue>
 #include <stack>
 #include <vector>
 
@@ -132,40 +131,12 @@ compute_nnz(Tree* tree)
     return nnz;
 }
 
-py::array_t<int>
-compute_subtree_starts(Tree* tree) 
-{
-    py::array_t<int> subtree_starts(tree->get_n_nodes());
-    auto subtree_starts_ = subtree_starts.mutable_unchecked<1>();
-
-    // breadth-first search
-    std::queue<std::pair<int, int>> q;
-    q.push({tree->find_root(), 0});
-    while(!q.empty())
-    {
-        auto [u, start] = q.front();
-        q.pop();
-
-        subtree_starts_(u) = start;
-
-        // enqueue children
-        int offset = 0;
-        for(int c = tree->get_child(u); c != -1; c = tree->get_sibling(c))
-        {
-            q.push({c, start + offset});
-            offset += tree->get_subtree_size(c);
-        }
-    }
-
-    return subtree_starts;
-}
-
-std::pair<SparseMatrix<double>, SparseMatrix<double>> 
+py::tuple
 sparsify(Tree* tree)
 {
     int nnz = compute_nnz(tree);
 
-    py::array_t<int> subtree_starts = compute_subtree_starts(tree);
+    py::array_t<int> subtree_starts = tree->find_subtree_start_indices();
     auto subtree_starts_ = subtree_starts.unchecked<1>();
 
     py::array_t<double> wavelets(nnz);
