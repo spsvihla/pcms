@@ -279,12 +279,6 @@ public:
     py::list compute_wavelets(int u) const;
 
     /**
-     * @brief 
-     * @return 
-     */
-    int find_nnz_max() const;
-
-    /**
      * @brief Finds supports of wavelets associated to an interior node. 
      * 
      * Note that the first returned vector contains a list of the indices of 

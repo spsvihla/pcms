@@ -375,12 +375,6 @@ Tree::compute_supports(int u) const
     return supports;
 }
 
-int
-Tree::find_nnz_max() const
-{
-    // TODO: implement
-}
-
 std::string
 Tree::to_string(const std::string& label) const
 {
