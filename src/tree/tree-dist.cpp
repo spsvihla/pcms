@@ -73,11 +73,6 @@ harmonic_number(int n)
 critical_beta_splitting_distribution::critical_beta_splitting_distribution(py::ssize_t n)
 : n(n), pmf(n-1), cdf(n-1) 
 {
-    if(n < 2)
-    {
-        throw py::value_error("Number of leaves must be at least 2.");
-    }
-
     double hn = harmonic_number(n - 1);
 
     auto pmf_ = pmf.mutable_unchecked<1>();
