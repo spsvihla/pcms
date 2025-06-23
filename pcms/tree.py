@@ -589,9 +589,11 @@ class Tree:
         -------
         IndexError
             If the node index is out of bounds.
+        ValueError
+            If the input node is a leaf node.
         """
         if self.get_child(u) == -1:
-            return [np.array([u])]
+            raise ValueError("Input 'u' cannot be a leaf node")
         supports = self.tree.compute_supports(u)
         return supports if len(supports) > 1 else supports[0]
 
