@@ -12,6 +12,7 @@
 #include <fstream>
 #include <iostream>
 #include <numeric>
+#include <queue>
 #include <random>
 #include <stack>
 #include <string>
@@ -207,6 +208,34 @@ Tree::find_leaves(int u) const
     }
 
     return std::make_pair(support, depths);
+}
+
+py::array_t<int>
+Tree::find_subtree_start_indices() const
+{
+    py::array_t<int> subtree_starts(get_n_nodes());
+    auto subtree_starts_ = subtree_starts.mutable_unchecked<1>();
+
+    // breadth-first search
+    std::queue<std::pair<int, int>> q;
+    q.push({find_root(), 0});
+    while(!q.empty())
+    {
+        auto [u, start] = q.front();
+        q.pop();
+
+        subtree_starts_(u) = start;
+
+        // enqueue children
+        int offset = 0;
+        for(int c = get_child(u); c != -1; c = get_sibling(c))
+        {
+            q.push({c, start + offset});
+            offset += get_subtree_size(c);
+        }
+    }
+
+    return subtree_starts;
 }
 
 int 

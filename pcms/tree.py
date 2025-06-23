@@ -460,6 +460,20 @@ class Tree:
         if not (0 <= u < self.n_nodes):
             raise IndexError(f"Node index u = {u} out of bounds.")
         return self.tree.find_leaves(u)
+    
+    def find_subtree_start_indices(self) -> NDArray:
+        """
+        Finds the leaf-indices (i.e., leaves indexed by postorder) of the 
+        leftmost leaf in the subtree rooted at each node. Note that the 
+        node-index (i.e., the indexing of all nodes in the tree) can be 
+        obtained by referencing the output of find_leaves.
+
+        Returns
+        -------
+        np.ndarray
+            The subtree start index of each node in the tree.
+        """
+        return self.tree.find_subtree_start_indices()
 
     def find_epl(self) -> int:
         """

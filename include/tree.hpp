@@ -231,6 +231,12 @@ public:
     std::pair<py::array_t<int>, py::array_t<int>> find_leaves(int u) const;
 
     /**
+     * @brief
+     * @return
+     */
+    py::array_t<int> find_subtree_start_indices() const;
+
+    /**
      * @brief Computes the number of leaves in the tree. 
      * @return The number of leaves in the tree.
      */

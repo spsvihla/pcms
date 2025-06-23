@@ -147,6 +147,10 @@ PYBIND11_MODULE(_tree, m) {
             &Tree::find_leaves,
             py::arg("u")
         )
+        .def(
+            "find_subtree_start_indices",
+            &Tree::find_subtree_start_indices
+        )
         .def
         (
             "find_epl", 
