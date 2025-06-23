@@ -9,8 +9,8 @@ We make use of the [Greengenes database](https://ftp.microbio.me/greengenes_rele
 As an example, the `gg_13_8` dataset can be downloaded as follows:
 
 ```bash
-$ wget https://ftp.microbio.me/greengenes_release/gg_13_5/gg_13_8_otus.tar.gz
-$ tar -xzf gg_13_8_otus.tar.gz
+wget https://ftp.microbio.me/greengenes_release/gg_13_5/gg_13_8_otus.tar.gz
+tar -xzf gg_13_8_otus.tar.gz
 ```
 
 ### Guerrero Negro microbial mat samples
@@ -20,7 +20,7 @@ In particular, the sequences available on GenBank are used to pick OTUs clustere
 These data can be downloaded with Entrez Direct by the followig command:
 
 ```bash
-$ esearch -db nucleotide -query "JN427016:JN539989[Accession]" \
+esearch -db nucleotide -query "JN427016:JN539989[Accession]" \
   | efetch -format fasta > sequences.fasta
 ```
 
