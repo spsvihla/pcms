@@ -196,7 +196,7 @@ sparsify(Tree* tree)
             col_ptrs_(++m_idx) = n_idx;
             subtree_size_stack.top() = sum;
         }
-        if(tree->get_sibling(i) == -1)      // leaf node
+        if(tree->get_sibling(i) == -1)      // last child node
         {
             subtree_start_stack.pop();
             subtree_size_stack.pop();
