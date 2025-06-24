@@ -52,7 +52,8 @@ compute_nnz_max_cov(Tree* tree)
 {
     int n = tree->get_n_nodes();
     int epl = tree->find_epl();
-    return 3 / n - 2 * (epl + 1) / (n * n);
+    double val = 2.0 * (epl + 1) / (n * n) - 3.0 / n;
+    return static_cast<py::ssize_t>(val * n);
 }
 
 // double precision dot product
