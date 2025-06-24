@@ -138,7 +138,7 @@ class Tree:
         IndexError
             If the node index is out of bounds.
         """
-        return self._tree.get_parent(u)
+        return self._tree.get_child(u)
     
     @check_node_index
     def get_sibling(self, u: int) -> int:
