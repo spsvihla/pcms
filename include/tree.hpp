@@ -39,7 +39,7 @@ struct TreeTopology {
     int parent = -1;         ///< Parent node index (-1 if no parent)
     int child = -1;          ///< Child node index (-1 if no child)
     int sibling = -1;        ///< Sibling node index (-1 if no sibling)
-    bool is_first = false;   ///< Whether node is the first (leftmost) sibling
+    bool is_first = true;    ///< Whether node is the first (leftmost) sibling
 };
 
 /**
