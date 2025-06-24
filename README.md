@@ -17,39 +17,60 @@ tar -xzf gg_13_8_otus.tar.gz
 
 #### Downloading the dataset
 
-Other notebooks use the [Guerrero Negro microbial mat datasat](https://www.ncbi.nlm.nih.gov/nuccore/?term=JN427016%3AJN539989%5BAccession%5D) collected and analyzed by Harris, Caporaso, et al. [3].
+Some notebooks use the [Guerrero Negro microbial mat datasat](https://www.ncbi.nlm.nih.gov/nuccore/?term=JN427016%3AJN539989%5BAccession%5D) collected and analyzed by Harris, Caporaso, et al. [3].
 In particular, the sequences available on GenBank are used to pick OTUs clustered against the Greengenes database as described in [3].
 These data can be downloaded with Entrez Direct (see [install instructions](https://www.ncbi.nlm.nih.gov/books/NBK179288/)) by the following command:
 
 ```bash
-export DATASET_DIR=$DATA/guerrero_negro \
-&& mkdir -p "$DATASET_DIR" \
-&& ./build_accession_list.sh \
-    -a "JN427016:JN539989" \
-    -o "$DATASET_DIR" \
-&& ./fetch_query_seqs.sh \
-    -i "$DATASET_DIR/accessions_JN427016_JN539989.txt" \
-    -o "$DATASET_DIR/query_seqs_JN427016_JN539989.fasta"
+export DATASET_DIR=$DATA/guerrero_negro
+mkdir -p "$DATASET_DIR"
+
+# Step 1: Build accession list for the desired range
+./build_accession_list.sh \
+  -a "JN427016:JN539989" \
+  -o "$DATASET_DIR"
+
+# Step 2: Download GenBank files for accessions
+./fetch_ncbi_genbank_files.sh \
+  -i "$DATASET_DIR/accessions_JN427016_JN539989.txt" \
+  -o "$DATASET_DIR/query_seqs_JN427016_JN539989.gb"
 ```
-
-#### Installing QIIME2
-
-We matched the sequences to the 97% Greengenes reference phylogeny using QIIME2 [4]. See the [quickstart guide](https://library.qiime2.org/quickstart) for QIIME2 Amplicon for installation instructions.
 
 #### Obtaining OTU counts
 
-To cluster your query sequences against a reference database and generate OTU counts, run the following commands:
+We matched the sequences to the 97% Greengenes reference phylogeny using QIIME2 [4]. (See the [quickstart guide](https://library.qiime2.org/quickstart) for QIIME2 Amplicon for installation instructions.) To cluster your query sequences against a reference database and generate OTU counts, run the following commands:
 
 ```bash
-export REF_SEQS=$DATA/greengenes/gg_13_8_otus/rep_set/97_otus.fasta \
-&& ./import_query_seqs.sh \
-    -f "$DATASET_DIR/query_seqs_JN427016_JN539989.fasta" \
-    -o "$DATASET_DIR/query_seqs_JN427016_JN539989.qza" \
-&& ./cluster_query_seqs.sh \
-    -r "$REF_SEQS" \
-    -q "$DATASET_DIR/query_seqs_JN427016_JN539989.qza" \
-    -o "$DATASET_DIR"
+export REF_SEQS=$DATA/greengenes/gg_13_8_otus/rep_set/97_otus.fasta
+
+# Step 3: Convert GenBank file to FASTA using Python script
+python3 build_seq_manifest.py \
+  -i "$DATASET_DIR/query_seqs_JN427016_JN539989.gb" \
+  -o "$DATASET_DIR/query_seqs_JN427016_JN539989.fasta" \
+  -m "$DATASET_DIR/query_manifest_JN427016_JN539989.csv"
+
+# Step 4: Import query sequences into QIIME2 artifact
+./import_query_seqs.sh \
+  -m "$DATASET_DIR/query_manifest_JN427016_JN539989.csv" \
+  -o "$DATASET_DIR/query_seqs_JN427016_JN539989.qza"
+
+# Step 5: Dereplicate sequences to generate feature table and representative sequences
+./dereplicate_seqs.sh \
+  -i "$DATASET_DIR/query_seqs_JN427016_JN539989.qza" \
+  -t "$DATASET_DIR/query_table_JN427016_JN539989.qza" \
+  -s "$DATASET_DIR/query_seqs_derep_JN427016_JN539989.qza"
+
+# Step 6: Perform open-reference clustering against Greengenes reference
+./open_ref_cluster.sh \
+  -r "$REF_SEQS" \
+  -t "$DATASET_DIR/query_table_JN427016_JN539989.qza" \
+  -q "$DATASET_DIR/query_seqs_derep_JN427016_JN539989.qza" \
+  -i 0.97 \
+  -p "gg_13_8_97ref_97clust_JN427016_JN539989" \
+  -o "$DATASET_DIR"
 ```
+
+Make sure all scripts have execute permission (`chmod +x scripts/*.sh scripts/*.py`) and QIIME2 is properly installed in your environment.
 
 ### Data directory structure
 

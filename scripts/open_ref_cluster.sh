@@ -2,12 +2,13 @@
 set -euxo pipefail
 
 # -----------------------------------------------------------------------------
-# Closed‐reference OTU picking with QIIME 2 + q2‐vsearch
+# Closed-reference OTU picking with QIIME 2 + q2-vsearch
 #
 # Usage:
 #   otu_pick.sh \
 #     -r ref_seqs.fasta \
 #     -q query-seqs.qza \
+#     -t query_table.qza \
 #     [-i 0.97] \
 #     [-p your_prefix] \
 #     [-o /path/to/output_dir]
@@ -15,6 +16,7 @@ set -euxo pipefail
 # Examples:
 #   otu_pick.sh -r gg_13_8_otus/rep_set.fa \
 #               -q query-seqs.qza \
+#               -t query-table.qza \
 #               -i 0.99 \
 #               -p myproject \
 #               -o results/
@@ -27,14 +29,15 @@ OUTDIR="."
 
 # Print help message
 usage() {
-  sed -n '2,13p' "$0"
+  sed -n '2,15p' "$0"
   exit 1
 }
 
 # Parse options
-while getopts ":r:q:i:p:o:h" opt; do
+while getopts ":r:t:q:i:p:o:h" opt; do
   case "$opt" in
     r) REF_FASTA="$OPTARG" ;;
+    t) QUERY_TABLE="$OPTARG" ;;
     q) QUERY_QZA="$OPTARG" ;;
     i) IDENTITY="$OPTARG" ;;
     p) PREFIX="$OPTARG" ;;
@@ -48,14 +51,15 @@ while getopts ":r:q:i:p:o:h" opt; do
 done
 
 # Check required arguments
-if [[ -z "${REF_FASTA:-}" ]] || [[ -z "${QUERY_QZA:-}" ]]; then
-  echo "Error: both -r <ref_seqs.fasta> and -q <query-seqs.qza> are required." >&2
+if [[ -z "${REF_FASTA:-}" ]] || [[ -z "${QUERY_QZA:-}" ]] || [[ -z "${QUERY_TABLE:-}" ]]; then
+  echo "Error: -r <ref_seqs.fasta>, -q <query_seqs.qza> and -t <query_table.qza> are required." >&2
   usage
 fi
 
 # Ensure QIIME 2 commands are available
-command -v qiime >/dev/null 2>&1 || { echo "qiime not found in PATH"; exit 1; }
-command -v qiime-vsearch >/dev/null 2>&1 || { echo "q2-vsearch plugin not available"; exit 1; }
+command -v qiime >/dev/null 2>&1 || { echo "Error: qiime not found in PATH"; exit 1; }
+# The 'vsearch' binary is checked implicitly by qiime plugin; optional:
+# command -v vsearch >/dev/null 2>&1 || { echo "Error: vsearch not found in PATH"; exit 1; }
 
 # Create output directory
 mkdir -p "$OUTDIR"
@@ -64,31 +68,32 @@ mkdir -p "$OUTDIR"
 REF_BASE=$(basename "$REF_FASTA" .fasta)
 REF_QZA="$OUTDIR/${REF_BASE}.qza"
 
-TABLE_QZA="$OUTDIR/${PREFIX}-table.qza"
-SEQS_QZA="$OUTDIR/${PREFIX}-seqs.qza"
-UNMATCHED_QZA="$OUTDIR/${PREFIX}-unmatched.qza"
-TABLE_QZV="$OUTDIR/${PREFIX}-table.qzv"
+TABLE_QZA="$OUTDIR/${PREFIX}_table.qza"
+SEQS_QZA="$OUTDIR/${PREFIX}_seqs.qza"
+NEW_REFS_QZA="$OUTDIR/${PREFIX}_new_refs.qza"
+TABLE_QZV="$OUTDIR/${PREFIX}_table.qzv"
 
 # -----------------------------------------------------------------------------
-echo "1) Importing reference sequences → $REF_QZA"
+echo "Importing reference sequences → $REF_QZA ..."
 qiime tools import \
   --type 'FeatureData[Sequence]' \
   --input-path "$REF_FASTA" \
   --output-path "$REF_QZA" \
   --input-format DNAFASTAFormat
 
-echo "2) Closed-reference clustering (identity = $IDENTITY)"
-qiime vsearch cluster-features-closed-reference \
+echo "Open-reference clustering (identity = $IDENTITY) ..."
+qiime vsearch cluster-features-open-reference \
+  --i-table "$QUERY_TABLE" \
   --i-sequences "$QUERY_QZA" \
   --i-reference-sequences "$REF_QZA" \
   --p-perc-identity "$IDENTITY" \
   --o-clustered-table "$TABLE_QZA" \
   --o-clustered-sequences "$SEQS_QZA" \
-  --o-unmatched-sequences "$UNMATCHED_QZA"
+  --o-new-reference-sequences "$NEW_REFS_QZA"
 
-echo "3) Summarizing feature table → $TABLE_QZV"
+echo "Summarizing feature table → $TABLE_QZV ..."
 qiime feature-table summarize \
   --i-table "$TABLE_QZA" \
   --o-visualization "$TABLE_QZV"
 
-echo "Done! Outputs in: $OUTDIR"
+echo "Done. Outputs are in: $OUTDIR"

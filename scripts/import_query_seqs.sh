@@ -2,23 +2,19 @@
 set -euxo pipefail
 
 # -----------------------------------------------------------------------------
-# Import query sequences into QIIME 2 (with optional fetch fallback)
+# Import query sequences into QIIME 2 using a manifest file (multi-sample)
 #
 # Usage:
-#   import_query.sh [-f query-seqs.fasta] [-o query-seqs.qza] [-s fetch_query_seqs.sh]
+#   import_query_manifest.sh [-m manifest.csv] [-o query_seqs.qza]
 #
 # Examples:
-#   import_query.sh
-#   import_query.sh -f my-queries.fasta -o my-queries.qza
-#
-# If the input FASTA file is missing, the script will run fetch_query_seqs.sh
-# (or a custom script via -s) to create it.
+#   import_query_manifest.sh
+#   import_query_manifest.sh -m my_manifest.csv -o my_queries.qza
 # -----------------------------------------------------------------------------
 
 # Defaults
-FASTA="query-seqs.fasta"
-QZA="query-seqs.qza"
-FETCH_SCRIPT="./fetch_query_seqs.sh"
+MANIFEST_FILE="manifest.csv"
+QZA_FILE="query_seqs.qza"
 
 # Usage help
 usage() {
@@ -27,10 +23,10 @@ usage() {
 }
 
 # Parse options
-while getopts ":f:o:s:h" opt; do
+while getopts ":m:o:h" opt; do
   case "$opt" in
-    f) FASTA="$OPTARG" ;;
-    o) QZA="$OPTARG" ;;
+    m) MANIFEST_FILE="$OPTARG" ;;
+    o) QZA_FILE="$OPTARG" ;;
     h) usage ;;
     *)
       echo "Invalid option: -$OPTARG" >&2
@@ -42,18 +38,18 @@ done
 # Check QIIME 2 availability
 command -v qiime >/dev/null 2>&1 || { echo "Error: qiime not found in PATH"; exit 1; }
 
-# Check for query-seqs.fasta or run fetch script
-if [[ ! -f "$FASTA" ]]; then
-  echo "Input FASTA $FASTA not found."
+# Check for manifest file
+if [[ ! -f "$MANIFEST_FILE" ]]; then
+  echo "Error: Manifest file not found: $MANIFEST_FILE"
   exit 1
 fi
 
-# Import query sequences
-echo "Importing $FASTA → $QZA"
+# Import query sequences using manifest
+echo "Importing sequences using manifest $MANIFEST_FILE → $QZA_FILE"
 qiime tools import \
-  --type 'FeatureData[Sequence]' \
-  --input-path "$FASTA" \
-  --output-path "$QZA" \
-  --input-format DNAFASTAFormat
+  --type 'SampleData[Sequences]' \
+  --input-path "$MANIFEST_FILE" \
+  --output-path "$QZA_FILE" \
+  --input-format SingleEndFastaManifestPhred33
 
-echo "Query sequences imported successfully into: $QZA"
+echo "Query sequences imported successfully into: $QZA_FILE"

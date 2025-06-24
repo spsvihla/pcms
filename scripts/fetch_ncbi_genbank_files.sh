@@ -2,16 +2,16 @@
 set -euo pipefail
 
 # -----------------------------------------------------------------------------
-# Batch fetch FASTA sequences from NCBI given an accession list file
+# Batch fetch GenBank sequences from NCBI given an accession list file
 #
 # Usage:
 #   fetch_query_seqs.sh -i accession_list.txt [-o output_fasta] [-b batch_size]
 #
-# Default output fasta: ./query-seqs.fasta
+# Default output fasta: ./query_seqs.fasta
 # -----------------------------------------------------------------------------
 
 INPUT_FILE=""
-OUTPUT_FILE="query-seqs.fasta"
+OUTPUT_FILE="query_seqs.fasta"
 BATCH_SIZE=100
 
 usage() {
@@ -67,7 +67,7 @@ for batch_file in "$TMP_DIR"/batch_*; do
   count=$((count + 1))
   echo "[$count/$total] Fetching: $(basename "$batch_file")"
 
-  if ! cat "$batch_file" | epost -db nucleotide | efetch -format fasta >> "$OUTPUT_FILE"; then
+  if ! cat "$batch_file" | epost -db nucleotide | efetch -format gbwithparts >> "$OUTPUT_FILE"; then
     echo "Warning: Failed to fetch batch: $(basename "$batch_file")" >&2
   fi
 
