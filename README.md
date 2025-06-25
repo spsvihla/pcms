@@ -15,6 +15,8 @@ tar -xzf gg_13_8_otus.tar.gz
 
 ### Guerrero Negro microbial mat samples
 
+The script `gg_13_8_97ref_97clust_JN427016_JN539989.sh` is provided, which performs the actions described below.
+
 #### Downloading the dataset
 
 Some notebooks use the [Guerrero Negro microbial mat datasat](https://www.ncbi.nlm.nih.gov/nuccore/?term=JN427016%3AJN539989%5BAccession%5D) collected and analyzed by Harris, Caporaso, et al. [3].
