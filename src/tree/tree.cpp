@@ -543,9 +543,19 @@ Tree
     // all characters allowed if quoted
     bool is_quoted = false;
 
+    // count parentheses
+    int parens = 0;
+
     for(int i = 0; i < static_cast<int>(nwk_str.size()); ++i)
     {
         char c = nwk_str[i];
+
+        parens += (c == '(');
+        parens -= (c == ')');
+        if(parens < 0) 
+        {
+            throw std::runtime_error("Unbalanced parentheses: extra ')'");
+        }
 
         if(c == '\'' || c == '\"') 
         {
@@ -560,6 +570,11 @@ Tree
             parse_newick(c, curr_node, tree, char_buf, stack, is_name, 
                          is_valid_char);
         }
+    }
+
+    if(parens > 0) 
+    {
+        throw std::runtime_error("Unbalanced parentheses: extra '('");
     }
 
     return tree;

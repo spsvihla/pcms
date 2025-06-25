@@ -659,6 +659,10 @@ def nwk2tree(filename: str) -> Tree:
     """
     with open(filename) as f:
         nwk_str = f.read()
+    if nwk_str == "":
+        raise RuntimeError("Newick string is empty")
+    if not nwk_str.endswith(';'):
+        raise RuntimeError("Newick string must end with ';'")
     return Tree._from_cpp_tree(pcms._tree.nwk2tree(nwk_str))
 
 
