@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euxo pipefail
+set -euo pipefail
 
 # -----------------------------------------------------------------------------
 # Closed-reference OTU picking with QIIME 2 + q2-vsearch
@@ -43,10 +43,7 @@ while getopts ":r:t:q:i:p:o:h" opt; do
     p) PREFIX="$OPTARG" ;;
     o) OUTDIR="$OPTARG" ;;
     h) usage ;;
-    *)
-      echo "Invalid option: -$OPTARG" >&2
-      usage
-      ;;
+    *) echo "Invalid option: -$OPTARG" >&2; usage ;;
   esac
 done
 
@@ -66,6 +63,7 @@ mkdir -p "$OUTDIR"
 
 # Derive base names and output paths
 REF_BASE=$(basename "$REF_FASTA" .fasta)
+REF_BASE=$(basename "$REF_BASE" .fa)
 REF_QZA="$OUTDIR/${REF_BASE}.qza"
 
 TABLE_QZA="$OUTDIR/${PREFIX}_table.qza"

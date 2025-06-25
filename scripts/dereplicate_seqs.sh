@@ -1,27 +1,35 @@
 #!/usr/bin/env bash
-set -euxo pipefail
+set -euo pipefail
 
 # -----------------------------------------------------------------------------
 # Dereplicate QIIME 2 sequences using vsearch
 #
-# Usage:
-#   dereplicate.sh -i input.qza -t table.qza -s sequences.qza
+# This script takes an input QIIME 2 sequences artifact (.qza) and runs
+# the vsearch dereplication plugin to produce:
+#   - A feature table of dereplicated sequences
+#   - A representative sequences artifact
 #
-# Example:
-#   dereplicate.sh -i query_seqs.qza -t query_table.qza -s rep_seqs.qza
+# Usage:
+#   dereplicate.sh -i input.qza -t table.qza -s rep_seqs.qza
+#
+# Arguments:
+#   -i  Input sequences artifact (.qza) [required]
+#   -t  Output feature table artifact (.qza) [optional, default: query_table.qza]
+#   -s  Output representative sequences artifact (.qza) [optional, default: rep_seqs.qza]
 # -----------------------------------------------------------------------------
 
-# Help
+# Function to display usage information
 usage() {
-  sed -n '2,12p' "$0"
+  sed -n '2,12p' "$0"  # Print lines 2 to 12 (header + usage)
   exit 1
 }
 
+# Initialize variables with defaults or empty
 INPUT_QZA=""
 TABLE_QZA="query_table.qza"
 SEQS_QZA="rep_seqs.qza"
 
-# Parse options
+# Parse command line options
 while getopts ":i:t:s:h" opt; do
   case "$opt" in
     i) INPUT_QZA="$OPTARG" ;;
@@ -30,27 +38,35 @@ while getopts ":i:t:s:h" opt; do
     h) usage ;;
     *)
       echo "Invalid option: -$OPTARG" >&2
-      usage ;;
+      usage
+      ;;
   esac
 done
 
-# Check required argument
+# Verify the required input argument is provided
 if [[ -z "$INPUT_QZA" ]]; then
-  echo "Error: -i input.qza is required"
+  echo "Error: -i input.qza is required" >&2
   usage
 fi
 
-# Check QIIME 2 availability
-command -v qiime >/dev/null 2>&1 || { echo "Error: qiime not found in PATH"; exit 1; }
+# Check that the QIIME 2 command line tool is available
+command -v qiime >/dev/null 2>&1 || {
+  echo "Error: qiime not found in PATH" >&2
+  exit 1
+}
 
-# Check input file exists
+# Check if the input file actually exists before proceeding
 if [[ ! -f "$INPUT_QZA" ]]; then
-  echo "Error: Input file not found: $INPUT_QZA"
+  echo "Error: Input file not found: $INPUT_QZA" >&2
   exit 1
 fi
 
-# Run dereplication
-echo "Dereplicating $INPUT_QZA → $TABLE_QZA + $SEQS_QZA"
+# Notify user what is going to happen
+echo "Dereplicating $INPUT_QZA"
+echo "Output feature table: $TABLE_QZA"
+echo "Output representative sequences: $SEQS_QZA"
+
+# Run vsearch dereplication through QIIME 2
 qiime vsearch dereplicate-sequences \
   --i-sequences "$INPUT_QZA" \
   --o-dereplicated-table "$TABLE_QZA" \
