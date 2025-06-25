@@ -205,7 +205,7 @@ class Tree:
             If the node index is out of bounds.
         """
         if u is None:
-            return self._tree.get_subtree_size_()
+            return self._tree.get_subtree_size()
         else:
             if not (0 <= u < self.n_nodes):
                 raise IndexError(f"Node index {u} out of bounds.")
@@ -232,7 +232,7 @@ class Tree:
             If the node index is out of bounds.
         """
         if u is None:
-            return self._tree.get_edge_length_()
+            return self._tree.get_edge_length()
         else:
             if not (0 <= u < self.n_nodes):
                 raise IndexError(f"Node index {u} out of bounds.")
@@ -498,7 +498,7 @@ class Tree:
         """
         return self._tree.find_epl()
     
-    def find_tbl(self, u: Optional[int], v: Optional[int]) -> Union[float, NDArray]:
+    def find_tbl(self, u: Optional[int] = None, v: Optional[int] = None) -> Union[float, NDArray]:
         """
         Finds the trace length of the edge above a node, or the unique
         shortest path between two nodes, or all nodes.
