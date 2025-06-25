@@ -181,6 +181,18 @@ PYBIND11_MODULE(_tree, m) {
         )
         .def
         (
+            "compute_wavelets", 
+            &Tree::compute_wavelets, 
+            py::arg("u")
+        )
+        .def
+        (
+            "compute_supports", 
+            &Tree::compute_supports, 
+            py::arg("u")
+        )
+        .def
+        (
             "to_string",
             &Tree::to_string,
             py::arg("label")
