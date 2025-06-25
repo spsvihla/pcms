@@ -324,13 +324,13 @@ Tree::compute_wavelets(int u) const
     // mother wavelet
     if(children.size() == 1)
     {
-        double val = 1 / sqrt(l0);
+        double val = 1.0 / sqrt(l0);
         
         py::array_t<double> wavelet(l0);
         auto wavelet_ = wavelet.mutable_unchecked<1>();
         for(int j = 0; j < l0; ++j)
         {
-            wavelet_(j) = val;
+            wavelet_(static_cast<py::ssize_t>(j)) = val;
         }
         wavelets.append(wavelet);
         return wavelets;
@@ -341,8 +341,8 @@ Tree::compute_wavelets(int u) const
     {
         int l1 = get_subtree_size(children_[i]);
         int s = l0 + l1;
-        double val0 = sqrt(l1 / l0 / s);
-        double val1 = sqrt(l0 / l1 / s);
+        double val0 = sqrt(static_cast<double>(l1) / (l0 * s));
+        double val1 = -sqrt(static_cast<double>(l0) / (l1 * s));
 
         py::array_t<double> wavelet(s);
         auto wavelet_ = wavelet.mutable_unchecked<1>();
