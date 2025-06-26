@@ -1,28 +1,18 @@
 #!/usr/bin/env python3
-"""
-Script to convert a multi-record GenBank file into per-sample FASTQ files
-grouped by the 'isolation_source' qualifier of each record.
-
-Adds dummy Phred quality scores to enable importing into QIIME 2 as
-SampleData[SequencesWithQuality].
-
-Outputs:
-    - Per-sample FASTQ files named after the isolation_source field.
-    - A QIIME 2 manifest CSV listing sample-id, path, and direction.
-
-Usage:
-    ./genbank_to_fastq_manifest.py -i input.gb -o output_dir -m manifest.csv
-
-Requirements:
-    - Biopython (for SeqIO)
-"""
 
 import os
+import sys
 import csv
 import argparse
 from collections import defaultdict
 
 from Bio import SeqIO
+
+
+# ANSI color codes
+CYAN = '\033[0;36m'
+GREEN = '\033[0;32m'
+NC = '\033[0m'  # No color
 
 
 def sanitize_string(s):
@@ -33,15 +23,7 @@ def sanitize_string(s):
 
 
 def extract_sample_id(record):
-    """
-    Extract a sample ID from a GenBank record based on its 'isolation_source' qualifier.
-
-    Args:
-        record (SeqRecord): A Biopython SeqRecord from GenBank.
-
-    Returns:
-        str: The sample ID with spaces replaced by underscores, or 'UnknownSample'.
-    """
+    """Extract a sample ID from a GenBank record based on its 'isolation_source' qualifier."""
     for feat in record.features:
         if "isolation_source" in feat.qualifiers:
             raw_str = feat.qualifiers["isolation_source"][0]
@@ -53,23 +35,26 @@ def group_and_write_fastq(genbank_file, output_dir, manifest_file):
     """
     Group sequences by sample ID, assign dummy quality scores,
     write per-sample FASTQ files, and generate a QIIME 2 manifest.
-
-    Args:
-        genbank_file (str): Path to the input GenBank file.
-        output_dir (str): Directory to save FASTQ files.
-        manifest_file (str): Path to write QIIME 2 manifest CSV.
     """
     os.makedirs(output_dir, exist_ok=True)
     samples = defaultdict(list)
 
-    # Parse GenBank records and group by sample ID
+    print(f"{CYAN}Parsing GenBank file: {genbank_file}{NC}")
+
+    total_records = 0
     for record in SeqIO.parse(genbank_file, "genbank"):
+        total_records += 1
         sample_id = extract_sample_id(record)
         # Add dummy quality scores (Phred 40 = ASCII 'I') for compatibility
         record.letter_annotations["phred_quality"] = [40] * len(record.seq)
         samples[sample_id].append(record)
 
-    # Write FASTQ files and manifest
+        if total_records % 100 == 0:
+            sys.stdout.write(f"\r{CYAN}Processed {total_records} records...{NC}")
+
+    print(f"{CYAN}Total records processed: {total_records}{NC}")
+    print(f"{CYAN}Writing FASTQ files to directory: {output_dir}{NC}")
+
     with open(manifest_file, "w", newline="") as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(["sample-id", "absolute-filepath", "direction"])
@@ -83,19 +68,19 @@ def group_and_write_fastq(genbank_file, output_dir, manifest_file):
 
             writer.writerow([sample_id, fastq_path, "forward"])
 
-    print(f"Wrote {len(samples)} FASTQ files and manifest to: {manifest_file}")
+    print(f"{GREEN}Finished writing {len(samples)} FASTQ files and manifest:{NC} {manifest_file}")
 
 
 def main():
     parser = argparse.ArgumentParser(
         description="Convert GenBank to per-sample FASTQ files with dummy quality and create QIIME2 manifest."
     )
-    parser.add_argument("-i", "--input_gb", required=True, help="Input GenBank file")
-    parser.add_argument("-o", "--output_dir", required=True, help="Output FASTQ directory")
-    parser.add_argument("-m", "--manifest_file", required=True, help="Output manifest CSV path")
+    parser.add_argument("--i-genbank", required=True, help="Input GenBank file")
+    parser.add_argument("--o-outdir", required=True, help="Output FASTQ directory")
+    parser.add_argument("--o-manifest", required=True, help="Output manifest CSV path")
 
     args = parser.parse_args()
-    group_and_write_fastq(args.input_gb, args.output_dir, args.manifest_file)
+    group_and_write_fastq(args.i_genbank, args.o_outdir, args.o_manifest)
 
 
 if __name__ == "__main__":
