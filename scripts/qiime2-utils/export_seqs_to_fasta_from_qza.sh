@@ -21,10 +21,12 @@ usage() {
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -q|--qza) 
+      [[ $# -lt 2 ]] && usage
       INPUT_QZA="$2" 
       shift 2 
       ;;
     -f|--fasta|--fa) 
+      [[ $# -lt 2 ]] && usage
       OUTPUT_FASTA="$2" 
       shift 2
       ;;

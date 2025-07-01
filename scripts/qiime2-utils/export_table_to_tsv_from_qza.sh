@@ -22,10 +22,12 @@ usage() {
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -q|--qza) 
+      [[ $# -lt 2 ]] && usage
       INPUT_QZA="$2" 
       shift 2
       ;;
     -t|--tsv) 
+      [[ $# -lt 2 ]] && usage
       OUTPUT_TSV="$2"
       shift 2
       ;;

@@ -21,26 +21,32 @@ usage() {
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --i-ref-fasta) 
+      [[ $# -lt 2 ]] && usage
       REF_FASTA="$2" 
       shift 2
       ;;
     --i-table) 
+      [[ $# -lt 2 ]] && usage
       QUERY_TABLE="$2" 
       shift 2
       ;;
     --i-query-qza) 
+      [[ $# -lt 2 ]] && usage
       QUERY_QZA="$2" 
       shift 2
       ;;
     --i-identity) 
+      [[ $# -lt 2 ]] && usage
       IDENTITY="$2" 
       shift 2
       ;;
     -p|--prefix) 
+      [[ $# -lt 2 ]] && usage
       PREFIX="$2" 
       shift 2
       ;;
     --o-outdir) 
+      [[ $# -lt 2 ]] && usage
       OUTDIR="$2" 
       shift 2
       ;;

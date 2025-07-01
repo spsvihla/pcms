@@ -22,22 +22,27 @@ usage() {
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --i-sequences) 
+      [[ $# -lt 2 ]] && usage
       INPUT_SEQS_QZA="$2" 
       shift 2
       ;;
     --i-table) 
+      [[ $# -lt 2 ]] && usage
       INPUT_TABLE_QZA="$2" 
       shift 2
       ;;
     --i-ref-chimera-fasta) 
+      [[ $# -lt 2 ]] && usage
       REF_CHIMERA_FA="$2" 
       shift 2
       ;;
     -p|--prefix) 
+      [[ $# -lt 2 ]] && usage
       PREFIX="$2" 
       shift 2
       ;;
     --o-outdir)
+      [[ $# -lt 2 ]] && usage
       OUTDIR="$2"
       shift 2
       ;;

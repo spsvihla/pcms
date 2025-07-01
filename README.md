@@ -19,16 +19,24 @@ Some notebooks use the [Guerrero Negro microbial mat datasat](https://www.ncbi.n
 In particular, the sequences available on GenBank are used to pick OTUs clustered against the Greengenes database as described in [3].
 These data can be downloaded with Entrez Direct (see [install instructions](https://www.ncbi.nlm.nih.gov/books/NBK179288/)) by the following command:
 
-The script `gg_13_8_97ref_97clust_JN427016_JN539989.sh` is provided to help with using QIIME2 to obtain OTU counts against the 97% Greengenes tree. 
-Note that the script requires a reference set for chimera checking, which may be obtained with the following commands:
+The script `gg_13_8_97ref_97clust_JN427016_JN539989.sh` is provided to help with obtaining OTU counts against the 97% Greengenes tree. 
+The script has the following dependencies:
 
-```bash
-wget https://drive5.com/uchime/gold.fa
-vsearch --derep_fulllength gold.fa \
-        --output gold_nodup.fa \
-        --sizeout \
-        --relabel RDP_
-```
+1. The environment variable $DATA (see below). The script will output into `$DATA/guerrero_negro` by default.
+
+1. QIIME2 Amplicon [4] (see [install instructions](https://library.qiime2.org/quickstart/amplicon)).
+
+1. A reference set for chimera checking, which may be obtained with the following commands:
+
+    ```bash
+    wget https://drive5.com/uchime/gold.fa
+    vsearch --derep_fulllength gold.fa \
+            --output gold_nodup.fa \
+            --sizeout \
+            --relabel RDP_
+    ```
+
+1. RAxML-NG ([install instructions](https://anaconda.org/bioconda/raxml-ng) and [GitHub](https://github.com/amkozlov/raxml-ng)) for computing model statistics and EPA-NG ([install instructioins](https://anaconda.org/bioconda/epa-ng) and [GitHub](https://github.com/pierrebarbera/epa-ng)) for frament insertion.
 
 ### Data directory structure
 
@@ -57,3 +65,5 @@ $DATA/
 4. Bolyen E. et al. Reproducible, interactive, scalable and extensible microbiome data science using QIIME 2. Nature Biotechnology 37: 852–857. https://doi.org/10.1038/s41587-019-0209-9.
 5. Svihla, S. and Lladser, M. E. Sparsification of Phylogenetic Covariance Matrices
 of Critical Beta-splitting Random Trees. In preparation.
+6. Kozlov, A. M., Darriba, D., Flouri, T., Morel, B. & Stamatakis, A. RAxML-NG: a fast, scalable and user-friendly tool for maximum likelihood phylogenetic inference. Bioinformatics 35, 4453–4455 (2019). [https://doi.org/10.1093/bioinformatics/btz305](https://doi.org/10.1093/bioinformatics/btz305)
+7. Barbera, P. et al. EPA-ng: Massively Parallel Evolutionary Placement of Genetic Sequences. Systematic Biology 68, 365–369 (2019). [https://doi.org/10.1093/sysbio/syy054](https://doi.org/10.1093/sysbio/syy054)

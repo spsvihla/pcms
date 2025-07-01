@@ -21,14 +21,17 @@ usage() {
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --i-sequences) 
+      [[ $# -lt 2 ]] && usage
       SEQS_QZA="$2" 
       shift 2
       ;;
     --o-table) 
+      [[ $# -lt 2 ]] && usage
       TABLE_QZA="$2" 
       shift 2
       ;;
     --o-sequences) 
+      [[ $# -lt 2 ]] && usage
       DEREP_SEQS_QZA="$2" 
       shift 2
       ;;

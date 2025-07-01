@@ -21,14 +21,17 @@ usage() {
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --i-accession-list)
+      [[ $# -lt 2 ]] && usage
       ACCESSION_LIST="$2"
       shift 2
       ;;
     --o-genbank)
+      [[ $# -lt 2 ]] && usage
       GENBANK="$2"
       shift 2
       ;;
     -b|--batch-size)
+      [[ $# -lt 2 ]] && usage
       BATCH_SIZE="$2"
       shift 2
       ;;

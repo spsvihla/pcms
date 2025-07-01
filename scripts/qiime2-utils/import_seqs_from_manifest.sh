@@ -20,10 +20,12 @@ usage() {
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --i-manifest) 
+      [[ $# -lt 2 ]] && usage
       MANIFEST_FILE="$2" 
       shift 2
       ;;
     --o-sequences) 
+      [[ $# -lt 2 ]] && usage
       OUTPUT_QZA="$2" 
       shift 2
       ;;
