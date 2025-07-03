@@ -151,6 +151,10 @@ PYBIND11_MODULE(_tree, m) {
             "find_subtree_start_indices",
             &Tree::find_subtree_start_indices
         )
+        .def(
+            "find_n_leaves",
+            &Tree::find_n_leaves
+        )
         .def
         (
             "find_epl", 

@@ -482,6 +482,17 @@ class Tree:
         """
         return self._tree.find_subtree_start_indices()
 
+    def find_n_leaves(self) -> int:
+        """
+        Find the number of leaves in the tree.
+
+        Returns 
+        -------
+        int
+            The number of leaves in the tree.
+        """
+        return self._tree.find_n_leaves()
+
     def find_epl(self) -> int:
         """
         Finds the expected path length (EPL) of the tree.
