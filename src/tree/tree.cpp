@@ -326,12 +326,13 @@ Tree::compute_wavelets(int u) const
     {
         double val = 1.0 / sqrt(l0);
         
-        py::array_t<double> wavelet(l0);
+        py::array_t<double> wavelet(static_cast<py::ssize_t>(l0));
         auto wavelet_ = wavelet.mutable_unchecked<1>();
-        for(int j = 0; j < l0; ++j)
+        for(py::ssize_t j = 0; j < static_cast<py::ssize_t>(l0); ++j)
         {
-            wavelet_(static_cast<py::ssize_t>(j)) = val;
+            wavelet_(j) = val;
         }
+
         wavelets.append(wavelet);
         return wavelets;
     }
@@ -342,17 +343,17 @@ Tree::compute_wavelets(int u) const
         int l1 = get_subtree_size(children_[i]);
         int s = l0 + l1;
         double val0 = sqrt(static_cast<double>(l1) / (l0 * s));
-        double val1 = -sqrt(static_cast<double>(l0) / (l1 * s));
+        double val1 = -1 * sqrt(static_cast<double>(l0) / (l1 * s));
 
-        py::array_t<double> wavelet(s);
+        py::array_t<double> wavelet(static_cast<py::ssize_t>(s));
         auto wavelet_ = wavelet.mutable_unchecked<1>();
-        for(int j = 0; j < l0; ++j)
+        for(py::ssize_t j = 0; j < static_cast<py::ssize_t>(l0); ++j)
         {
-            wavelet_(static_cast<py::ssize_t>(j)) = val0;
+            wavelet_(j) = val0;
         }
-        for(int j = l0; j < s; ++j)
+        for(py::ssize_t j = l0; j < static_cast<py::ssize_t>(s); ++j)
         {
-            wavelet_(static_cast<py::ssize_t>(j)) = val1;
+            wavelet_(j) = val1;
         }
 
         wavelets.append(wavelet);
@@ -373,15 +374,31 @@ Tree::compute_supports(int u) const
     py::list supports;
 
     int s = get_subtree_size(children_[0]);
+
+    // mother wavelet
+    if(children.size() == 1)
+    {
+        py::array_t<int> support(s);
+        auto support_ = support.mutable_unchecked<1>();
+        for(py::ssize_t j = 0; j < static_cast<py::ssize_t>(s); ++j)
+        {
+            support_(j) = leaves_[j];
+        }
+
+        supports.append(support);
+        return supports;
+    }
+
+    // daughter wavelet
     for(py::ssize_t i = 1; i < children.size(); ++i)
     {
         s += get_subtree_size(children_[i]);
 
         py::array_t<int> support(s);
         auto support_ = support.mutable_unchecked<1>();
-        for(int j = 0; j < s; ++j)
+        for(py::ssize_t j = 0; j < static_cast<py::ssize_t>(s); ++j)
         {
-            support_(static_cast<py::ssize_t>(j)) = leaves_[s];
+            support_(j) = leaves_[j];
         }
 
         supports.append(support);

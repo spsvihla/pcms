@@ -290,9 +290,8 @@ public:
      * left-value on leaves partition[i] to partition[i+1].
      * 
      * @param u Target node index.
-     * @return A pair of vectors: the first containing the indices of leaf
-     *         nodes in the support, the second the boundaries between 
-     *         partitions of the support.
+     * @return A list of vectors, each containing the leaf-indices of the 
+     *         supports of the wavelets associated with node 'u'
      */
     py::list compute_supports(int u) const;
 
