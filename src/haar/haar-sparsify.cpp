@@ -178,7 +178,7 @@ sparsify(Tree* tree)
             int sum = lsize + rsize;
             double tbl = tree->find_tbl(i);
             double lval = sqrt(static_cast<double>(rsize) / (lsize * sum));
-            double rval = sqrt(static_cast<double>(lsize) / (rsize * sum));
+            double rval = -1 * sqrt(static_cast<double>(lsize) / (rsize * sum));
             for(int j = 0; j < lsize; ++j)
             {
                 trlength_(n_idx) = trlength_[n_idx] + tbl;
