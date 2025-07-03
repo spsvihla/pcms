@@ -47,8 +47,8 @@ class Tree:
         self._print_label = "none"
 
     @classmethod
-    def _from_cpp_tree(self, tree: pcms._tree.Tree) -> "Tree":
-        obj = self.__new__(self)  # bypass __init__
+    def _from_cpp_tree(cls, tree: pcms._tree.Tree) -> "Tree":
+        obj = cls.__new__(cls)  # bypass __init__
         obj._tree = tree
         obj._print_label = "none"
         return obj
