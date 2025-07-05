@@ -665,7 +665,7 @@ class CriticalBetaSplittingDistribution:
         return self._dist.get_cdf()
 
 
-def nwk2tree(filename: str) -> Tree:
+def nwk2tree(filename: str, ensure_planted: bool = True) -> Tree:
     """
     Construct a Tree object from a Newick format string.
 
@@ -686,7 +686,7 @@ def nwk2tree(filename: str) -> Tree:
         raise RuntimeError(f"Newick string in {filename} is empty")
     if not nwk_str.endswith(';'):
         raise RuntimeError(f"Newick string in {filename} must end with ';'")
-    return Tree._from_cpp_tree(pcms._tree.nwk2tree(nwk_str))
+    return Tree._from_cpp_tree(pcms._tree.nwk2tree(nwk_str, ensure_planted))
 
 
 def remy(n_leaves: int, planted: bool = True, seed: Optional[int] = None) -> Tree:

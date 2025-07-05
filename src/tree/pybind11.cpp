@@ -231,6 +231,7 @@ PYBIND11_MODULE(_tree, m) {
         "nwk2tree",
         &nwk2tree,
         py::arg("newick_string"),
+        py::arg("ensure_planted") = true,
         py::return_value_policy::take_ownership    
     );
     m.def

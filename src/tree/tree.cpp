@@ -457,18 +457,41 @@ Tree::to_string_(int node, const std::string& prefix, bool is_last,
 }
 
 // first pass: count the number of nodes in the tree
-int 
+std::pair<int, bool>
 count_nodes(std::string_view nwk_str)
 {
     int count = 1;
+    int depth = 0;
+    int top_children = 1;
     for(char c: nwk_str)
     {
-        if(c == '(' || c == ',')
+        switch(c)
         {
-            count++;
+            case '(':
+            {
+                count++;
+                depth++;
+                break;
+            }
+            case ')':
+            {
+                depth--;
+                break;
+            }
+            case ',':
+            {
+                count++;
+                top_children += (depth == 0);
+                break;
+            }
+            default:
+            {
+                break;
+            }
         }
     }
-    return count;
+    bool is_planted = (top_children > 1);
+    return std::make_pair(count, is_planted);
 }
 
 void
@@ -549,11 +572,12 @@ parse_newick(char c, int& curr_node, Tree* tree, std::vector<char>& char_buf,
 
 // second pass: assign parent-child relationships
 Tree
-*nwk2tree(const std::string& nwk_str)
+*nwk2tree(const std::string& nwk_str, bool ensure_planted)
 {
     // allocate a new Tree
-    int n_nodes = count_nodes(nwk_str);
-    Tree *tree = new Tree(n_nodes);
+    auto [n_nodes, is_planted] = count_nodes(nwk_str);
+    bool do_plant = (ensure_planted && !is_planted);
+    Tree *tree = new Tree(n_nodes + do_plant);
 
     // create a stack for storing subtree parents
     std::stack<int> stack;
@@ -609,6 +633,9 @@ Tree
                          is_valid_char);
         }
     }
+
+    // plant tree
+    tree->link(tree->get_n_nodes() - 2, tree->get_n_nodes() - 1);
 
     if(parens > 0) 
     {

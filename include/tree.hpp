@@ -485,8 +485,9 @@ Tree::find_tbl(int u) const
 /**
  * @brief Construct a Tree object from a Newick format string.
  * @param newick_string The Newick string.
+ * @param ensure_planted Whether to plant the tree if not already planted.
  * @return A Tree object corresponding to the Newick stirng.
  */
-Tree *nwk2tree(const std::string& newick_string);
+Tree *nwk2tree(const std::string& newick_string, bool ensure_planted = true);
 
 #endif // TREE_HPP
