@@ -142,6 +142,11 @@ PYBIND11_MODULE(_tree, m) {
             "find_root",
             &Tree::find_root
         )
+        .def
+        (
+            "find_is_planted",
+            &Tree::find_is_planted
+        )
         .def(
             "find_leaves",
             &Tree::find_leaves,

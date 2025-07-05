@@ -223,6 +223,12 @@ public:
     int find_root() const;
 
     /**
+     * @brief Finds whether the tree is planted.
+     * @return Whether the tree is planted.
+     */
+    bool find_is_planted() const;
+
+    /**
      * @brief Finds the leafs nodes and their depths beneath a specified node.
      * @param u The index of the node.
      * @return A pair of vectors: the first contains the leaf node indices,

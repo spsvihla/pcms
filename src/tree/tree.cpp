@@ -191,6 +191,12 @@ Tree::find_root() const
     }
 }
 
+bool
+Tree::find_is_planted() const
+{
+    return (find_children(find_root()).size() == 1);
+}
+
 std::pair<py::array_t<int>, py::array_t<int>> 
 Tree::find_leaves(int u) const
 {
