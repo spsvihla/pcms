@@ -57,7 +57,7 @@ def test_different_seeds_produce_different_trees(func):
     tree1 = func(n, seed=123)
     tree2 = func(n, seed=456)
     # Trees generated with different seeds should generally differ
-    assert str(tree1) != str(tree2) or tree1.n_nodes == tree2.n_nodes
+    assert str(tree1) != str(tree2)
 
 
 # --- Invalid inputs ---
