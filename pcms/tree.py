@@ -677,7 +677,7 @@ def nwk2tree(filename: str) -> Tree:
     return Tree._from_cpp_tree(pcms._tree.nwk2tree(nwk_str))
 
 
-def remy(n_leaves: int, seed: Optional[int] = None) -> Tree:
+def remy(n_leaves: int, planted: bool = True, seed: Optional[int] = None) -> Tree:
     """
     Construct a random Tree object from the uniform distribution.
 
@@ -685,6 +685,8 @@ def remy(n_leaves: int, seed: Optional[int] = None) -> Tree:
     ----------
     n_leaves: int 
         Number of leaves in the tree.
+    planted: bool
+        Whether the tree should be planted.
     seed: int
         A seed for random generation.
 
@@ -701,12 +703,12 @@ def remy(n_leaves: int, seed: Optional[int] = None) -> Tree:
     if n_leaves < 2:
         raise ValueError("Required n_leaves >= 2.")
     if seed:
-        return Tree._from_cpp_tree(pcms._tree.remy(n_leaves, seed))
+        return Tree._from_cpp_tree(pcms._tree.remy(n_leaves, planted, seed))
     else:
-        return Tree._from_cpp_tree(pcms._tree.remy(n_leaves))
+        return Tree._from_cpp_tree(pcms._tree.remy(n_leaves, planted))
 
 
-def cbst(n_leaves: int, seed: Optional[int] = None) -> Tree:
+def cbst(n_leaves: int, planted: bool = True, seed: Optional[int] = None) -> Tree:
     """
     Construct a random Tree object from the critical beta-splitting
     distribution.
@@ -715,6 +717,8 @@ def cbst(n_leaves: int, seed: Optional[int] = None) -> Tree:
     ----------
     n_leaves: int 
         Number of leaves in the tree.
+    planted: bool
+        Whether the tree should be planted.
     seed: int
         A seed for random generation.
 
@@ -731,6 +735,6 @@ def cbst(n_leaves: int, seed: Optional[int] = None) -> Tree:
     if n_leaves < 2:
         raise ValueError("Required n_leaves >= 2.")
     if seed:
-        return Tree._from_cpp_tree(pcms._tree.cbst(n_leaves, seed))
+        return Tree._from_cpp_tree(pcms._tree.cbst(n_leaves, planted, seed))
     else:
-        return Tree._from_cpp_tree(pcms._tree.cbst(n_leaves))
+        return Tree._from_cpp_tree(pcms._tree.cbst(n_leaves, planted))

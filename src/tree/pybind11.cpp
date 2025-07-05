@@ -233,6 +233,7 @@ PYBIND11_MODULE(_tree, m) {
         "remy", 
         &remy,
         py::arg("n_leaves"), 
+        py::arg("planted") = true,
         py::arg("seed") = std::nullopt,
         py::return_value_policy::take_ownership
     );
@@ -241,6 +242,7 @@ PYBIND11_MODULE(_tree, m) {
         "cbst",
         &cbst,
         py::arg("n_leaves"),
+        py::arg("planted") = true,
         py::arg("seed") = std::nullopt,
         py::return_value_policy::take_ownership
     );

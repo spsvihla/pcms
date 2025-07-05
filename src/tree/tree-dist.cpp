@@ -105,14 +105,22 @@ critical_beta_splitting_distribution::get_cdf() const
 }
 
 Tree*
-remy(int n_leaves, std::optional<unsigned int> seed)
+remy(int n_leaves, bool planted, std::optional<unsigned int> seed)
 {
     unsigned int seed_ = seed.value_or(std::random_device{}());
     std::default_random_engine rng(seed_);
     std::uniform_int_distribution<int> bern(0,1); // Bernoulli(p=0.5)
 
-    Tree* tree = new Tree(2 * n_leaves - 1);
-    for(int node = 1; node < 2 * n_leaves - 1; node += 2)
+    int n_nodes = planted ? 2 * n_leaves : 2 * n_leaves - 1;
+    int end = planted ? n_nodes - 2 : n_nodes - 1;
+
+    Tree* tree = new Tree(n_nodes);
+    if(planted)
+    {
+        tree->link(n_nodes - 2, n_nodes - 1);
+    }
+    
+    for(int node = 1; node < end; node += 2)
     {
         std::uniform_int_distribution<int> unif(0, node-1);
         int rand_node = unif(rng);
@@ -163,12 +171,19 @@ _cbst(Tree* tree, int start, int end, int n0, std::mt19937 &rng)
 }
 
 Tree*
-cbst(int n_leaves, std::optional<unsigned int> seed)
+cbst(int n_leaves, bool planted, std::optional<unsigned int> seed)
 {
     unsigned int seed_ = seed.value_or(std::random_device{}());
     std::mt19937 rng(seed_);
 
-    Tree* tree = new Tree(2 * n_leaves - 1);
-    _cbst(tree, 0, tree->get_n_nodes() - 1, n_leaves, rng);
+    int n_nodes = planted ? 2 * n_leaves : 2 * n_leaves - 1;
+    int end = planted ? n_nodes - 2 : n_nodes - 1;
+
+    Tree* tree = new Tree(n_nodes);
+    if(planted)
+    {
+        tree->link(n_nodes - 2, n_nodes - 1);
+    }
+    _cbst(tree, 0, end, n_leaves, rng);
     return tree;
 }

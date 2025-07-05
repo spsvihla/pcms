@@ -101,10 +101,11 @@ private:
  * This function generates a random binary tree using a uniform distribution.
  * 
  * @param n_leaves The number of leaf nodes in the tree.
+ * @param planted Whether the tree should be planted.
  * @param seed The seed for the random number generator (default is 0).
  * @return A pointer to the newly created tree.
  */
-Tree *remy(int n_leaves, std::optional<unsigned int> seed = std::nullopt);
+Tree *remy(int n_leaves, bool planted = true, std::optional<unsigned int> seed = std::nullopt);
 
 /**
  * @brief Samples a critical beta-splitting tree.
@@ -112,9 +113,10 @@ Tree *remy(int n_leaves, std::optional<unsigned int> seed = std::nullopt);
  * This function generates a binary tree using the critical beta-splitting algorithm.
  * 
  * @param n_leaves The number of leaf nodes in the tree.
+ * @param planted Whether the tree should be planted.
  * @param seed The seed for the random number generator (default is 0).
  * @return A pointer to the newly created tree.
  */
-Tree *cbst(int n_leaves, std::optional<unsigned int> seed = std::nullopt);
+Tree *cbst(int n_leaves, bool planted = true, std::optional<unsigned int> seed = std::nullopt);
 
 #endif // TREE_DIST_H
