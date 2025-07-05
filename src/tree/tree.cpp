@@ -565,6 +565,10 @@ Tree
 
     // all characters allowed if quoted
     bool is_quoted = false;
+    bool is_quote_char[256] = {false};
+    is_quote_char[(unsigned char)'\''] = true;
+    is_quote_char[(unsigned char)'\"'] = true;
+    char curr_quote_char;
 
     // count parentheses
     int parens = 0;
@@ -580,8 +584,9 @@ Tree
             throw std::runtime_error("Unbalanced parentheses: extra ')'");
         }
 
-        if(c == '\'' || c == '\"') 
+        if((!is_quoted && is_quote_char[(unsigned char)c]) || (is_quoted && c == curr_quote_char)) 
         {
+            curr_quote_char = c; // set quote character
             is_quoted ^= 1; // toggle quoting
         } 
         else if(is_quoted) 
