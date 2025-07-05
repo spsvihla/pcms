@@ -504,16 +504,22 @@ parse_newick(char c, int& curr_node, Tree* tree, std::vector<char>& char_buf,
     switch(c) 
     {
         case ';':   // root
+        {
             flush_buffer(curr_node, tree, char_buf, stack, is_name); 
             break;
+        }
         case '(':   // subtree begin
+        {
             stack.push(-1); 
             break;
+        }
         case ',':   // sibling 
+        {
             flush_buffer(curr_node, tree, char_buf, stack, is_name);
             stack.push(curr_node++);
             is_name = true;
             break;
+        }
         case ')':   // subtree end
         {
             flush_buffer(curr_node, tree, char_buf, stack, is_name);
@@ -529,11 +535,15 @@ parse_newick(char c, int& curr_node, Tree* tree, std::vector<char>& char_buf,
             break;
         }
         case ':':   // edge length
+        {
             flush_buffer(curr_node, tree, char_buf, stack, is_name);
             is_name = false;
             break;
+        }
         default:
+        {
             if(is_valid_char[(unsigned char)c]) char_buf.push_back(c);
+        }
     }
 }
 
