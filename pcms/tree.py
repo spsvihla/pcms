@@ -13,7 +13,7 @@ from numpy.typing import NDArray
 import pcms._tree
 
 
-def check_node_index(method):
+def check_bounds(method):
     """Decorator that checks whether a node index is in bounds."""
     @wraps(method)
     def wrapper(self, u, *args, **kwargs):
@@ -96,7 +96,7 @@ class Tree:
         """
         return self._tree.get_n_nodes()
 
-    @check_node_index 
+    @check_bounds 
     def get_parent(self, u: int) -> int:
         """
         Gets the parent of a specified node.
@@ -118,7 +118,7 @@ class Tree:
         """
         return self._tree.get_parent(u)
     
-    @check_node_index
+    @check_bounds
     def get_child(self, u: int) -> int:
         """
         Gets the child of a specified node.
@@ -140,7 +140,7 @@ class Tree:
         """
         return self._tree.get_child(u)
     
-    @check_node_index
+    @check_bounds
     def get_sibling(self, u: int) -> int:
         """
         Gets the sibling of a specified node.
@@ -162,7 +162,7 @@ class Tree:
         """
         return self._tree.get_sibling(u)
     
-    @check_node_index
+    @check_bounds
     def get_is_first(self, u: int) -> bool:
         """
         Gets whether the node is first among its siblings.
@@ -238,7 +238,7 @@ class Tree:
                 raise IndexError(f"Node index {u} out of bounds.")
             return self._tree.get_edge_length(u)
         
-    @check_node_index
+    @check_bounds
     def set_edge_length(self, u: int, value: float) -> None:
         """
         Sets the edge length of the edge connecting a node to its parent.
@@ -257,7 +257,7 @@ class Tree:
         """
         self._tree.set_edge_length(u, value)
 
-    @check_node_index
+    @check_bounds
     def get_name(self, u: int) -> str:
         """
         Gets the name of the node.
@@ -279,7 +279,7 @@ class Tree:
         """
         return self._tree.get_name(u)
     
-    @check_node_index
+    @check_bounds
     def set_name(self, u: int, value: str) -> None:
         """
         Sets the name of the node.
@@ -298,7 +298,7 @@ class Tree:
         """
         self._tree.set_name(u, value)
 
-    @check_node_index 
+    @check_bounds 
     def link(self, u: int, v: int) -> None:
         """
         Links two nodes by making one the child of the other.
@@ -321,7 +321,7 @@ class Tree:
             raise RuntimeError("Cannot link a node before cutting.")
         self._tree.link(u, v)
 
-    @check_node_index
+    @check_bounds
     def cut(self, u: int) -> None:
         """
         Cuts the link between a node and its parent.
@@ -338,7 +338,7 @@ class Tree:
         """
         self._tree.cut(u)
     
-    @check_node_index
+    @check_bounds
     def swap(self, u: int, v: int) -> None:
         """
         Swaps the positions of two nodes in the tree.
@@ -359,7 +359,7 @@ class Tree:
             raise IndexError(f"Node index v = {u} out of bounds.")
         self._tree.swap(u, v)
 
-    @check_node_index
+    @check_bounds
     def find_children(self, u: int) -> NDArray:
         """
         Finds the children of a specified node.
@@ -381,7 +381,7 @@ class Tree:
         """
         return self._tree.find_children(u)
     
-    @check_node_index
+    @check_bounds
     def find_ancestors(self, u: int) -> NDArray:
         """
         Finds the ancestors of a specified node.
@@ -403,7 +403,7 @@ class Tree:
         """
         return self._tree.find_ancestors(u)
     
-    @check_node_index
+    @check_bounds
     def find_path(self, u: int, v: int) -> Tuple[NDArray, NDArray]:
         """
         Finds the path from one node to another.
@@ -562,7 +562,7 @@ class Tree:
 
         return self._tree.find_tbl(u, v)
     
-    @check_node_index
+    @check_bounds
     def compute_wavelets(self, u: int) -> Union[NDArray, List[NDArray]]:
         """
         Constructs wavelets associated to an interior node.
@@ -588,7 +588,7 @@ class Tree:
         wavelets = self._tree.compute_wavelets(u)
         return wavelets if len(wavelets) > 1 else wavelets[0]
     
-    @check_node_index
+    @check_bounds
     def compute_supports(self, u: int) -> Union[NDArray, List[NDArray]]:
         """
         Finds supports of wavelets associated to an interior node.
