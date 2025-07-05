@@ -175,3 +175,6 @@ doc/**/*.dot
 !doc/Doxyfile
 !doc/**/*.md
 !doc/**/*.rst
+
+# Ignore tmp directory
+tmp/
