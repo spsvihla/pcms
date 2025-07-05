@@ -50,84 +50,117 @@ compute_nnz_wavelets(Tree* tree)
 py::ssize_t
 compute_nnz_max_cov(Tree* tree)
 {
-    int n = tree->get_n_nodes();
+    int n = tree->find_n_leaves();
     int epl = tree->find_epl();
-    double val = 2.0 * (epl + 1) / (n * n) - 3.0 / n;
-    return static_cast<py::ssize_t>(val * n);
+    double frac = 2.0 * (epl + 1) / (n * n) - 3.0 / n;
+    return static_cast<py::ssize_t>(ceil(frac * n * (n - 1)));
 }
 
-// double precision dot product
-inline double
-ddot(const py::detail::unchecked_reference<double, 1L>& arr1_,
-     const py::detail::unchecked_reference<double, 1L>& arr2_,
-     py::ssize_t size)
+// double precision sparse dot product
+inline double 
+dsdot(
+    const py::detail::unchecked_reference<double, 1L>& A_values_,
+    const py::detail::unchecked_reference<py::ssize_t, 1L>& A_rowidx_,
+    py::ssize_t a_start, py::ssize_t a_end,
+    const py::detail::unchecked_reference<double, 1L>& B_values_,
+    const py::detail::unchecked_reference<py::ssize_t, 1L>& B_rowidx_,
+    py::ssize_t b_start, py::ssize_t b_end)
 {
-    double sum = 0.0;
-    for(py::ssize_t i = 0; i < size; ++i)
+    double result = 0.0;
+    py::ssize_t i = a_start, j = b_start;
+    while(i < a_end && j < b_end)
     {
-        sum += arr1_[i] * arr2_[i];
+        py::ssize_t a_row = A_rowidx_[i];
+        py::ssize_t b_row = B_rowidx_[j];
+        if(a_row == b_row)
+        {
+            result += A_values_[i] * B_values_[j];
+            ++i;
+            ++j;
+        }
+        else if(a_row < b_row)
+        {
+            ++i;
+        }
+        else
+        {
+            ++j;
+        }
     }
-    return sum;
+    return result;
 }
 
-// double precision sparse matrix multiply
+// double precision sparse matrix-transpose-matrix multiply
 // C <- A^T * B
+// NOTE: This implementation takes advantage of the unique structure of
+//       Haar-like basis matrices; it is not a functional general sparse
+//       matrix multiply.
 // TODO: modify B <- A^T * B in place
 inline py::tuple
-dspmm_transp(const py::detail::unchecked_reference<double, 1L>& A_values_, 
-             const py::detail::unchecked_reference<py::ssize_t, 1L>& A_rowidx_, 
-             const py::detail::unchecked_reference<py::ssize_t, 1L>& A_colptr_, 
-             const py::detail::unchecked_reference<double, 1L>& B_values_,
-             const py::detail::unchecked_reference<py::ssize_t, 1L>& B_rowidx_,
-             const py::detail::unchecked_reference<py::ssize_t, 1L>& B_colptr_,
-             int nnz_max)
+dspmtm(const py::detail::unchecked_reference<double, 1L>& A_values_, 
+       const py::detail::unchecked_reference<py::ssize_t, 1L>& A_rowidx_, 
+       const py::detail::unchecked_reference<py::ssize_t, 1L>& A_colptr_, 
+       const py::detail::unchecked_reference<double, 1L>& B_values_,
+       const py::detail::unchecked_reference<py::ssize_t, 1L>& B_rowidx_,
+       const py::detail::unchecked_reference<py::ssize_t, 1L>& B_colptr_,
+       py::ssize_t nnz_max)
 {
-    int n = A_colptr_.size() - 1;  // A has n columns
-    int m = B_colptr_.size() - 1;  // B has m columns
-
     // allocate memory for new matrix
     py::array_t<double> values(nnz_max);
     py::array_t<py::ssize_t> rowidx(nnz_max);
-    py::array_t<py::ssize_t> colptr(m);
+    py::array_t<py::ssize_t> colptr(B_colptr_.size());
 
     auto values_ = values.mutable_unchecked<1>();
     auto rowidx_ = rowidx.mutable_unchecked<1>();
     auto colptr_ = colptr.mutable_unchecked<1>();
 
     // sparse matrix multiplication
-    int idx = 0;
-    int colptr_idx = 0;
-    int b_start = 0;
-    for(int i = 1; i < m; ++i)
+    py::ssize_t idx = 0;
+    py::ssize_t colptr_idx = 0;
+    for(py::ssize_t i = 0; i < B_colptr_.size() - 1; ++i)
     {
-        int b_end = B_colptr_[i];
-        int a_start = 0;
-        for(int j = 1; j < n; ++j)
-        {
-            int a_end = A_colptr_[j];
+        colptr_(colptr_idx++) = idx;
 
-            if(b_end < a_start || a_end < b_start)
+        py::ssize_t b_start_idx = B_colptr_[i];
+        py::ssize_t b_end_idx = B_colptr_[i+1];
+        py::ssize_t b_start_row = B_rowidx_[b_start_idx];
+        py::ssize_t b_end_row = B_rowidx_[b_end_idx];
+
+        for(py::ssize_t j = 0; j < A_colptr_.size() - 1; ++j)
+        {
+            py::ssize_t a_start_idx = A_colptr_[j];
+            py::ssize_t a_end_idx = A_colptr_[j+1];
+            py::ssize_t a_start_row = A_rowidx_[a_start_idx];
+            py::ssize_t a_end_row = A_rowidx_[a_end_idx];
+
+            // check for disjoint support
+            if(b_end_row < a_start_row || a_end_row < b_start_row)
             {
-                a_start = a_end;
                 continue;
             }
-            
-            int start = std::max(a_start, b_start);
-            int size = std::min(a_end, b_end) - start;
 
-            double val = ddot(A_values_, B_values_, size);
-
+            // compute dot product
+            double val = dsdot(A_values_, A_rowidx_, a_start_idx, a_end_idx,
+                               B_values_, B_rowidx_, b_start_idx, b_end_idx);
             if(val != 0) 
             {
+                if(idx >= nnz_max)
+                {
+                    throw std::runtime_error(
+                        "Exceeded allocated nnz_max in sparse multiply: idx = " 
+                        + std::to_string(idx) + ", nnz_max = " 
+                        + std::to_string(nnz_max));
+                }
                 values_(idx) = val;
                 rowidx_(idx) = j;
                 idx++;
             }
-            a_start = a_end;
         }
-        colptr_(colptr_idx++) = idx;
-        b_start = b_end;
     }
+    colptr_(colptr_idx) = idx;
+
+    values.resize({idx});
+    rowidx.resize({idx});
 
     return py::make_tuple(values, rowidx, colptr);
 }
@@ -211,7 +244,7 @@ sparsify(Tree* tree)
 
     // sparse matrix-matrix multiply
     py::ssize_t nnz_max = compute_nnz_max_cov(tree);
-    py::tuple S = dspmm_transp(wavelets_, row_idxs_, col_ptrs_, trlength_, row_idxs_, col_ptrs_, nnz_max);
+    py::tuple S = dspmtm(wavelets_, row_idxs_, col_ptrs_, trlength_, row_idxs_, col_ptrs_, nnz_max);
 
     py::tuple Q = py::make_tuple(wavelets, row_idxs, col_ptrs);
     
