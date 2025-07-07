@@ -451,8 +451,8 @@ class Tree:
             Whether the tree is planted.
         """
         return self._tree.find_is_planted()
-    
-    def find_leaves(self, u: Optional[int]) -> Tuple[NDArray, NDArray]:
+
+    def find_leaves(self, u: Optional[int] = None) -> Tuple[NDArray, NDArray]:
         """
         Finds the leaf nodes and their depths beneath a specified node.
 
