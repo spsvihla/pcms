@@ -36,7 +36,7 @@ compute_nnz_wavelets(Tree* tree)
         py::array_t<int> children = tree->find_children(i);
         auto children_ = children.unchecked<1>();
         py::ssize_t n_children = children.size();
-        nnz += tree->get_subtree_size(children_[0]) * (n_children - 1);
+        nnz += tree->get_subtree_size(children_[0]) * std::max(1L, n_children - 1);
         for(py::ssize_t j = 1; j < n_children; ++j)
         {
             nnz += tree->get_subtree_size(children_[j]) * (n_children - j);
@@ -149,7 +149,8 @@ dspmtm(const py::detail::unchecked_reference<double, 1L>& A_values_,
                     throw std::runtime_error(
                         "Exceeded allocated nnz_max in sparse multiply: idx = " 
                         + std::to_string(idx) + ", nnz_max = " 
-                        + std::to_string(nnz_max));
+                        + std::to_string(nnz_max)
+                    );
                 }
                 values_(idx) = val;
                 rowidx_(idx) = j;
@@ -175,7 +176,7 @@ sparsify(Tree* tree)
 
     py::array_t<double> wavelets(nnz);
     py::array_t<double> trlength(nnz);
-    py::array_t<py::ssize_t> col_ptrs(tree->find_n_leaves());
+    py::array_t<py::ssize_t> col_ptrs(tree->find_n_leaves()+1);
     py::array_t<py::ssize_t> row_idxs(nnz);
 
     auto wavelets_ = wavelets.mutable_unchecked<1>();
@@ -203,16 +204,21 @@ sparsify(Tree* tree)
             subtree_start_stack.push(subtree_starts_[static_cast<py::ssize_t>(i)]);
             subtree_size_stack.push(tree->get_subtree_size(i));
         }
-        else
+        else                                // daughter wavelet
         {
             int start = subtree_start_stack.top();
+
             int rsize = tree->get_subtree_size(i);
             int lsize = subtree_size_stack.top();
             int sum = lsize + rsize;
+
             double tbl = tree->find_tbl(i);
+
             // use floating-point arithmetic to avoid overflow with large integers
             double lval = sqrt(static_cast<double>(rsize) / (static_cast<double>(lsize) * static_cast<double>(sum)));
             double rval = -1 * sqrt(static_cast<double>(lsize) / (static_cast<double>(lsize) * static_cast<double>(sum)));
+
+            // left subtree
             for(int j = 0; j < lsize; ++j)
             {
                 trlength_(n_idx) = trlength_[n_idx] + tbl;
@@ -220,6 +226,8 @@ sparsify(Tree* tree)
                 wavelets_(n_idx) = lval;
                 n_idx++;
             }
+
+            // right subtree
             for(int j = lsize; j < sum; ++j)
             {
                 trlength_(n_idx) = trlength_[n_idx] + tbl;
@@ -227,6 +235,7 @@ sparsify(Tree* tree)
                 wavelets_(n_idx) = rval;
                 n_idx++;
             }
+
             col_ptrs_(++m_idx) = n_idx;
             subtree_size_stack.top() = sum;
         }
@@ -236,6 +245,19 @@ sparsify(Tree* tree)
             subtree_size_stack.pop();
         }
     }
+
+    // mother wavelet
+    int root = tree->find_root();
+    int size = tree->get_subtree_size(root);
+    double val = sqrt(1.0 / static_cast<double>(size));
+    for(int j = 0; j < size; ++j)
+    {
+        trlength_(n_idx) = 0; // BUG
+        row_idxs_(n_idx) = static_cast<py::ssize_t>(j);
+        wavelets_(n_idx) = val;
+        n_idx++;
+    }
+    col_ptrs_(++m_idx) = n_idx;
 
     // element-wise multiply trace length by wavelets
     for(py::ssize_t i = 0; i < nnz; ++i)
