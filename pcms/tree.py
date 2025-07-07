@@ -184,7 +184,7 @@ class Tree:
         """
         return self._tree.get_is_first(u)
     
-    def get_subtree_size(self, u: Optional[int]) -> Union[int, NDArray]:
+    def get_subtree_size(self, u: Optional[int] = None) -> Union[int, NDArray]:
         """
         Gets the size of the subtree rooted at a specified node.
 
@@ -211,7 +211,7 @@ class Tree:
                 raise IndexError(f"Node index {u} out of bounds.")
             return self._tree.get_subtree_size(u)
         
-    def get_edge_length(self, u: Optional[int]) -> Union[float, NDArray]:
+    def get_edge_length(self, u: Optional[int] = None) -> Union[float, NDArray]:
         """
         Gets the edge length of the edge connecting a node to its parent.
 
