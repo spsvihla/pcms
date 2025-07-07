@@ -210,8 +210,9 @@ sparsify(Tree* tree)
             int lsize = subtree_size_stack.top();
             int sum = lsize + rsize;
             double tbl = tree->find_tbl(i);
-            double lval = sqrt(static_cast<double>(rsize) / (lsize * sum));
-            double rval = -1 * sqrt(static_cast<double>(lsize) / (rsize * sum));
+            // use floating-point arithmetic to avoid overflow with large integers
+            double lval = sqrt(static_cast<double>(rsize) / (static_cast<double>(lsize) * static_cast<double>(sum)));
+            double rval = -1 * sqrt(static_cast<double>(lsize) / (static_cast<double>(lsize) * static_cast<double>(sum)));
             for(int j = 0; j < lsize; ++j)
             {
                 trlength_(n_idx) = trlength_[n_idx] + tbl;
