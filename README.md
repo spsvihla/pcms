@@ -19,6 +19,9 @@ Other notebooks use the [Guerrero Negro microbial mat datasat](https://www.ncbi.
 In particular, the sequences available on GenBank are used to pick OTUs clustered against the Greengenes database as described in [3].
 These data can be downloaded at the link provided by selecting `Send to > Gene features` above the search results and creating a file with the "FASTA Nucleotide" format.
 
+**Note:** The above analysis is for the full-length Sanger sequences.
+The corresponding table for the 454 partial-length sequences described in the paper may be found on [Qiita](https://qiita.ucsd.edu/study/description/1200#).
+
 ### Data directory structure
 
 The notebooks in this respository are written assuming the following directory structure:
