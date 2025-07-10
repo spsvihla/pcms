@@ -4,7 +4,7 @@ haar.py
 A wrapper for the pcms._haar package.
 """
 
-from typing import Union, Sequence
+from typing import Union, Sequence, Optional
 
 import numpy as np
 from scipy.special import factorial
@@ -19,9 +19,9 @@ from pcms.tree import CriticalBetaSplittingDistribution
 def cdf_rand_basis(
     ys: Union[float, Sequence[float], np.ndarray],
     func: Union[Sequence[float], np.ndarray],
-    eps: float,
-    delta: float,
-    seed: int = 0
+    eps: float = 0.01,
+    delta: float = 0.01,
+    seed: Optional[int] = None
 ) -> Union[float, np.ndarray]:
     """
     Evaluate the CDF of ⟨f, φ⟩ for a Haar-like wavelet φ on a critical beta-splitting tree.
@@ -37,12 +37,12 @@ def cdf_rand_basis(
         Points at which to evaluate the CDF.
     func: array-like
         Function values on the leaves of T(v).
-    eps: float
+    eps: float (optional, default 0.01)
         Desired precision of the estimate.
-    delta: float
+    delta: float (optional, default 0.01)
         Probability that the estimate lies within the desired precision.
-    seed: int, optional
-        Random seed (default is 0).
+    seed: int (optional, default None)
+        Random seed.
 
     Returns
     -------
@@ -52,11 +52,10 @@ def cdf_rand_basis(
     ys_arr = np.atleast_1d(ys).astype(np.float64)
     func_arr = np.asarray(func, dtype=np.float64)
     n = func_arr.size
-    num_iter = int(np.ceil(1.0 / (4 * eps**2 * delta)))
-    if factorial(n) < num_iter:
-        num_iter = n
+    num_iter = min(factorial(n), int(np.ceil(1.0 / (4 * eps**2 * delta))))
     pmf = CriticalBetaSplittingDistribution(n).pmf
-    result = pcms._haar.cdf_rand_basis(ys_arr, func_arr, pmf, int(num_iter), int(seed))
+    seed = int(seed) if seed is not None else None
+    result = pcms._haar.cdf_rand_basis(ys_arr, func_arr, pmf, int(num_iter), seed)
     return result.item() if np.isscalar(ys) else result
 
 

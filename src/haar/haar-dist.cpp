@@ -88,14 +88,12 @@ update_total(const py::detail::unchecked_reference<double, 1L>& ys_,
 // evaluate cdf of <f,φ> when φ ~ CBST(n)
 py::array_t<double> 
 cdf_rand_basis(const py::array_t<double>& ys, const py::array_t<double>& func, 
-               const py::array_t<double>& pmf, int num_iter, unsigned int seed)
+               const py::array_t<double>& pmf, int num_iter, 
+               std::optional<unsigned int> seed)
 {   
     // random number generator
-    if (seed == 0)
-    {
-        seed = std::random_device{}();
-    }
-    std::mt19937 rng(seed);
+    unsigned int seed_ = seed.value_or(std::random_device{}());
+    std::mt19937 rng(seed_);
 
     // get sizes
     py::ssize_t n = func.shape(0);
