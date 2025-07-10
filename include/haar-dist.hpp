@@ -38,10 +38,10 @@
   * @return A 1D NumPy array of the same length as `ys`, containing estimated 
   *         CDF values.
   */
- py::array_t<double> cdf_rand_basis(const py::array_t<double>& ys, 
-                                    const py::array_t<double>& func, 
-                                    const py::array_t<double>& pmf, 
-                                    int num_iter, 
-                                    std::optional<unsigned int> seed);
+ py::array_t<double> cdf_cbst_topology(const py::array_t<double>& ys, 
+                                       const py::array_t<double>& func, 
+                                       const py::array_t<double>& pmf, 
+                                       int num_iter, 
+                                       std::optional<unsigned int> seed);
 
  #endif // HAAR_DIST_H 

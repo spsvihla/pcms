@@ -55,7 +55,7 @@ def cdf_rand_basis(
     num_iter = min(factorial(n), int(np.ceil(1.0 / (4 * eps**2 * delta))))
     pmf = CriticalBetaSplittingDistribution(n).pmf
     seed = int(seed) if seed is not None else None
-    result = pcms._haar.cdf_rand_basis(ys_arr, func_arr, pmf, int(num_iter), seed)
+    result = pcms._haar.cdf_cbst_topology(ys_arr, func_arr, pmf, int(num_iter), seed)
     return result.item() if np.isscalar(ys) else result
 
 

@@ -15,8 +15,8 @@ namespace py = pybind11;
 PYBIND11_MODULE(_haar, m) {
     m.def
     (
-        "cdf_rand_basis",
-        &cdf_rand_basis,
+        "cdf_cbst_topology",
+        &cdf_cbst_topology,
         py::arg("ys"),
         py::arg("func"),
         py::arg("pmf"),
