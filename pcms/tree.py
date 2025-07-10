@@ -569,11 +569,9 @@ class Tree:
         ValueError
             If parameter 'v' given when 'u' is None.
         """
-        if u is None and v is None:
-            return self._tree.find_tbl()
-        else:
-            u = v if u is None and v is not None else u
-            return self._tree.find_tbl(u) if v is None else self._tree.find_tbl(u, v)
+        if u is None and v is not None:
+            u = v
+        return self._tree.find_tbl(u, v)
 
     @check_bounds()
     def compute_wavelets(self, u: int) -> Union[NDArray, List[NDArray]]:

@@ -167,26 +167,26 @@ PYBIND11_MODULE(_tree, m) {
         )
         .def(
             "find_tbl",
-            [](const Tree& tree, std::optional<int> u, std::optional<int> v) -> py::object {
-                if(!u.has_value() && !v.has_value()) 
+            [](const Tree& tree, py::object u, py::object v) -> py::object {
+                if(u.is_none() && v.is_none()) 
                 {
                     return tree.find_tbl();
                 } 
-                else if(u.has_value() && !v.has_value()) 
+                else if(!u.is_none() && v.is_none()) 
                 {
-                    return py::float_(tree.find_tbl(u.value()));
+                    return py::float_(tree.find_tbl(u.cast<int>()));
                 } 
-                else if(u.has_value() && v.has_value()) 
+                else if(!u.is_none() && !v.is_none()) 
                 {
-                    return py::float_(tree.find_tbl(u.value(), v.value()));
+                    return py::float_(tree.find_tbl(u.cast<int>(), v.cast<int>()));
                 } 
                 else 
                 {
                     throw std::invalid_argument("Invalid combination of arguments to find_tbl");
                 }
             },
-            py::arg("u") = std::nullopt,
-            py::arg("v") = std::nullopt
+            py::arg("u"),
+            py::arg("v")
         )
         .def
         (
