@@ -522,7 +522,11 @@ class Tree:
             If the node index if out of bounds.
         """
         leaves = self.find_leaves(u, return_depths=False)
-        return np.setdiff1d(np.arange(self.n_nodes), leaves, assume_unique=True)
+        nodes = np.arange(leaves[0], u+1)
+        idx = np.searchsorted(leaves, nodes)
+        idx[idx == len(leaves)] = len(leaves) - 1
+        mask = leaves[idx] == nodes
+        return nodes[~mask]
 
     def find_subtree_start_indices(self) -> NDArray:
         """
