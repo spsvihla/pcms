@@ -19,8 +19,8 @@ from pcms.tree import CriticalBetaSplittingDistribution
 def cdf_rand_basis(
     ys: Union[float, Sequence[float], np.ndarray],
     func: Union[Sequence[float], np.ndarray],
-    eps: float = 0.01,
-    delta: float = 0.01,
+    eps: float = 0.001,
+    delta: float = 0.001,
     seed: Optional[int] = None
 ) -> Union[float, np.ndarray]:
     """
@@ -37,9 +37,9 @@ def cdf_rand_basis(
         Points at which to evaluate the CDF.
     func: array-like
         Function values on the leaves of T(v).
-    eps: float (optional, default 0.01)
+    eps: float (optional, default 0.001)
         Desired precision of the estimate.
-    delta: float (optional, default 0.01)
+    delta: float (optional, default 0.001)
         Probability that the estimate lies within the desired precision.
     seed: int (optional, default None)
         Random seed.
