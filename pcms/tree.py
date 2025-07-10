@@ -717,10 +717,7 @@ def remy(n_leaves: int, planted: bool = True, seed: Optional[int] = None) -> Tre
     """
     if n_leaves < 2:
         raise ValueError("Required n_leaves >= 2.")
-    if seed:
-        return Tree._from_cpp_tree(pcms._tree.remy(n_leaves, planted, seed))
-    else:
-        return Tree._from_cpp_tree(pcms._tree.remy(n_leaves, planted))
+    return Tree._from_cpp_tree(pcms._tree.remy(n_leaves, planted, seed))
 
 
 def cbst(n_leaves: int, planted: bool = True, seed: Optional[int] = None) -> Tree:
@@ -749,7 +746,4 @@ def cbst(n_leaves: int, planted: bool = True, seed: Optional[int] = None) -> Tre
     """
     if n_leaves < 2:
         raise ValueError("Required n_leaves >= 2.")
-    if seed:
-        return Tree._from_cpp_tree(pcms._tree.cbst(n_leaves, planted, seed))
-    else:
-        return Tree._from_cpp_tree(pcms._tree.cbst(n_leaves, planted))
+    return Tree._from_cpp_tree(pcms._tree.cbst(n_leaves, planted, seed))
