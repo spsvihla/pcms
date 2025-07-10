@@ -635,7 +635,10 @@ Tree
     }
 
     // plant tree
-    tree->link(tree->get_n_nodes() - 2, tree->get_n_nodes() - 1);
+    if(do_plant)
+    {
+        tree->link(tree->get_n_nodes() - 2, tree->get_n_nodes() - 1);
+    }
 
     if(parens > 0) 
     {
