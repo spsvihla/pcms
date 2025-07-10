@@ -46,38 +46,37 @@ PYBIND11_MODULE(_tree, m) {
             &Tree::get_is_first,
             py::arg("u")
         )
-        .def
-        (
-            "get_subtree_size", 
-            [](const Tree& tree, std::optional<int> u) -> py::object {
-                if(u.has_value())
-                {
-                    return py::int_(tree.get_subtree_size(u.value()));
-                }
-                else
+        .def(
+            "get_subtree_size",
+            [](const Tree& tree, py::object u) -> py::object {
+                if(u.is_none()) 
                 {
                     return tree.get_subtree_size();
+                } 
+                else 
+                {
+                    return py::int_(tree.get_subtree_size(u.cast<int>()));
                 }
             },
-            py::arg("u") = std::nullopt,
+            py::arg("u"),
             py::return_value_policy::reference_internal
         )
-        .def
-        (
-            "get_edge_length", 
-            [](const Tree& tree, std::optional<int> u) -> py::object {
-                if(u.has_value())
-                {
-                    return py::float_(tree.get_edge_length(u.value()));
-                }
-                else
+        .def(
+            "get_edge_length",
+            [](const Tree& tree, py::object u) -> py::object {
+                if(u.is_none()) 
                 {
                     return tree.get_edge_length();
+                } 
+                else 
+                {
+                    return py::float_(tree.get_edge_length(u.cast<int>()));
                 }
             },
-            py::arg("u") = std::nullopt,
+            py::arg("u"),
             py::return_value_policy::reference_internal
         )
+
         .def
         (
             "set_edge_length", 

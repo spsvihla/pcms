@@ -240,7 +240,7 @@ class Tree:
         IndexError
             If the node index is out of bounds.
         """
-        return self._tree.get_subtree_size() if u is None else self._tree.get_subtree_size(u)
+        return self._tree.get_subtree_size(u)
 
     @check_bounds(default=lambda self: None)
     def get_edge_length(self, u: Optional[int] = None) -> Union[float, NDArray]:
@@ -263,7 +263,7 @@ class Tree:
         IndexError
             If the node index is out of bounds.
         """
-        return self._tree.get_edge_length() if u is None else self._tree.get_edge_length(u)
+        return self._tree.get_edge_length(u)
 
     @check_bounds()
     def set_edge_length(self, u: int, value: float) -> None:
