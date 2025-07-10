@@ -501,6 +501,29 @@ class Tree:
         leaves = np.flip(leaves)
         return (leaves, depths) if return_depths else leaves
 
+    @check_bounds(lambda self: self.find_root())
+    def find_interior_nodes(self, u: Optional[int] = None) -> NDArray:
+        """
+        Finds the interior nodes beneath a specified node.
+
+        Parameters
+        ----------
+        u: int (optional, default None)
+            The index of the node.
+
+        Returns
+        -------
+        np.ndarray
+            The indices of the interior nodes of the (sub)tree.
+
+        Raises
+        -------
+        IndexError
+            If the node index if out of bounds.
+        """
+        leaves = self.find_leaves(u, return_depths=False)
+        return np.setdiff1d(np.arange(self.n_nodes), leaves, assume_unique=True)
+
     def find_subtree_start_indices(self) -> NDArray:
         """
         Finds the leaf-indices (i.e., leaves indexed by postorder) of the 
