@@ -665,7 +665,7 @@ class CriticalBetaSplittingDistribution:
         return self._dist.get_cdf()
 
 
-def nwk2tree(filename: str, ensure_planted: bool = True) -> Tree:
+def nwk2tree(filename: str, ensure_planted: bool = False) -> Tree:
     """
     Construct a Tree object from a Newick format string.
 
@@ -673,6 +673,9 @@ def nwk2tree(filename: str, ensure_planted: bool = True) -> Tree:
     ----------
     newick_string: str
         The Newick string.
+    ensure_planted: bool (optional, default False)
+        Whether to ensure that the tree is planted (if not already planted in
+        the Newick string).
 
     Returns
     -------

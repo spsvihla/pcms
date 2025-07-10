@@ -231,7 +231,7 @@ PYBIND11_MODULE(_tree, m) {
         "nwk2tree",
         &nwk2tree,
         py::arg("newick_string"),
-        py::arg("ensure_planted") = true,
+        py::arg("ensure_planted"),
         py::return_value_policy::take_ownership    
     );
     m.def
@@ -239,7 +239,7 @@ PYBIND11_MODULE(_tree, m) {
         "remy", 
         &remy,
         py::arg("n_leaves"), 
-        py::arg("planted") = true,
+        py::arg("planted"),
         py::arg("seed") = std::nullopt,
         py::return_value_policy::take_ownership
     );
@@ -248,7 +248,7 @@ PYBIND11_MODULE(_tree, m) {
         "cbst",
         &cbst,
         py::arg("n_leaves"),
-        py::arg("planted") = true,
+        py::arg("planted"),
         py::arg("seed") = std::nullopt,
         py::return_value_policy::take_ownership
     );

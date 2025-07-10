@@ -488,6 +488,6 @@ Tree::find_tbl(int u) const
  * @param ensure_planted Whether to plant the tree if not already planted.
  * @return A Tree object corresponding to the Newick stirng.
  */
-Tree *nwk2tree(const std::string& newick_string, bool ensure_planted = true);
+Tree *nwk2tree(const std::string& newick_string, bool ensure_planted);
 
 #endif // TREE_HPP
