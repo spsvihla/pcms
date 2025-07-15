@@ -8,7 +8,7 @@ from typing import Union, Sequence, Optional
 
 import numpy as np
 from scipy.special import factorial
-from scipy.stats import beta
+from scipy.stats import dirichlet
 from scipy.sparse import csc_matrix
 
 import pcms._haar 
@@ -16,11 +16,11 @@ import pcms.tree
 from pcms.tree import CriticalBetaSplittingDistribution 
 
 
-def cdf_rand_basis(
+def cdf_proj_cbst(
     ys: Union[float, Sequence[float], np.ndarray],
     func: Union[Sequence[float], np.ndarray],
-    eps: float = 0.001,
-    delta: float = 0.001,
+    eps: float = 0.01,
+    delta: float = 0.01,
     seed: Optional[int] = None
 ) -> Union[float, np.ndarray]:
     """
@@ -37,9 +37,9 @@ def cdf_rand_basis(
         Points at which to evaluate the CDF.
     func: array-like
         Function values on the leaves of T(v).
-    eps: float (optional, default 0.001)
+    eps: float (optional, default 0.01)
         Desired precision of the estimate.
-    delta: float (optional, default 0.001)
+    delta: float (optional, default 0.01)
         Probability that the estimate lies within the desired precision.
     seed: int (optional, default None)
         Random seed.
@@ -55,30 +55,33 @@ def cdf_rand_basis(
     num_iter = min(factorial(n), int(np.ceil(1.0 / (4 * eps**2 * delta))))
     pmf = CriticalBetaSplittingDistribution(n).pmf
     seed = int(seed) if seed is not None else None
-    result = pcms._haar.cdf_cbst_topology(ys_arr, func_arr, pmf, int(num_iter), seed)
+    result = pcms._haar.cdf_proj_cbst(ys_arr, func_arr, pmf, int(num_iter), seed)
     return result.item() if np.isscalar(ys) else result
 
 
-def cdf_rand_func(
+def cdf_proj_dirichlet_diff(
     ys: Union[float, Sequence[float], np.ndarray],
-    split_size: int,
-    subtree_size: int
+    tree: pcms.tree.Tree,
+    node: int,
+    eps: float = 0.01,
+    delta: float = 0.01
 ) -> float:
     """
     Evaluate the CDF of ⟨f, φ⟩ where φ is a Haar-like wavelet over a fixed split.
-
-    φ is associated with an interior node that has `subtree_size` descendant leaves
-    and a split of size `split_size`. In this case, the distribution of ⟨f, φ⟩ 
-    is an affine transformation of a Beta(split_size, subtree_size - split_size) distribution.
+    The function `f` is considered to be a difference between two dirichlet samples.
 
     Parameters
     ----------
     ys: float or array-like
         Points at which to evaluate the CDF.
-    split_size: int
-        Size of one side of the split.
-    subtree_size: int
-        Total number of leaves in the subtree.
+    tree: pcms.tree.Tree
+        The target tree.
+    node: int
+        The target node.
+    eps: float (optional, default 0.01)
+        Desired precision of the estimate.
+    delta: float (optional, default 0.01)
+        Probability that the estimate lies within the desired precision.
 
     Returns
     -------
@@ -86,9 +89,24 @@ def cdf_rand_func(
         Value(s) of the CDF at the specified point(s).
     """
     ys = np.asarray(ys)
-    a = np.sqrt((subtree_size - split_size) / split_size / subtree_size)
-    b = np.sqrt(split_size / (subtree_size - split_size) / subtree_size)
-    return beta.cdf((ys + b) / (a + b), split_size, subtree_size - split_size)
+    n_leaves = tree.find_n_leaves()
+    num_samples = int(np.ceil(1.0 / (4 * eps**2 * delta)))
+    subtree_size = tree.get_subtree_size(node)
+    split_size = tree.get_subtree_size(tree.get_child(node))
+    m = subtree_size - split_size
+    a = np.sqrt(m / split_size / subtree_size)
+    b = -np.sqrt(split_size / m / subtree_size)
+    alpha = np.array([split_size, m, n_leaves - m - split_size])
+    rng = np.random.default_rng()
+    f = rng.gamma(shape=alpha, size=(num_samples, len(alpha)))
+    f /= f.sum(axis=1, keepdims=True)
+    g = rng.gamma(shape=alpha, size=(num_samples, len(alpha)))
+    g /= g.sum(axis=1, keepdims=True)
+    coef = np.sqrt(m * split_size / subtree_size)
+    samples = coef * (a * (f[:,0] - g[:,0]) + b * (f[:,1] - g[:,1]))
+    samples.sort()
+    result = np.searchsorted(samples, ys, side='left') / num_samples
+    return result.item() if np.isscalar(ys) else result
 
 
 def sparsify(input: pcms.tree.Tree | str) -> csc_matrix:
