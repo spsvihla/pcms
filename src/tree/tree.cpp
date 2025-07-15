@@ -205,7 +205,7 @@ Tree::find_leaves(int u) const
 
     auto support_ = support.mutable_unchecked<1>();
     auto depths_ = depths.mutable_unchecked<1>();
-    
+
     // depth-first search
     int idx = 0;
     std::stack<std::pair<int, int>> stack;

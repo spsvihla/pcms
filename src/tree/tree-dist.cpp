@@ -34,14 +34,14 @@ namespace py = pybind11;
 constexpr double GAMMA = 0.57721566490153286060; // Euler-Mascheroni constant   
 
 
-/* Integrand to compute harmonic numbers by Euler's formula  */
+// integrand to compute harmonic numbers by Euler's formula 
 double 
 integrand(double x, void* params) {
     int n = *(int*)params;
     return (1 - pow(x, n)) / (1 - x);
 }
 
-/* Computes the harmonic number for a given n. */
+// compute the nth harmonic number
 double 
 harmonic_number(int n) 
 {
@@ -145,14 +145,17 @@ _cbst(Tree* tree, int start, int end, int n0, std::mt19937 &rng)
     std::stack<std::tuple<int, int, int, int>> stack;
     stack.push({start, end, n0, 0});
 
-    while (!stack.empty()) {
+    while(!stack.empty()) 
+    {
         auto [start, end, n0, depth] = stack.top();
         stack.pop();
 
-        if (n0 == 1) {
+        if(n0 == 1) 
+        {
             continue;
         }
-        if (n0 == 2) {
+        if(n0 == 2) 
+        {
             tree->link(start + 1, end);
             tree->link(start, end);
             continue;
