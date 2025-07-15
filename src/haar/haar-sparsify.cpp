@@ -23,21 +23,21 @@ namespace py = pybind11;
 
 
 // compute number of non-zero entries in wavelet basis matrix
-py::ssize_t
+int
 compute_nnz_wavelets(Tree* tree)
 {
-    py::ssize_t nnz = 0;
+    int nnz = 0;
     for(int i = 0; i < tree->get_n_nodes(); ++i)
     {
-        if(tree->get_child(i) == -1)
+        if(tree->get_child(i) == -1L)
         {
             continue;
         }
         py::array_t<int> children = tree->find_children(i);
         auto children_ = children.unchecked<1>();
-        py::ssize_t n_children = children.size();
-        nnz += tree->get_subtree_size(children_[0]) * std::max(1L, n_children - 1);
-        for(py::ssize_t j = 1; j < n_children; ++j)
+        int n_children = static_cast<int>(children.size());
+        nnz += tree->get_subtree_size(children_[0]) * std::max(1, n_children - 1);
+        for(int j = 1; j < n_children; ++j)
         {
             nnz += tree->get_subtree_size(children_[j]) * (n_children - j);
         }
@@ -47,48 +47,13 @@ compute_nnz_wavelets(Tree* tree)
 
 // compute upper bound on number of non-zero entries in sparsified covariance matrix
 // TODO: generalize bound to non-binary trees
-py::ssize_t
+int
 compute_nnz_max_cov(Tree* tree)
 {
     int n = tree->find_n_leaves();
     int epl = tree->find_epl();
     double frac = 2.0 * (epl + 1) / (n * n) - 3.0 / n;
-    return static_cast<py::ssize_t>(ceil(frac * n * n));
-}
-
-// double precision dot product
-inline double 
-dsdot(
-    const py::detail::unchecked_reference<double, 1L>& A_values_,
-    const py::detail::unchecked_reference<py::ssize_t, 1L>& A_indices_,
-    py::ssize_t a_start, py::ssize_t a_end,
-    const py::detail::unchecked_reference<double, 1L>& B_values_,
-    const py::detail::unchecked_reference<py::ssize_t, 1L>& B_indices_,
-    py::ssize_t b_start, py::ssize_t b_end)
-{
-    double result = 0.0;
-    py::ssize_t i = a_start;
-    py::ssize_t j = b_start;
-    while(i < a_end && j < b_end)
-    {
-        py::ssize_t a_row = A_indices_[i];
-        py::ssize_t b_row = B_indices_[j];
-        if(a_row == b_row)
-        {
-            result += A_values_[i] * B_values_[j];
-            ++i;
-            ++j;
-        }
-        else if(a_row < b_row)
-        {
-            ++i;
-        }
-        else
-        {
-            ++j;
-        }
-    }
-    return result;
+    return static_cast<int>(ceil(frac * n * n));
 }
 
 // double precision sparse matrix-transpose-matrix multiply
@@ -97,41 +62,39 @@ dsdot(
 //       Haar-like basis matrices; it is not a functional general sparse
 //       matrix multiply.
 inline py::tuple
-dspmtm(const py::detail::unchecked_reference<double, 1L>& A_values_, 
-       const py::detail::unchecked_reference<py::ssize_t, 1L>& A_indices_, 
-       const py::detail::unchecked_reference<py::ssize_t, 1L>& A_indptr_, 
-       const py::detail::unchecked_reference<double, 1L>& B_values_,
-       const py::detail::unchecked_reference<py::ssize_t, 1L>& B_indices_,
-       const py::detail::unchecked_reference<py::ssize_t, 1L>& B_indptr_,
-       py::ssize_t nnz_max)
+dsmtm(const double* A_values_, const py::ssize_t* A_indices_, 
+      const py::ssize_t* A_indptr_, const double* B_values_,
+      const py::ssize_t* B_indices_, const py::ssize_t* B_indptr_,
+      std::size_t nnz_max, std::size_t num_cols)
 {
     // allocate memory for new matrix
-    py::array_t<double> values(nnz_max);
-    py::array_t<py::ssize_t> indices(nnz_max);
-    py::array_t<py::ssize_t> indptr(B_indptr_.size());
+    py::array_t<double> values(static_cast<py::ssize_t>(nnz_max));
+    py::array_t<py::ssize_t> indices(static_cast<py::ssize_t>(nnz_max));
+    py::array_t<py::ssize_t> indptr(static_cast<py::ssize_t>(num_cols+1));
 
-    auto values_ = values.mutable_unchecked<1>();
-    auto indices_ = indices.mutable_unchecked<1>();
-    auto indptr_ = indptr.mutable_unchecked<1>();
+    double* values_ = static_cast<double*>(values.request().ptr);
+    py::ssize_t* indices_ = static_cast<py::ssize_t*>(indices.request().ptr);
+    py::ssize_t* indptr_ = static_cast<py::ssize_t*>(indptr.request().ptr);
 
-    indptr_(0) = 0;
+    indptr_[0] = 0;
 
-    py::ssize_t values_idx = 0;
-    py::ssize_t indptr_idx = 0;
+    std::size_t values_idx = 0;
+    std::size_t indptr_idx = 0;
 
-    for(py::ssize_t i = 0; i < B_indptr_.size() - 1; ++i)
+    // TODO: parallelize loop
+    for(std::size_t i = 0; i < num_cols; ++i)
     {
-        py::ssize_t bi0 = B_indptr_[i];             // start index
-        py::ssize_t bi1 = B_indptr_[i+1];           // end index
-        py::ssize_t br0 = B_indices_[bi0];          // start row
-        py::ssize_t br1 = B_indices_[bi1-1];        // end row
+        std::size_t bi0 = static_cast<std::size_t>(B_indptr_[i]);             // start index
+        std::size_t bi1 = static_cast<std::size_t>(B_indptr_[i+1]);           // end index
+        std::size_t br0 = static_cast<std::size_t>(B_indices_[bi0]);          // start row
+        std::size_t br1 = static_cast<std::size_t>(B_indices_[bi1-1]);        // end row
 
-        for(py::ssize_t j = 0; j < A_indptr_.size() - 1; ++j)
+        for(std::size_t j = 0; j < num_cols; ++j)
         {
-            py::ssize_t ai0 = A_indptr_[j];         // start index
-            py::ssize_t ai1 = A_indptr_[j+1];       // end index
-            py::ssize_t ar0 = A_indices_[ai0];      // start row
-            py::ssize_t ar1 = A_indices_[ai1-1];    // edn row
+            std::size_t ai0 = static_cast<std::size_t>(A_indptr_[j]);         // start index
+            std::size_t ai1 = static_cast<std::size_t>(A_indptr_[j+1]);       // end index
+            std::size_t ar0 = static_cast<std::size_t>(A_indices_[ai0]);      // start row
+            std::size_t ar1 = static_cast<std::size_t>(A_indices_[ai1-1]);    // end row
 
             // skip if rows to not overlap
             if(br1 < ar0 || ar1 < br0)
@@ -140,20 +103,38 @@ dspmtm(const py::detail::unchecked_reference<double, 1L>& A_values_,
             }
 
             // compute dot product
-            double val = dsdot(
-                A_values_, A_indices_, ai0, ai1,
-                B_values_, B_indices_, bi0, bi1
-            );
+            double val = 0.0;
+            std::size_t k = ai0;
+            std::size_t l = bi0;
+            while(k < ai1 && l < bi1)
+            {
+                std::size_t a_row = static_cast<std::size_t>(A_indices_[k]);
+                std::size_t b_row = static_cast<std::size_t>(B_indices_[l]);
+                if(a_row == b_row)
+                {
+                    val += A_values_[k] * B_values_[l];
+                    ++k;
+                    ++l;
+                }
+                else if(a_row < b_row)
+                {
+                    ++k;
+                }
+                else
+                {
+                    ++l;
+                }
+            }
 
             if(val != 0) 
             {
-                values_(values_idx) = val;
-                indices_(values_idx) = j;
+                values_[values_idx] = val;
+                indices_[values_idx] = j;
                 ++values_idx;
             }
         }
 
-        indptr_(++indptr_idx) = values_idx;
+        indptr_[++indptr_idx] = values_idx;
     }
 
     values.resize({values_idx});
@@ -165,38 +146,39 @@ dspmtm(const py::detail::unchecked_reference<double, 1L>& A_values_,
 py::tuple
 sparsify(Tree* tree)
 {
-    py::ssize_t nnz = compute_nnz_wavelets(tree);
+    int nnz = compute_nnz_wavelets(tree);
 
     int n_leaves = tree->find_n_leaves();
 
     py::array_t<int> subtree_starts = tree->find_subtree_start_indices();
     auto subtree_starts_ = subtree_starts.unchecked<1>();
 
-    py::array_t<double> Q_values(nnz);
-    py::array_t<double> S_values(nnz);
-    py::array_t<double> trace_length(n_leaves);
-    py::array_t<py::ssize_t> indices(nnz);
-    py::array_t<py::ssize_t> indptr(n_leaves+1);
+    py::array_t<double> Q_values(static_cast<py::ssize_t>(nnz));
+    py::array_t<double> S_values(static_cast<py::ssize_t>(nnz));
+    py::array_t<double> trace_length(static_cast<py::ssize_t>(n_leaves));
+    py::array_t<py::ssize_t> indices(static_cast<py::ssize_t>(nnz));
+    py::array_t<py::ssize_t> indptr(static_cast<py::ssize_t>(n_leaves+1));
 
-    auto Q_values_ = Q_values.mutable_unchecked<1>();
-    auto S_values_ = S_values.mutable_unchecked<1>();
-    auto trace_length_ = trace_length.mutable_unchecked<1>();
-    auto indices_ = indices.mutable_unchecked<1>();
-    auto indptr_ = indptr.mutable_unchecked<1>();
+    double* Q_values_ = static_cast<double*>(Q_values.request().ptr);
+    double* S_values_ = static_cast<double*>(S_values.request().ptr);
+    double* trace_length_ = static_cast<double*>(trace_length.request().ptr);
+    py::ssize_t* indices_ = static_cast<py::ssize_t*>(indices.request().ptr);
+    py::ssize_t* indptr_ = static_cast<py::ssize_t*>(indptr.request().ptr);
 
-    indptr_(0) = 0;
+    indptr_[0] = 0;
 
-    for(py::ssize_t i = 0; i < n_leaves; ++i)
+    for(int i = 0; i < n_leaves; ++i)
     {
-        trace_length_(i) = 0.0;
+        trace_length_[i] = 0.0;
     }
 
     // build wavelet basis and trace length sparse matrices
-    py::ssize_t values_idx = 0;
-    py::ssize_t indptr_idx = 0;
+    std::size_t values_idx = 0;
+    std::size_t indptr_idx = 0;
 
     std::stack<int> subtree_start_stack;
     std::stack<int> subtree_size_stack;
+
     for(int i = 0; i < tree->get_n_nodes() - 2; ++i)
     {
         // accumulate trace length
@@ -205,7 +187,7 @@ sparsify(Tree* tree)
         double tbl = tree->find_tbl(i);
         for(int j = 0; j < size; ++j)
         {
-            trace_length_(start + j) += tbl;
+            trace_length_[static_cast<std::size_t>(start + j)] += tbl;
         }
 
         // construct wavelets
@@ -227,27 +209,27 @@ sparsify(Tree* tree)
             double rval = -sqrt(static_cast<double>(lsize) / (static_cast<double>(rsize) * static_cast<double>(sum)));
 
             // left subtree
-            for(int j = 0; j < lsize; ++j)
+            for(std::size_t j = 0; j < static_cast<std::size_t>(lsize); ++j)
             {
-                S_values_(values_idx) = trace_length_[start + j];
-                Q_values_(values_idx) = lval;
-                indices_(values_idx) = static_cast<py::ssize_t>(start + j);
+                S_values_[values_idx] = trace_length_[start + j] * lval;
+                Q_values_[values_idx] = lval;
+                indices_[values_idx] = static_cast<py::ssize_t>(start + j);
                 values_idx++;
             }
 
             // right subtree
-            for(int j = lsize; j < sum; ++j)
+            for(std::size_t j = lsize; j < static_cast<std::size_t>(sum); ++j)
             {
-                S_values_(values_idx) = trace_length_[start + j];
-                Q_values_(values_idx) = rval;
-                indices_(values_idx) = static_cast<py::ssize_t>(start + j);
+                S_values_[values_idx] = trace_length_[start + j] * rval;
+                Q_values_[values_idx] = rval;
+                indices_[values_idx] = static_cast<py::ssize_t>(start + j);
                 values_idx++;
             }
 
-            indptr_(++indptr_idx) = values_idx;
+            indptr_[++indptr_idx] = values_idx;
             subtree_size_stack.top() = sum;
         }
-        if(tree->get_sibling(i) == -1)      // last child node
+        if(tree->get_sibling(i) == -1L)      // last child node
         {
             subtree_start_stack.pop();
             subtree_size_stack.pop();
@@ -261,28 +243,22 @@ sparsify(Tree* tree)
     double tbl = tree->find_tbl(root - 1);
     for(int j = 0; j < size; ++j)
     {
-        trace_length_(j) += tbl;
+        trace_length_[j] += tbl;
     }
 
-    double val = sqrt(1.0 / static_cast<double>(size));
-    for(int j = 0; j < size; ++j)
+    double val = sqrt(1.0 / size);
+    for(std::size_t j = 0; j < static_cast<std::size_t>(size); ++j)
     {
-        S_values_(values_idx) = trace_length_[j];
-        Q_values_(values_idx) = val;
-        indices_(values_idx) = static_cast<py::ssize_t>(j);
+        S_values_[values_idx] = trace_length_[j];
+        Q_values_[values_idx] = val;
+        indices_[values_idx] = static_cast<py::ssize_t>(j);
         values_idx++;
     }
-    indptr_(++indptr_idx) = values_idx;
-
-    // element-wise multiply trace length by wavelets
-    for(py::ssize_t i = 0; i < nnz; ++i)
-    {
-        S_values_(i) = S_values_[i] * Q_values_[i];
-    }
+    indptr_[++indptr_idx] = values_idx;
 
     // sparse matrix-matrix multiply
-    py::ssize_t nnz_max = compute_nnz_max_cov(tree);
-    py::tuple S = dspmtm(Q_values_, indices_, indptr_, S_values_, indices_, indptr_, nnz_max);
+    int nnz_max = compute_nnz_max_cov(tree);
+    py::tuple S = dsmtm(Q_values_, indices_, indptr_, S_values_, indices_, indptr_, nnz_max, n_leaves);
 
     py::tuple Q = py::make_tuple(Q_values, indices, indptr);
 

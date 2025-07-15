@@ -5,15 +5,25 @@ import os
 
 DEBUG = os.getenv("DEBUG_BUILD", "0") == "1"
 
-extra_compile_args = ['-std=c++17']
+# Common compiler and linker flags
+common_compile_args = ['-std=c++17']
+common_link_args = []
+
 if DEBUG:
     print("DEBUG_BUILD set")
-    extra_compile_args += ['-g', '-O0']
+    common_compile_args += ['-g', '-O0']
+    common_link_args += ['-g']
 else:
-    extra_compile_args += ['-O3']
+    common_compile_args += ['-O3', '-march=native', '-flto', '-fopenmp']
+    common_link_args += ['-flto', '-fopenmp']
 
-def get_gsl_flags(flag):
-    return subprocess.check_output(['gsl-config', flag], text=True).strip().split()
+def get_gsl_lib_dirs():
+    try:
+        return subprocess.check_output(['gsl-config', '--libdir'], text=True).strip().split()
+    except Exception:
+        return []
+
+gsl_lib_dirs = get_gsl_lib_dirs() + ['/usr/lib', '/usr/local/lib']
 
 ext_modules = [
     Pybind11Extension(
@@ -24,10 +34,10 @@ ext_modules = [
             'src/tree/pybind11.cpp'
         ],
         include_dirs=['include/'],
-        library_dirs=get_gsl_flags('--libdir') + ['/usr/lib', '/usr/local/lib'],
+        library_dirs=gsl_lib_dirs,
         libraries=['gsl', 'gslcblas', 'm'],
-        extra_compile_args=extra_compile_args,
-        extra_link_args=['-g'],
+        extra_compile_args=common_compile_args,
+        extra_link_args=common_link_args,
         language='c++',
         define_macros=[('DEBUG', '1')] if DEBUG else []
     ),
@@ -40,11 +50,11 @@ ext_modules = [
             'src/haar/pybind11.cpp'
         ],
         include_dirs=['include/'],
-        extra_compile_args=extra_compile_args,
-        extra_link_args=['-g'],
+        extra_compile_args=common_compile_args,
+        extra_link_args=common_link_args,
         language='c++',
         define_macros=[('DEBUG', '1')] if DEBUG else []
-    )
+    ),
 ]
 
 setup(
