@@ -30,18 +30,18 @@
   * of 'num_iter' should be chosen to ensure the desired convergence.
   * 
   * @param ys A 1D NumPy array of points at which to evaluate the estimated CDF.
-  * @param func A 1D NumPy array representing the function f to project against 
-  *             the random basis.
+  * @param f A 1D NumPy array representing the function f to project against 
+  *          the random basis.
   * @param pmf A 1D NumPy array representing the CBST PMF.
   * @param num_iter Number of Monte Carlo samples to use for estimation.
   * @param seed Random seed for reproducibility. If zero, a random seed is used.
   * @return A 1D NumPy array of the same length as `ys`, containing estimated 
   *         CDF values.
   */
- py::array_t<double> cdf_cbst_topology(const py::array_t<double>& ys, 
-                                       const py::array_t<double>& func, 
-                                       const py::array_t<double>& pmf, 
-                                       int num_iter, 
-                                       std::optional<unsigned int> seed);
+ py::array_t<double> cdf_proj_cbst(const py::array_t<double>& ys, 
+                                   const py::array_t<double>& f, 
+                                   const py::array_t<double>& pmf, 
+                                   int num_iter, 
+                                   std::optional<unsigned int> seed);
 
  #endif // HAAR_DIST_H 

@@ -23,22 +23,19 @@ namespace py = pybind11;
 
 // Fisher-Yates shuffle
 inline void
-permute_indices(py::detail::unchecked_mutable_reference<int, 1L>& perm_, 
-                py::ssize_t n, std::mt19937& rng)
+fisher_yates(py::detail::unchecked_mutable_reference<int, 1>& perm_,
+             py::ssize_t n, std::mt19937& rng)
 {
-    for(py::ssize_t i = n - 1; i > 0; --i)
+    for (py::ssize_t i = n - 1; i > 0; --i) 
     {
-        std::uniform_int_distribution<int> dist(0, i);
-        int j = dist(rng);
-        int tmp = perm_[i];
-        perm_(i) = perm_[j];
-        perm_(j) = tmp;
+        int j = rng() % (i + 1);
+        std::swap(perm_(i), perm_(j));
     }
 }
 
 // populate out_ with Haar-like wavelet coordinates
 inline void
-populate_coordinates(const py::detail::unchecked_reference<double, 1L>& func_, 
+compute_haar_coords(const py::detail::unchecked_reference<double, 1L>& f_, 
                      const py::detail::unchecked_mutable_reference<int, 1L>& perm_, 
                      py::detail::unchecked_mutable_reference<double, 1L>& out_,
                      py::ssize_t n)
@@ -46,11 +43,11 @@ populate_coordinates(const py::detail::unchecked_reference<double, 1L>& func_,
     double n_ = static_cast<double>(n);
 
     // compute coordinate when split n -> (1, n-1)
-    double l = func_[perm_[0]];
+    double l = f_[perm_[0]];
     double r = 0.0;
     for(py::ssize_t i = 1; i < n; ++i)
     {
-        r += func_[perm_[i]];
+        r += f_[perm_[i]];
     }
     double coef = std::sqrt((n_ - 1) / n_);
     out_(0) = coef * std::abs(l - r);
@@ -58,7 +55,7 @@ populate_coordinates(const py::detail::unchecked_reference<double, 1L>& func_,
     // compute coordinates when split n -> (i+1, n-(i+1))
     for(py::ssize_t i = 1; i < n - 1; ++i)
     {
-        double f = func_[perm_[i]];
+        double f = f_[perm_[i]];
         l = (i * l + f) / (i + 1);
         r = ((n_ - i) * r - f) / (n_ - i - 1);
         coef = std::sqrt(i * (n_ - i) / n_);
@@ -87,30 +84,30 @@ update_total(const py::detail::unchecked_reference<double, 1L>& ys_,
 
 // evaluate cdf of <f,φ> when φ ~ CBST(n)
 py::array_t<double> 
-cdf_cbst_topology(const py::array_t<double>& ys, const py::array_t<double>& func, 
-                  const py::array_t<double>& pmf, int num_iter, 
-                  std::optional<unsigned int> seed)
+cdf_proj_cbst(const py::array_t<double>& ys, const py::array_t<double>& f, 
+              const py::array_t<double>& pmf, int num_iter, 
+              std::optional<unsigned int> seed)
 {   
     // random number generator
     unsigned int seed_ = seed.value_or(std::random_device{}());
     std::mt19937 rng(seed_);
 
     // get sizes
-    py::ssize_t n = func.shape(0);
+    py::ssize_t n = f.shape(0);
     py::ssize_t m = ys.shape(0);
 
     // unchecked accessors
     auto ys_ = ys.unchecked<1>();
-    auto func_ = func.unchecked<1>();
+    auto f_ = f.unchecked<1>();
     auto pmf_ = pmf.unchecked<1>();
 
     // allocate output array 
-    py::array_t<double> total(m);
+    py::array_t<double> total(static_cast<py::ssize_t>(m));
     auto total_ = total.mutable_unchecked<1>();
 
     // allocate arrays for coordinates and permuation
-    py::array_t<double> coords(n - 1);
-    py::array_t<int> perm(n);
+    py::array_t<double> coords(static_cast<py::ssize_t>(n - 1));
+    py::array_t<int> perm(static_cast<py::ssize_t>(n));
     auto coords_ = coords.mutable_unchecked<1>();
     auto perm_ = perm.mutable_unchecked<1>();
 
@@ -130,8 +127,8 @@ cdf_cbst_topology(const py::array_t<double>& ys, const py::array_t<double>& func
     // TODO: OpenMP loop
     for(int i = 0; i < num_iter; ++i)
     {
-        permute_indices(perm_, n, rng);
-        populate_coordinates(func_, perm_, coords_, n);
+        fisher_yates(perm_, n, rng);
+        compute_haar_coords(f_, perm_, coords_, n);
         update_total(ys_, coords_, pmf_, total_, n, m);
     }
 
