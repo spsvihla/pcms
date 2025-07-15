@@ -62,71 +62,76 @@ compute_nnz_max_cov(Tree* tree)
 //       Haar-like basis matrices; it is not a functional general sparse
 //       matrix multiply.
 inline py::tuple
-dsmtm(const double* A_values_, const py::ssize_t* A_indices_, 
-      const py::ssize_t* A_indptr_, const double* B_values_,
-      const py::ssize_t* B_indices_, const py::ssize_t* B_indptr_,
+dsmtm(const double* A_values, const py::ssize_t* A_indices, 
+      const py::ssize_t* A_indptr, const double* B_values,
+      const py::ssize_t* B_indices, const py::ssize_t* B_indptr,
       std::size_t nnz_max, std::size_t num_cols)
 {
-    // allocate memory for new matrix
+    // allocate output CSR arrays
     py::array_t<double> values(static_cast<py::ssize_t>(nnz_max));
     py::array_t<py::ssize_t> indices(static_cast<py::ssize_t>(nnz_max));
-    py::array_t<py::ssize_t> indptr(static_cast<py::ssize_t>(num_cols+1));
+    py::array_t<py::ssize_t> indptr(static_cast<py::ssize_t>(num_cols + 1));
 
-    double* values_ = static_cast<double*>(values.request().ptr);
-    py::ssize_t* indices_ = static_cast<py::ssize_t*>(indices.request().ptr);
-    py::ssize_t* indptr_ = static_cast<py::ssize_t*>(indptr.request().ptr);
+    auto* values_  = static_cast<double*>(values.request().ptr);
+    auto* indices_ = static_cast<py::ssize_t*>(indices.request().ptr);
+    auto* indptr_  = static_cast<py::ssize_t*>(indptr.request().ptr);
 
     indptr_[0] = 0;
 
     std::size_t values_idx = 0;
-    std::size_t indptr_idx = 0;
 
-    // TODO: parallelize loop
+    std::vector<std::size_t> cols(num_cols);
+
+    // for each column in B (row in B^T)
     for(std::size_t i = 0; i < num_cols; ++i)
     {
-        std::size_t bi0 = static_cast<std::size_t>(B_indptr_[i]);             // start index
-        std::size_t bi1 = static_cast<std::size_t>(B_indptr_[i+1]);           // end index
-        std::size_t br0 = static_cast<std::size_t>(B_indices_[bi0]);          // start row
-        std::size_t br1 = static_cast<std::size_t>(B_indices_[bi1-1]);        // end row
+        std::size_t cols_size = 0;
 
+        // B's block range
+        std::size_t bi0 = B_indptr[i];
+        std::size_t bi1 = B_indptr[i + 1];
+        std::size_t br0 = B_indices[bi0];
+        std::size_t br1 = B_indices[bi1 - 1];
+
+        // find overlapping A blocks
+        // TODO: find a faster way to determine these
         for(std::size_t j = 0; j < num_cols; ++j)
         {
-            std::size_t ai0 = static_cast<std::size_t>(A_indptr_[j]);         // start index
-            std::size_t ai1 = static_cast<std::size_t>(A_indptr_[j+1]);       // end index
-            std::size_t ar0 = static_cast<std::size_t>(A_indices_[ai0]);      // start row
-            std::size_t ar1 = static_cast<std::size_t>(A_indices_[ai1-1]);    // end row
+            std::size_t ai0 = A_indptr[j];
+            std::size_t ai1 = A_indptr[j + 1];
+            std::size_t ar0 = A_indices[ai0];
+            std::size_t ar1 = A_indices[ai1 - 1];
 
-            // skip if rows to not overlap
-            if(br1 < ar0 || ar1 < br0)
-            {
-                continue;
-            }
+            bool overlap = (ar0 <= br1) && (br0 <= ar1);
 
-            // compute dot product
+            cols[cols_size] = j;
+            cols_size += overlap;
+        }
+
+        // for each overlapping pair: dense dot product
+        for(std::size_t idx = 0; idx < cols_size; ++idx)
+        {
+            std::size_t j = cols[idx];
+
+            std::size_t ai0 = A_indptr[j];
+            std::size_t ai1 = A_indptr[j + 1];
+            std::size_t ar0 = A_indices[ai0];
+            std::size_t ar1 = A_indices[ai1 - 1];
+
+            std::size_t start_row = std::max(ar0, br0);
+            std::size_t end_row = std::min(ar1, br1);
+            std::size_t overlap_width = end_row - start_row + 1;
+
+            std::size_t offset_a = start_row - ar0;
+            std::size_t offset_b = start_row - br0;
+
             double val = 0.0;
-            std::size_t k = ai0;
-            std::size_t l = bi0;
-            while(k < ai1 && l < bi1)
+            for(std::size_t k = 0; k < overlap_width; ++k)
             {
-                std::size_t a_row = static_cast<std::size_t>(A_indices_[k]);
-                std::size_t b_row = static_cast<std::size_t>(B_indices_[l]);
-                if(a_row == b_row)
-                {
-                    val += A_values_[k] * B_values_[l];
-                    ++k;
-                    ++l;
-                }
-                else if(a_row < b_row)
-                {
-                    ++k;
-                }
-                else
-                {
-                    ++l;
-                }
+                val += A_values[ai0 + offset_a + k] * B_values[bi0 + offset_b + k];
             }
 
-            if(val != 0) 
+            if(val != 0.0)
             {
                 values_[values_idx] = val;
                 indices_[values_idx] = j;
@@ -134,11 +139,12 @@ dsmtm(const double* A_values_, const py::ssize_t* A_indices_,
             }
         }
 
-        indptr_[++indptr_idx] = values_idx;
+        indptr_[i + 1] = values_idx;
     }
 
-    values.resize({values_idx});
-    indices.resize({values_idx});
+    // shrink output arrays
+    values.resize({static_cast<py::ssize_t>(values_idx)});
+    indices.resize({static_cast<py::ssize_t>(values_idx)});
 
     return py::make_tuple(values, indices, indptr);
 }
@@ -150,8 +156,8 @@ sparsify(Tree* tree)
 
     int n_leaves = tree->find_n_leaves();
 
-    py::array_t<int> subtree_starts = tree->find_subtree_start_indices();
-    auto subtree_starts_ = subtree_starts.unchecked<1>();
+    py::array_t<int> subtree_start = tree->find_subtree_start_indices();
+    auto subtree_start_ = subtree_start.unchecked<1>();
 
     py::array_t<double> Q_values(static_cast<py::ssize_t>(nnz));
     py::array_t<double> S_values(static_cast<py::ssize_t>(nnz));
@@ -182,7 +188,7 @@ sparsify(Tree* tree)
     for(int i = 0; i < tree->get_n_nodes() - 2; ++i)
     {
         // accumulate trace length
-        int start = subtree_starts_[static_cast<py::ssize_t>(i)];
+        int start = subtree_start_[static_cast<py::ssize_t>(i)];
         int size = tree->get_subtree_size(i);
         double tbl = tree->find_tbl(i);
         for(int j = 0; j < size; ++j)
@@ -249,11 +255,12 @@ sparsify(Tree* tree)
     double val = sqrt(1.0 / size);
     for(std::size_t j = 0; j < static_cast<std::size_t>(size); ++j)
     {
-        S_values_[values_idx] = trace_length_[j];
+        S_values_[values_idx] = trace_length_[j] * val;
         Q_values_[values_idx] = val;
         indices_[values_idx] = static_cast<py::ssize_t>(j);
         values_idx++;
     }
+
     indptr_[++indptr_idx] = values_idx;
 
     // sparse matrix-matrix multiply
