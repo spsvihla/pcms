@@ -28,20 +28,25 @@
 namespace py = pybind11;
 
 
-inline py::array_t<int>
-std_vec2py_array_t_int(std::vector<int> arr)
+inline py::array_t<int> 
+std_vec2py_array_t_int(const std::vector<int>& arr) 
 {
-    py::array_t<int> result(arr.size());
-    auto result_ = result.mutable_unchecked<1>();
-    for (ssize_t i = 0; i < static_cast<ssize_t>(arr.size()); ++i)
-        result_(i) = arr[i];
-    return result;
+    return py::array_t<int>(arr.size(), arr.data());
 }
 
 
 // constructor
 Tree::Tree(int n_nodes)
-: n_nodes(n_nodes), topology(n_nodes), numerics(n_nodes), names(n_nodes) {}
+: n_nodes(n_nodes), nodes(n_nodes), names(n_nodes), edge_length(n_nodes), subtree_size(n_nodes) 
+{
+    edge_length_ = (double *)edge_length.request().ptr;
+    subtree_size_ = (int *)subtree_size.request().ptr;
+    for(std::size_t i = 0; i < static_cast<std::size_t>(n_nodes); ++i)
+    {
+        edge_length_[i] = 0.0;
+        subtree_size_[i] = 1.0;
+    }
+}
 
 // destructor
 Tree::~Tree() {}
@@ -216,13 +221,13 @@ Tree::find_leaves(int u) const
         int depth = stack.top().second;
         stack.pop();
 
-        if(topology[v].child == -1)
+        if(nodes[v].child == -1)
         {
             support_(idx) = v;
             depths_(idx++) = depth;
         }
 
-        for(int c = topology[v].child; c != -1; c = topology[c].sibling)
+        for(int c = nodes[v].child; c != -1; c = nodes[c].sibling)
         {
             stack.push(std::make_pair(c, depth + 1));
         }
@@ -274,7 +279,7 @@ int
 Tree::find_epl() const
 {
     auto [leaves, depths] = find_leaves(find_root());
-    auto depths_ = depths.mutable_unchecked<1>();
+    auto depths_ = depths.unchecked<1>();
     int epl = 0;
     for(py::ssize_t i = 0; i < depths.size(); ++i)
     {

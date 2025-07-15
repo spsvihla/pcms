@@ -32,38 +32,14 @@
 namespace py = pybind11;
 
 /**
- * @struct TreeTopology
- * @brief A structure to represent parent-child relationships in the tree.
+ * @struct Node
+ * @brief A node in a tree.
  */
-struct TreeTopology {
+struct Node {
     int parent = -1;         ///< Parent node index (-1 if no parent)
     int child = -1;          ///< Child node index (-1 if no child)
     int sibling = -1;        ///< Sibling node index (-1 if no sibling)
     bool is_first = true;    ///< Whether node is the first (leftmost) sibling
-};
-
-/**
- * @struct TreeNumerics
- * @brief A structure to represent numerical tree attributes.
- */
-struct TreeNumerics {
-    py::array_t<int> subtree_size;       ///< Number of children in the subtree
-    py::array_t<double> edge_length;     ///< Edge length to parent
-
-    TreeNumerics(size_t n_nodes) 
-    : subtree_size(n_nodes), edge_length(n_nodes) 
-    {
-        auto subtree_size_ = subtree_size.mutable_unchecked<1>();
-        for(py::ssize_t i = 0; i < static_cast<py::ssize_t>(n_nodes); ++i)
-        {
-            subtree_size_(i) = 1;
-        }
-        auto edge_length_ = edge_length.mutable_unchecked<1>();
-        for(py::ssize_t i = 0; i < static_cast<py::ssize_t>(n_nodes); ++i)
-        {
-            edge_length_(i) = 0.0;
-        }
-    } 
 };
 
 /**
@@ -312,10 +288,15 @@ public:
     std::string to_string(const std::string& label) const;
 
 private:
-    int n_nodes;                        ///< Number of nodes in the tree.
-    std::vector<TreeTopology> topology; ///< Parent-child-sibling relationships
-    TreeNumerics numerics;              ///< Edge length and subtree sizes
-    std::vector<std::string> names;     ///< Array of node names.
+    int                      n_nodes;        ///< Number of nodes
+    std::vector<Node>        nodes;          ///< Nodes
+    std::vector<std::string> names;          ///< Node names
+
+    py::array_t<double>      edge_length;    ///< Edge length
+    py::array_t<int>         subtree_size;   ///< Subtree size
+    
+    double*                  edge_length_;   ///< Pointer to edge_length
+    int*                     subtree_size_;  ///< Pointer to subtree_size
 
     /**
      * @brief Private parent node setter. 
@@ -379,89 +360,85 @@ Tree::get_n_nodes() const
 inline int 
 Tree::get_parent(int u) const
 {
-    return topology[u].parent;
+    return nodes[u].parent;
 }
 
 inline void
 Tree::set_parent(int u, int v)
 {
-    topology[u].parent = v;
+    nodes[u].parent = v;
 }
 
 inline int 
 Tree::get_child(int u) const
 {
-    return topology[u].child;
+    return nodes[u].child;
 }
 
 inline void
 Tree::set_child(int u, int v)
 {
-    topology[u].child = v;
+    nodes[u].child = v;
 }
 
 inline int 
 Tree::get_sibling(int u) const
 {
-    return topology[u].sibling;
+    return nodes[u].sibling;
 }
 
 inline void
 Tree::set_sibling(int u, int v)
 {
-    topology[u].sibling = v;
+    nodes[u].sibling = v;
 }
 
 inline bool
 Tree::get_is_first(int u) const
 {
-    return topology[u].is_first;
+    return nodes[u].is_first;
 }
 
 inline void
 Tree::set_is_first(int u, bool value)
 {
-    topology[u].is_first = value;
+    nodes[u].is_first = value;
 }
 
 inline int 
 Tree::get_subtree_size(int u) const
 {
-    auto subtree_size_ = numerics.subtree_size.unchecked<1>();
-    return subtree_size_[u];
+    return subtree_size_[static_cast<std::size_t>(u)];
 }
 
 inline const py::array_t<int>&
 Tree::get_subtree_size() const
 {
-    return numerics.subtree_size;
+    return subtree_size;
 }
 
 inline void
 Tree::set_subtree_size(int u, int value)
 {
-    auto subtree_size_ = numerics.subtree_size.mutable_unchecked<1>();
-    subtree_size_(u) = value;
+    subtree_size_[static_cast<std::size_t>(u)] = value;
 }
 
 inline double 
 Tree::get_edge_length(int u) const
 {
-    auto edge_length_ = numerics.edge_length.unchecked<1>();
-    return edge_length_[u];
+    return edge_length_[static_cast<std::size_t>(u)];
 }
 
 inline const py::array_t<double>&
 Tree::get_edge_length() const 
 {
-    return numerics.edge_length;
+    return edge_length;
 }
 
 inline void 
 Tree::set_edge_length(int u, double value)
 {
-    auto edge_length_ = numerics.edge_length.mutable_unchecked<1>();
-    edge_length_(u) = value;
+    edge_length_[static_cast<std::size_t>(u)] = value;
 }
 
 inline std::string
