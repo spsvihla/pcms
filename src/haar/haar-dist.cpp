@@ -28,7 +28,12 @@ fisher_yates(py::detail::unchecked_mutable_reference<int, 1>& perm_,
 {
     for (py::ssize_t i = n - 1; i > 0; --i) 
     {
-        int j = rng() % (i + 1);
+        int j;
+        do
+        {
+            j = rng();
+        } while (j >= RAND_MAX - (RAND_MAX % (i + 1)));
+        j %= (i + 1);
         std::swap(perm_(i), perm_(j));
     }
 }
