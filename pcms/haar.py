@@ -49,14 +49,15 @@ def cdf_proj_cbst(
     float or np.ndarray
         Estimate(s) of the CDF at the given point(s).
     """
-    ys_arr = np.atleast_1d(ys).astype(np.float64)
-    func_arr = np.asarray(func, dtype=np.float64)
-    n = func_arr.size
-    num_iter = min(factorial(n), int(np.ceil(1.0 / (4 * eps**2 * delta))))
+    ys = np.atleast_1d(ys).astype(np.float64)
+    func = np.array(func, dtype=np.float64, copy=True)  # copy since f is permuted in place
+    n = func.size
+    num_iter = int(min(factorial(n), int(np.ceil(1.0 / (4 * eps**2 * delta)))))
     pmf = CriticalBetaSplittingDistribution(n).pmf
     seed = int(seed) if seed is not None else None
-    result = pcms._haar.cdf_proj_cbst(ys_arr, func_arr, pmf, int(num_iter), seed)
-    return result.item() if np.isscalar(ys) else result
+    result = pcms._haar.cdf_proj_cbst(ys, func, pmf, num_iter, seed)
+    result = np.asarray(result)
+    return result.item() if result.ndim == 0 or result.size == 1 else result
 
 
 def cdf_proj_dirichlet_diff(

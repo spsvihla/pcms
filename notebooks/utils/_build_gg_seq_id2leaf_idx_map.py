@@ -21,7 +21,7 @@ def build_gg_seq_id2leaf_idx_map(tree: Tree) -> pd.Series:
     seq_ids = []
     leaf_idxs = []
     for leaf_idx, node_idx in enumerate(leaves):
-        seq_ids.append(tree.get_name(node_idx))
+        seq_ids.append(int(tree.get_name(node_idx)))
         leaf_idxs.append(leaf_idx)
     seq_id2leaf_idx_map = pd.Series(data=leaf_idxs, index=seq_ids)
     return seq_id2leaf_idx_map

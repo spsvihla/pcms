@@ -14,7 +14,7 @@ if DEBUG:
     common_compile_args += ['-g', '-O0']
     common_link_args += ['-g']
 else:
-    common_compile_args += ['-O3', '-march=native', '-flto', '-fopenmp']
+    common_compile_args += ['-O3', '-march=native', '-flto', '-fopenmp', '-ffast-math']
     common_link_args += ['-flto', '-fopenmp']
 
 def get_gsl_lib_dirs():
