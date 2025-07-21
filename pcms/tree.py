@@ -814,9 +814,7 @@ def cbst(n_leaves: int, planted: bool = True, randomize_edge_lengths = False, se
     """
     if n_leaves < 2:
         raise ValueError("Required n_leaves >= 2.")
-    t = Tree._from_cpp_tree(pcms._tree.cbst(n_leaves, planted, seed))
+    t = pcms._tree.cbst(n_leaves, planted, seed)
     if randomize_edge_lengths:
-        rng = np.random.default_rng(seed=seed)
-        for i in range(t.n_nodes):
-            t.set_edge_length(i, rng.exponential(t.get_subtree_size(i)))
-    return t
+        pcms._tree.randomize_edge_lengths(t, seed)
+    return Tree._from_cpp_tree(t)
