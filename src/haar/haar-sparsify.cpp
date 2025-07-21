@@ -160,7 +160,7 @@ sparsify(Tree* tree)
     indptr_[++indptr_idx] = values_idx;
 
     py::tuple Q = py::make_tuple(Q_values, indices, indptr);
-    py::tuple S = py::make_tuple(S_values, indices, indptr);
+    py::tuple S = py::make_tuple(S_values, indices.attr("copy")(), indptr.attr("copy")());
 
     return py::make_tuple(Q, S);
 }
