@@ -11,7 +11,7 @@ common_link_args = []
 
 if DEBUG:
     print("DEBUG_BUILD set")
-    common_compile_args += ['-g', '-O0']
+    common_compile_args += ['-g', '-O0', '-march=native']
     common_link_args += ['-g']
 else:
     common_compile_args += ['-O3', '-march=native', '-flto', '-fopenmp', '-ffast-math']
