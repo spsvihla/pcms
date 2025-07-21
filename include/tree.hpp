@@ -169,12 +169,22 @@ public:
     void swap(int u, int v);
 
     /**
+     * @brief Helper for find_children to provide C++ return type.
+     */
+    std::vector<int> find_children_(int u) const;
+
+    /**
      * @brief Finds the children of a specified node.
      * @param u Target node index.
      * @return A vector of child node indices.
      * @throws py::index_error If the node index is out of bounds.
      */
     py::array_t<int> find_children(int u) const;
+
+    /**
+     * @brief Helper for find_ancestors to provide C++ return type.
+     */
+    std::vector<int> find_ancestors_(int u) const;
 
     /**
      * @brief Finds the ancestors of a specified node.
@@ -205,12 +215,22 @@ public:
     bool find_is_planted() const;
 
     /**
+     * @brief Helper for find_leaves to provide C++ return type.
+     */
+    std::pair<std::vector<int>, std::vector<int>> find_leaves_(int u) const;
+
+    /**
      * @brief Finds the leafs nodes and their depths beneath a specified node.
      * @param u The index of the node.
      * @return A pair of vectors: the first contains the leaf node indices,
      *         and the second contains their corresponding depths.
      */
-    std::pair<py::array_t<int>, py::array_t<int>> find_leaves(int u) const;
+    py::tuple find_leaves(int u) const;
+
+    /**
+     * @brief Helper for find_subtree_start_indices to provide C++ return type.
+     */
+    std::vector<int> find_subtree_start_indices_() const;
 
     /**
      * @brief Finds the starting leaf-index (postorder indexing of leaves) of subtrees.
@@ -345,13 +365,6 @@ private:
      * @param value
      */
     void set_subtree_size(int u, int value);
-
-    /**
-     * @brief Private find ancestors method.  
-     * @param u Target node index. 
-     * @return A vector of ancestor node indices.
-     */
-    std::vector<int> find_ancestors_(int u) const;
 
     /**
      * @brief Helper function to print a specific node and its children.

@@ -133,13 +133,24 @@ Tree::swap(int u, int v)
     link(v, pu);
 }
 
-py::array_t<int> 
-Tree::find_children(int u) const
+std::vector<int>
+Tree::find_children_(int u) const
 {
     std::vector<int> children;
     for(int c = get_child(u); c != -1; c = get_sibling(c))
     {
         children.push_back(c);
+    }
+    return children;
+}
+
+py::array_t<int> 
+Tree::find_children(int u) const
+{
+    std::vector<int> children = find_children_(u);
+    if(children.empty())
+    {
+        return py::array_t<int>();
     }
     return std_vec2py_array_t_int(children);
 }
@@ -202,17 +213,16 @@ Tree::find_is_planted() const
     return (find_children(find_root()).size() == 1);
 }
 
-std::pair<py::array_t<int>, py::array_t<int>> 
-Tree::find_leaves(int u) const
+std::pair<std::vector<int>, std::vector<int>>
+Tree::find_leaves_(int u) const
 {
-    py::array_t<int> support(get_subtree_size(u));
-    py::array_t<int> depths(get_subtree_size(u));
+    std::vector<int> leaves;
+    std::vector<int> depths;
 
-    auto support_ = support.mutable_unchecked<1>();
-    auto depths_ = depths.mutable_unchecked<1>();
+    leaves.reserve(get_subtree_size(u));
+    depths.reserve(get_subtree_size(u));
 
     // depth-first search
-    int idx = 0;
     std::stack<std::pair<int, int>> stack;
     stack.push(std::make_pair(u, 0));
     while(!stack.empty())
@@ -223,8 +233,8 @@ Tree::find_leaves(int u) const
 
         if(nodes[v].child == -1)
         {
-            support_(idx) = v;
-            depths_(idx++) = depth;
+            leaves.emplace_back(v);
+            depths.emplace_back(depth);
         }
 
         for(int c = nodes[v].child; c != -1; c = nodes[c].sibling)
@@ -233,14 +243,23 @@ Tree::find_leaves(int u) const
         }
     }
 
-    return std::make_pair(support, depths);
+    return std::make_pair(leaves, depths);
 }
 
-py::array_t<int>
-Tree::find_subtree_start_indices() const
+py::tuple
+Tree::find_leaves(int u) const
 {
-    py::array_t<int> subtree_starts(get_n_nodes());
-    auto subtree_starts_ = subtree_starts.mutable_unchecked<1>();
+    auto [leaves, depths] = find_leaves_(u);
+    return py::make_tuple(
+        std_vec2py_array_t_int(leaves), 
+        std_vec2py_array_t_int(depths)
+    );
+}
+
+std::vector<int>
+Tree::find_subtree_start_indices_() const
+{
+    std::vector<int> subtree_starts(get_n_nodes());
 
     // breadth-first search
     std::queue<std::pair<int, int>> q;
@@ -250,7 +269,7 @@ Tree::find_subtree_start_indices() const
         auto [u, start] = q.front();
         q.pop();
 
-        subtree_starts_(u) = start;
+        subtree_starts[u] = start;
 
         // enqueue children
         int offset = 0;
@@ -262,6 +281,13 @@ Tree::find_subtree_start_indices() const
     }
 
     return subtree_starts;
+}
+
+py::array_t<int>
+Tree::find_subtree_start_indices() const
+{
+    std::vector<int> subtree_starts = find_subtree_start_indices_();
+    return std_vec2py_array_t_int(subtree_starts);
 }
 
 int 
@@ -300,14 +326,8 @@ int Tree::find_n_wavelets() const
 int
 Tree::find_epl() const
 {
-    auto [leaves, depths] = find_leaves(find_root());
-    auto depths_ = depths.unchecked<1>();
-    int epl = 0;
-    for(py::ssize_t i = 0; i < depths.size(); ++i)
-    {
-        epl += depths_[i];
-    }
-    return epl;
+    auto [leaves, depths] = find_leaves_(find_root());
+    return std::accumulate(depths.begin(), depths.end(), 0);
 }
 
 double
@@ -347,12 +367,11 @@ Tree::find_tbl() const
 py::list
 Tree::compute_wavelets(int u) const
 {
-    py::array_t<int> children = find_children(u);
-    auto children_ = children.unchecked<1>();
+    std::vector<int> children = find_children_(u);
 
     py::list wavelets;
 
-    int l0 = get_subtree_size(children_[0]);
+    int l0 = get_subtree_size(children[0]);
 
     // mother wavelet
     if(children.size() == 1)
@@ -371,9 +390,9 @@ Tree::compute_wavelets(int u) const
     }
 
     // daughter wavelet
-    for(py::ssize_t i = 1; i < children.size(); ++i)
+    for(py::ssize_t i = 1; i < static_cast<py::ssize_t>(children.size()); ++i)
     {
-        int l1 = get_subtree_size(children_[i]);
+        int l1 = get_subtree_size(children[i]);
         int s = l0 + l1;
         double val0 = sqrt(static_cast<double>(l1) / (l0 * s));
         double val1 = -1 * sqrt(static_cast<double>(l0) / (l1 * s));
@@ -398,24 +417,22 @@ Tree::compute_wavelets(int u) const
 py::list
 Tree::compute_supports(int u) const
 {
-    auto [leaves, depths] = find_leaves(u);
-    auto leaves_ = leaves.unchecked<1>();
+    auto [leaves, depths] = find_leaves_(u);
 
-    py::array_t<int> children = find_children(u);
-    auto children_= children.unchecked<1>();
+    std::vector<int> children = find_children_(u);
 
     py::list supports;
 
-    int s = get_subtree_size(children_[0]);
+    int size = get_subtree_size(children[0]);
 
     // mother wavelet
     if(children.size() == 1)
     {
-        py::array_t<int> support(s);
+        py::array_t<int> support(size);
         auto support_ = support.mutable_unchecked<1>();
-        for(py::ssize_t j = 0; j < static_cast<py::ssize_t>(s); ++j)
+        for(py::ssize_t j = 0; j < static_cast<py::ssize_t>(size); ++j)
         {
-            support_(j) = leaves_[j];
+            support_(j) = leaves[j];
         }
 
         supports.append(support);
@@ -423,15 +440,15 @@ Tree::compute_supports(int u) const
     }
 
     // daughter wavelet
-    for(py::ssize_t i = 1; i < children.size(); ++i)
+    for(py::ssize_t i = 1; i < static_cast<py::ssize_t>(children.size()); ++i)
     {
-        s += get_subtree_size(children_[i]);
+        size += get_subtree_size(children[i]);
 
-        py::array_t<int> support(s);
+        py::array_t<int> support(size);
         auto support_ = support.mutable_unchecked<1>();
-        for(py::ssize_t j = 0; j < static_cast<py::ssize_t>(s); ++j)
+        for(py::ssize_t j = 0; j < static_cast<py::ssize_t>(size); ++j)
         {
-            support_(j) = leaves_[j];
+            support_(j) = leaves[j];
         }
 
         supports.append(support);
