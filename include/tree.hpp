@@ -225,6 +225,19 @@ public:
     int find_n_leaves() const;
 
     /**
+     * @brief Computes the number of children of a node.
+     * @param u Target node index.
+     * @return The number of children of 'u'.
+     */
+    int find_n_children(int u) const;
+
+    /**
+     * @brief Computes the number of wavelets in the Haar-like basis of the tree.
+     * @return The number of wavelets in the Haar-like basis.
+     */
+    int find_n_wavelets() const;
+
+    /**
      * @brief Finds the expected path length (EPL) of the tree.
      * @return The expected path length.
      */

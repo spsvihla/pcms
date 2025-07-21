@@ -132,7 +132,9 @@ def sparsify(input: pcms.tree.Tree | str) -> csc_matrix:
     """
     tree = pcms.tree.nwk2tree(input) if isinstance(input, str) else input
     Q, S = pcms._haar.sparsify(tree._tree)
-    Q = csc_matrix(Q)
-    S = csc_matrix(S)
-    S = Q.T @ S
+    n_leaves = tree.find_n_leaves()
+    n_wavelets = tree.find_n_wavelets()
+    Q = csc_matrix(Q, shape=(n_leaves, n_wavelets))
+    S = csc_matrix(S, shape=(n_leaves, n_wavelets))
+    S = Q.T @ S 
     return Q, S

@@ -51,6 +51,7 @@ sparsify(Tree* tree)
     int nnz = compute_nnz_wavelets(tree);
 
     int n_leaves = tree->find_n_leaves();
+    int n_wavelets = tree->find_n_wavelets();
 
     py::array_t<int> subtree_start = tree->find_subtree_start_indices();
     auto subtree_start_ = subtree_start.unchecked<1>();
@@ -59,7 +60,7 @@ sparsify(Tree* tree)
     py::array_t<double> S_values(static_cast<py::ssize_t>(nnz));
     py::array_t<double> trace_length(static_cast<py::ssize_t>(n_leaves));
     py::array_t<py::ssize_t> indices(static_cast<py::ssize_t>(nnz));
-    py::array_t<py::ssize_t> indptr(static_cast<py::ssize_t>(n_leaves+1));
+    py::array_t<py::ssize_t> indptr(static_cast<py::ssize_t>(n_wavelets+1));
 
     double* Q_values_ = static_cast<double*>(Q_values.request().ptr);
     double* S_values_ = static_cast<double*>(S_values.request().ptr);

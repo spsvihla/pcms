@@ -276,6 +276,28 @@ Tree::find_n_leaves() const
 }
 
 int
+Tree::find_n_children(int u) const
+{
+    int counter = 0;
+    for(int c = nodes[u].child; c != -1; c = nodes[c].sibling)
+    {
+        counter += 1;
+    }
+    return counter;
+}
+
+int Tree::find_n_wavelets() const
+{
+    int counter = 0;
+    for(int i = 0; i < get_n_nodes(); ++i)
+    {
+        int n_children = find_n_children(i);
+        counter += std::max(1, n_children - 1) * (n_children != 0);
+    }
+    return counter;
+}
+
+int
 Tree::find_epl() const
 {
     auto [leaves, depths] = find_leaves(find_root());

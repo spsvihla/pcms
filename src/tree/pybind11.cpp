@@ -159,6 +159,15 @@ PYBIND11_MODULE(_tree, m) {
             "find_n_leaves",
             &Tree::find_n_leaves
         )
+        .def(
+            "find_n_children",
+            &Tree::find_n_children,
+            py::arg("u")
+        )
+        .def(
+            "find_n_wavelets",
+            &Tree::find_n_wavelets
+        )
         .def
         (
             "find_epl", 

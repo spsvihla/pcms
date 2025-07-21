@@ -553,6 +553,34 @@ class Tree:
         """
         return self._tree.find_n_leaves()
 
+    @check_bounds()
+    def find_n_children(self, u: int) -> int:
+        """
+        Find the number of children of a node.
+
+        Parameters
+        ----------
+        u: int 
+            Target node index.
+
+        Returns
+        -------
+        int
+            The number of children of the node.
+        """
+        return self._tree.find_n_children(u)
+    
+    def find_n_wavelets(self) -> int:
+        """
+        Find the number of wavelets in the tree's Haar-like basis.
+
+        Returns
+        -------
+        int 
+            The number of wavelets in the basis
+        """
+        return self._tree.find_n_wavelets()
+
     def find_epl(self) -> int:
         """
         Finds the expected path length (EPL) of the tree.
@@ -758,7 +786,7 @@ def remy(n_leaves: int, planted: bool = True, seed: Optional[int] = None) -> Tre
     return Tree._from_cpp_tree(pcms._tree.remy(n_leaves, planted, seed))
 
 
-def cbst(n_leaves: int, planted: bool = True, seed: Optional[int] = None) -> Tree:
+def cbst(n_leaves: int, planted: bool = True, randomize_edge_lengths = False, seed: Optional[int] = None) -> Tree:
     """
     Construct a random Tree object from the critical beta-splitting
     distribution.
@@ -769,6 +797,8 @@ def cbst(n_leaves: int, planted: bool = True, seed: Optional[int] = None) -> Tre
         Number of leaves in the tree.
     planted: bool
         Whether the tree should be planted.
+    randomize_edge_lengths: bool
+        Whether to assign exponential(|L(v)|) edge lengths.
     seed: int
         A seed for random generation.
 
@@ -784,4 +814,9 @@ def cbst(n_leaves: int, planted: bool = True, seed: Optional[int] = None) -> Tre
     """
     if n_leaves < 2:
         raise ValueError("Required n_leaves >= 2.")
-    return Tree._from_cpp_tree(pcms._tree.cbst(n_leaves, planted, seed))
+    t = Tree._from_cpp_tree(pcms._tree.cbst(n_leaves, planted, seed))
+    if randomize_edge_lengths:
+        rng = np.random.default_rng(seed=seed)
+        for i in range(t.n_nodes):
+            t.set_edge_length(i, rng.exponential(t.get_subtree_size(i)))
+    return t
