@@ -130,11 +130,12 @@ def sparsify(input: pcms.tree.Tree | str) -> csc_matrix:
     ValueError
         If `input` is neither a `Tree` instance nor a valid filename.
     """
-    tree = pcms.tree.nwk2tree(input) if isinstance(input, str) else input
+    tree = pcms.tree.nwk2tree(input, ensure_planted=True) if isinstance(input, str) else input
+    if not tree.find_is_planted():
+        raise ValueError("Tree must be planted.")
     Q, S = pcms._haar.sparsify(tree._tree)
     n_leaves = tree.find_n_leaves()
     n_wavelets = tree.find_n_wavelets()
     Q = csc_matrix(Q, shape=(n_leaves, n_wavelets))
-    S = csc_matrix(S, shape=(n_leaves, n_wavelets))
-    S = Q.T @ S 
+    S = csc_matrix(S, shape=(n_wavelets, n_wavelets))
     return Q, S

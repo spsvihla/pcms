@@ -12,11 +12,15 @@
 #include <stack>
 #include <vector>
 
+// external includes
+#include <mkl.h>
+
 // project-specific includes
 #include "tree.hpp"
 #include "haar-sparsify.hpp"
 
 // pybind11 and numpy includes
+#include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 
 namespace py = pybind11;
@@ -24,7 +28,7 @@ namespace py = pybind11;
 
 // compute number of non-zero entries in wavelet basis matrix
 int
-compute_nnz_wavelets(Tree* tree)
+find_nnz(Tree* tree)
 {
     int nnz = 0;
     for(int i = 0; i < tree->get_n_nodes(); ++i)
@@ -45,55 +49,99 @@ compute_nnz_wavelets(Tree* tree)
     return nnz;
 }
 
+py::tuple mkl2py_csc(sparse_matrix_t A) 
+{
+    sparse_index_base_t indexing;
+    MKL_INT rows, cols;
+    MKL_INT *col_start = nullptr;
+    MKL_INT *col_end = nullptr;
+    MKL_INT *row_indx = nullptr;
+    double *values = nullptr;
+
+    // Export CSC structure from MKL
+    mkl_sparse_d_export_csc(
+        A, 
+        &indexing, 
+        &rows, 
+        &cols, 
+        &col_start, 
+        &col_end, 
+        &row_indx, 
+        &values
+    );
+
+    MKL_INT nnz = col_end[cols - 1];
+
+    // Build indptr array from col_start and last col_end element
+    std::vector<MKL_INT> indptr(cols + 1);
+    for (MKL_INT i = 0; i < cols; ++i) 
+    {
+        indptr[i] = col_start[i];
+    }
+    indptr[cols] = col_end[cols - 1];
+
+    // Deep copy the values and indices into new Python-owned arrays
+    auto values_array = py::array_t<double>(nnz);
+    std::memcpy(values_array.mutable_data(), values, sizeof(double) * nnz);
+
+    auto indices_array = py::array_t<MKL_INT>(nnz);
+    std::memcpy(indices_array.mutable_data(), row_indx, sizeof(MKL_INT) * nnz);
+
+    // indptr is already built in a std::vector, so we copy it too
+    auto indptr_array = py::array_t<MKL_INT>(indptr.size());
+    std::memcpy(indptr_array.mutable_data(), indptr.data(), sizeof(MKL_INT) * indptr.size());
+
+    return py::make_tuple(values_array, indices_array, indptr_array);
+}
+
 py::tuple
 sparsify(Tree* tree)
 {
-    int nnz = compute_nnz_wavelets(tree);
-
+    int nnz = find_nnz(tree);
     int n_leaves = tree->find_n_leaves();
     int n_wavelets = tree->find_n_wavelets();
+    int n_nodes = tree->get_n_nodes();
 
-    py::array_t<int> subtree_start = tree->find_subtree_start_indices();
-    auto subtree_start_ = subtree_start.unchecked<1>();
+    std::vector<int> subtree_starts = tree->find_subtree_start_indices_();
 
-    py::array_t<double> Q_values(static_cast<py::ssize_t>(nnz));
-    py::array_t<double> S_values(static_cast<py::ssize_t>(nnz));
-    py::array_t<double> trace_length(static_cast<py::ssize_t>(n_leaves));
-    py::array_t<py::ssize_t> indices(static_cast<py::ssize_t>(nnz));
-    py::array_t<py::ssize_t> indptr(static_cast<py::ssize_t>(n_wavelets+1));
+    MKL_INT rows = n_leaves;
+    MKL_INT cols = n_wavelets;
 
-    double* Q_values_ = static_cast<double*>(Q_values.request().ptr);
-    double* S_values_ = static_cast<double*>(S_values.request().ptr);
-    double* trace_length_ = static_cast<double*>(trace_length.request().ptr);
-    py::ssize_t* indices_ = static_cast<py::ssize_t*>(indices.request().ptr);
-    py::ssize_t* indptr_ = static_cast<py::ssize_t*>(indptr.request().ptr);
+    std::vector<double> Q_values(nnz);
+    std::vector<MKL_INT> Q_indices(nnz);
+    std::vector<MKL_INT> Q_indptr(cols + 1);
 
-    indptr_[0] = 0;
+    std::vector<double> S_values(nnz);
+    std::vector<MKL_INT> S_indices(nnz);
+    std::vector<MKL_INT> S_indptr(cols + 1);
 
+    std::vector<double> trace_length(n_leaves);
     for(int i = 0; i < n_leaves; ++i)
     {
-        trace_length_[i] = 0.0;
+        trace_length[i] = 0.0;
     }
 
-    // build wavelet basis and trace length sparse matrices
-    std::size_t values_idx = 0;
-    std::size_t indptr_idx = 0;
+    int idx = 0;
+    int col = 0;
 
     std::stack<int> subtree_start_stack;
     std::stack<int> subtree_size_stack;
 
-    for(int i = 0; i < tree->get_n_nodes() - 2; ++i)
+    Q_indptr[0] = 0;
+    S_indptr[0] = 0;
+
+    for(int i = 0; i < n_nodes - 1; ++i)
     {
-        // accumulate trace length
-        int start = subtree_start_[static_cast<py::ssize_t>(i)];
+        // accumulate trace branch length
+        int start = subtree_starts[i];
         int size = tree->get_subtree_size(i);
         double tbl = tree->find_tbl(i);
         for(int j = 0; j < size; ++j)
         {
-            trace_length_[static_cast<std::size_t>(start + j)] += tbl;
+            trace_length[start + j] += tbl;
         }
 
-        // construct wavelets
+        // construct wavelet
         if(tree->get_is_first(i))           // first child node
         {
             subtree_start_stack.push(start);
@@ -107,32 +155,40 @@ sparsify(Tree* tree)
             int lsize = subtree_size_stack.top();
             int sum = lsize + rsize;
 
-            // use floating-point arithmetic to avoid overflow with large integers
-            double lval =  sqrt(static_cast<double>(rsize) / (static_cast<double>(lsize) * static_cast<double>(sum)));
-            double rval = -sqrt(static_cast<double>(lsize) / (static_cast<double>(rsize) * static_cast<double>(sum)));
+            double rsize_ = static_cast<double>(rsize);
+            double lsize_ = static_cast<double>(lsize);
+            double sum_ = static_cast<double>(sum);
+
+            double lval =  sqrt(rsize_ / (lsize_ * sum_));
+            double rval = -sqrt(lsize_ / (rsize_ * sum_));
 
             // left subtree
-            for(std::size_t j = 0; j < static_cast<std::size_t>(lsize); ++j)
+            for(int j = 0; j < lsize; ++j)
             {
-                S_values_[values_idx] = trace_length_[start + j] * lval;
-                Q_values_[values_idx] = lval;
-                indices_[values_idx] = static_cast<py::ssize_t>(start + j);
-                values_idx++;
+                Q_values[idx] = lval;
+                S_values[idx] = lval * trace_length[start + j];
+                Q_indices[idx] = start + j;
+                S_indices[idx] = start + j;
+                idx++;
             }
 
             // right subtree
-            for(std::size_t j = lsize; j < static_cast<std::size_t>(sum); ++j)
+            for(int j = lsize; j < sum; ++j)
             {
-                S_values_[values_idx] = trace_length_[start + j] * rval;
-                Q_values_[values_idx] = rval;
-                indices_[values_idx] = static_cast<py::ssize_t>(start + j);
-                values_idx++;
+                Q_values[idx] = rval;
+                S_values[idx] = rval * trace_length[start + j];
+                Q_indices[idx] = start + j;
+                S_indices[idx] = start + j;
+                idx++;
             }
 
-            indptr_[++indptr_idx] = values_idx;
+            col++;
+            Q_indptr[col] = idx;
+            S_indptr[col] = idx;
+
             subtree_size_stack.top() = sum;
         }
-        if(tree->get_sibling(i) == -1L)      // last child node
+        if(tree->get_sibling(i) == -1)      // last child node
         {
             subtree_start_stack.pop();
             subtree_size_stack.pop();
@@ -143,25 +199,48 @@ sparsify(Tree* tree)
     int root = tree->find_root();
     int size = tree->get_subtree_size(root);
 
-    double tbl = tree->find_tbl(root - 1);
-    for(int j = 0; j < size; ++j)
-    {
-        trace_length_[j] += tbl;
-    }
-
     double val = sqrt(1.0 / size);
-    for(std::size_t j = 0; j < static_cast<std::size_t>(size); ++j)
+    for(int i = 0; i < size; ++i)
     {
-        S_values_[values_idx] = trace_length_[j] * val;
-        Q_values_[values_idx] = val;
-        indices_[values_idx] = static_cast<py::ssize_t>(j);
-        values_idx++;
+        Q_values[idx] = val;
+        S_values[idx] = val * trace_length[i];
+        Q_indices[idx] = i;
+        S_indices[idx] = i;
+        idx++;
     }
 
-    indptr_[++indptr_idx] = values_idx;
+    col++;
+    Q_indptr[col] = idx;
+    S_indptr[col] = idx;
 
-    py::tuple Q = py::make_tuple(Q_values, indices, indptr);
-    py::tuple S = py::make_tuple(S_values, indices.attr("copy")(), indptr.attr("copy")());
+    sparse_matrix_t Q;
+    mkl_sparse_d_create_csc(
+        &Q,
+        SPARSE_INDEX_BASE_ZERO,
+        rows,
+        cols,
+        Q_indptr.data(),
+        Q_indptr.data() + 1,
+        Q_indices.data(),
+        Q_values.data()
+    );
 
-    return py::make_tuple(Q, S);
+    sparse_matrix_t S_;
+    mkl_sparse_d_create_csc(
+        &S_,
+        SPARSE_INDEX_BASE_ZERO,
+        rows,
+        cols,
+        S_indptr.data(),
+        S_indptr.data() + 1,
+        S_indices.data(),
+        S_values.data()
+    );
+
+    sparse_matrix_t S;
+    mkl_sparse_spmm(SPARSE_OPERATION_TRANSPOSE, Q, S_, &S);
+
+    mkl_sparse_destroy(S_);
+
+    return py::make_tuple(mkl2py_csc(Q), mkl2py_csc(S));
 }

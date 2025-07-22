@@ -36,24 +36,37 @@ def parse_args():
     return debug, optimize, opt_level
 
 
-def get_gsl_lib_dirs() -> list[str]:
+def get_lib_flags() -> tuple[list[str], list[str], list[str]]:
+    """
+    Get combined include_dirs, library_dirs, and libraries for GSL + MKL.
+    Adjust paths to match your system!
+    """
+    # ---- GSL ----
     try:
-        output = subprocess.check_output(["gsl-config", "--libdir"], text=True).strip()
-        return output.split()
+        gsl_libdir = subprocess.check_output(["gsl-config", "--libdir"], text=True).strip()
+        gsl_includedir = subprocess.check_output(["gsl-config", "--cflags"], text=True).strip()
+        gsl_includes = [flag[2:] for flag in gsl_includedir.split() if flag.startswith("-I")]
+        gsl_libdirs = gsl_libdir.split()
+        gsl_libs = ["gsl", "gslcblas"]
     except Exception as e:
-        raise RuntimeError("GSL not found. Please install GSL.") from e
+        raise RuntimeError("Could not find GSL using gsl-config") from e
 
+    # ---- MKL ----
+    # Example for Intel oneAPI MKL
+    mkl_includes = ["/opt/intel/oneapi/mkl/latest/include"]
+    mkl_libdirs = ["/opt/intel/oneapi/mkl/latest/lib/intel64"]
 
-def get_eigen_include() -> list[str]:
-    try:
-        output = subprocess.check_output(["pkg-config", "--cflags", "eigen3"], text=True).strip()
-        flags = output.split()
-        includes = [flag[2:] for flag in flags if flag.startswith("-I")]
-        if not includes:
-            raise RuntimeError("No Eigen include path found in pkg-config output.")
-        return includes
-    except Exception as e:
-        raise RuntimeError("Eigen not found. Please install Eigen development files.") from e
+    # Common static link MKL
+    mkl_libs = ["mkl_intel_lp64", "mkl_core", "mkl_sequential"]
+
+    # Always need system math lib too
+    sys_libs = ["m"]
+
+    include_dirs = gsl_includes + mkl_includes
+    library_dirs = ["/usr/lib", "/usr/local/lib"] + gsl_libdirs + mkl_libdirs
+    libraries = gsl_libs + mkl_libs + sys_libs
+
+    return include_dirs, library_dirs, libraries
 
 
 def get_compile_and_link_args(debug: bool, optimize: bool, opt_level: str | None) -> tuple[list[str], list[str]]:
@@ -69,7 +82,6 @@ def get_compile_and_link_args(debug: bool, optimize: bool, opt_level: str | None
         compile_args.extend(["-march=native", "-flto", "-fopenmp", "-ffast-math"])
         link_args.extend(["-flto", "-fopenmp"])
 
-    # optimization level
     if opt_level:
         compile_args.append(opt_level)
     elif optimize:
@@ -85,8 +97,7 @@ def main():
 
     compile_args, link_args = get_compile_and_link_args(debug, optimize, opt_level)
 
-    gsl_lib_dirs = get_gsl_lib_dirs()
-    eigen_include_dirs = get_eigen_include()
+    include_dirs, library_dirs, libraries = get_lib_flags()
 
     ext_modules = [
         Pybind11Extension(
@@ -96,9 +107,9 @@ def main():
                 "src/tree/tree-dist.cpp",
                 "src/tree/pybind11.cpp",
             ],
-            include_dirs=["include/"],
-            library_dirs=["/usr/lib", "/usr/local/lib"] + gsl_lib_dirs,
-            libraries=["gsl", "gslcblas", "m"],
+            include_dirs=["include/"] + include_dirs,
+            library_dirs=library_dirs,
+            libraries=libraries,
             extra_compile_args=compile_args,
             extra_link_args=link_args,
             language="c++",
@@ -112,7 +123,9 @@ def main():
                 "src/haar/haar-sparsify.cpp",
                 "src/haar/pybind11.cpp",
             ],
-            include_dirs=["include/"] + eigen_include_dirs,
+            include_dirs=["include/"] + include_dirs,
+            library_dirs=library_dirs,
+            libraries=libraries,
             extra_compile_args=compile_args,
             extra_link_args=link_args,
             language="c++",
