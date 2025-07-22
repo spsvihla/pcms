@@ -7,15 +7,33 @@ from pybind11.setup_helpers import Pybind11Extension, build_ext
 def parse_args():
     """Parse custom command-line args and remove them from sys.argv."""
     debug = False
+    optimize = False
+    opt_level = None
     filtered_args = []
-    for arg in sys.argv[1:]:
+
+    i = 1
+    while i < len(sys.argv):
+        arg = sys.argv[i]
         if arg == "--debug":
             debug = True
+            i += 1
+        elif arg == "--optimize":
+            optimize = True
+            i += 1
+        elif arg.startswith("--opt="):
+            opt_level = arg.split("=", 1)[1]
+            i += 1
+        elif arg == "--opt":
+            if i + 1 >= len(sys.argv):
+                raise RuntimeError("--opt requires a value (e.g., --opt -O2)")
+            opt_level = sys.argv[i + 1]
+            i += 2
         else:
             filtered_args.append(arg)
-    # Replace sys.argv with filtered args to not confuse setuptools
+            i += 1
+
     sys.argv = [sys.argv[0]] + filtered_args
-    return debug
+    return debug, optimize, opt_level
 
 
 def get_gsl_lib_dirs() -> list[str]:
@@ -38,21 +56,34 @@ def get_eigen_include() -> list[str]:
         raise RuntimeError("Eigen not found. Please install Eigen development files.") from e
 
 
-def get_compile_and_link_args(debug: bool) -> tuple[list[str], list[str]]:
+def get_compile_and_link_args(debug: bool, optimize: bool, opt_level: str | None) -> tuple[list[str], list[str]]:
+    compile_args = ["-std=c++17"]
+    link_args = []
+
     if debug:
         print("DEBUG_BUILD set: Using debug compile flags.")
-        compile_args = ["-std=c++17", "-g", "-O0", "-march=native"]
-        link_args = ["-g"]
+        compile_args.append("-g")
+        link_args.append("-g")
+
+    if optimize:
+        compile_args.extend(["-march=native", "-flto", "-fopenmp", "-ffast-math"])
+        link_args.extend(["-flto", "-fopenmp"])
+
+    # optimization level
+    if opt_level:
+        compile_args.append(opt_level)
+    elif optimize:
+        compile_args.append("-O3")
     else:
-        compile_args = ["-std=c++17", "-O3", "-march=native", "-flto", "-fopenmp", "-ffast-math"]
-        link_args = ["-flto", "-fopenmp"]
+        compile_args.append("-O0")
+
     return compile_args, link_args
 
 
 def main():
-    debug = parse_args()
+    debug, optimize, opt_level = parse_args()
 
-    compile_args, link_args = get_compile_and_link_args(debug)
+    compile_args, link_args = get_compile_and_link_args(debug, optimize, opt_level)
 
     gsl_lib_dirs = get_gsl_lib_dirs()
     eigen_include_dirs = get_eigen_include()
