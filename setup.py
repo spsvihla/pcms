@@ -28,7 +28,7 @@ def parse_args():
     return build_type
 
 
-def get_lib_flags() -> tuple[list[str], list[str], list[str]]:
+def get_lib_flags(build_type: str) -> tuple[list[str], list[str], list[str]]:
     """
     Get combined include_dirs, library_dirs, and libraries for GSL + MKL.
     Adjust paths to match your system!
@@ -46,7 +46,11 @@ def get_lib_flags() -> tuple[list[str], list[str], list[str]]:
     # ---- MKL ----
     mkl_includes = ["/opt/intel/oneapi/mkl/latest/include"]
     mkl_libdirs = ["/opt/intel/oneapi/mkl/latest/lib/intel64"]
-    mkl_libs = ["mkl_intel_lp64", "mkl_core", "mkl_sequential"]
+    mkl_libs = ["mkl_intel_lp64", "mkl_core"]
+    if build_type == "release":
+        mkl_libs += ["mkl_intel_thread", "iomp5"]       # multi-threaded
+    else:
+        mkl_libs += ["mkl_sequential"]                  # single-threaded
 
     sys_libs = ["m"]
 
@@ -58,7 +62,7 @@ def get_lib_flags() -> tuple[list[str], list[str], list[str]]:
 
 
 def get_compile_and_link_args(build_type: str) -> tuple[list[str], list[str]]:
-    compile_args = ["-std=c++17"]
+    compile_args = ["-std=c++20"]
     link_args = []
 
     if build_type == "debug":
@@ -84,7 +88,7 @@ def main():
 
     compile_args, link_args = get_compile_and_link_args(build_type)
 
-    include_dirs, library_dirs, libraries = get_lib_flags()
+    include_dirs, library_dirs, libraries = get_lib_flags(build_type)
 
     debug_macro = [("DEBUG", "1")] if build_type in {"debug", "profile"} else []
 
@@ -94,7 +98,7 @@ def main():
             sources=[
                 "src/tree/tree.cpp",
                 "src/tree/tree-dist.cpp",
-                "src/tree/pybind11.cpp",
+                "src/tree/pybind11.cpp"
             ],
             include_dirs=["include/"] + include_dirs,
             library_dirs=library_dirs,
