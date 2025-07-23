@@ -109,10 +109,15 @@ public:
     int get_subtree_size(int u) const;
 
     /**
+     * @brief Helper for get_subtree_size to provide C++ return type. 
+     */
+    const std::vector<int>& get_subtree_size_() const;
+
+    /**
      * @brief Gets the entire subtree size vector for the tree.
      * @return The subtree size vector.
      */
-    const py::array_t<int>& get_subtree_size() const;
+    py::array_t<int> get_subtree_size() const;
 
     /**
      * @brief Gets the edge length of the edge connecting a node to its parent.
@@ -122,10 +127,15 @@ public:
     double get_edge_length(int u) const;
 
     /**
-     * @brief Gets the entire edge length vector of the tree.alignas
+     * @brief Helper for get_edge_length to provide C++ return type.
+     */
+    const std::vector<double>& get_edge_length_() const;
+
+    /**
+     * @brief Gets the entire edge length vector of the tree.
      * @return The edge length vector.
      */
-    const py::array_t<double>& get_edge_length() const;
+    py::array_t<double> get_edge_length() const;
 
     /**
      * @brief Sets the edge length of the edge connecting a node to its parent.
@@ -137,7 +147,7 @@ public:
     /**
      * @brief Gets the name of the node.
      * @param u Target node index.
-     * @return The namae of the node. 
+     * @return The name of the node. 
      */
     std::string get_name(int u) const;
 
@@ -194,13 +204,18 @@ public:
     py::array_t<int> find_ancestors(int u) const;
 
     /**
+     * @brief Helper for find_path to provide C++ return type.
+     */
+    std::pair<std::vector<int>,std::vector<int>> find_path_(int u, int v) const;
+
+    /**
      * @brief Finds the path from one node to another.
      * @param u First target node index.
      * @param v Second target node index.
      * @return A pair of vectors: the first contains the ancestors of the first
      *         node, and the second contains the ancestors of the second node.
      */
-    std::pair<py::array_t<int>, py::array_t<int>> find_path(int u, int v) const;
+    py::tuple find_path(int u, int v) const;
 
     /**
      * @brief Finds the root of the tree.
@@ -273,11 +288,16 @@ public:
     /**
      * @brief Finds the trace length of the unique shortest path between
      *        two nodes.
-     * @param u First taget node index.
+     * @param u First target node index.
      * @param v Second target node index.
      * @return The trace length of the path between u and v.
      */
     double find_tbl(int u, int v) const;
+
+    /**
+     * @brief Helper for find_tbl to provide C++ return type.
+     */
+    std::vector<double> find_tbl_() const;
 
     /**
      * @brief Finds the trace length of all nodes in the tree.
@@ -324,12 +344,9 @@ private:
     int                      n_nodes;        ///< Number of nodes
     std::vector<Node>        nodes;          ///< Nodes
     std::vector<std::string> names;          ///< Node names
-
-    py::array_t<double>      edge_length;    ///< Edge length
-    py::array_t<int>         subtree_size;   ///< Subtree size
     
-    double*                  edge_length_;   ///< Pointer to edge_length
-    int*                     subtree_size_;  ///< Pointer to subtree_size
+    std::vector<double>      edge_length;   ///< Pointer to edge_length
+    std::vector<int>         subtree_size;  ///< Pointer to subtree_size
 
     /**
      * @brief Private parent node setter. 
@@ -434,37 +451,49 @@ Tree::set_is_first(int u, bool value)
 inline int 
 Tree::get_subtree_size(int u) const
 {
-    return subtree_size_[static_cast<std::size_t>(u)];
+    return subtree_size[u];
 }
 
-inline const py::array_t<int>&
-Tree::get_subtree_size() const
+inline const std::vector<int>&
+Tree::get_subtree_size_() const
 {
     return subtree_size;
+}
+
+inline py::array_t<int>
+Tree::get_subtree_size() const
+{
+    return py::array(subtree_size.size(), subtree_size.data());
 }
 
 inline void
 Tree::set_subtree_size(int u, int value)
 {
-    subtree_size_[static_cast<std::size_t>(u)] = value;
+    subtree_size[u] = value;
 }
 
 inline double 
 Tree::get_edge_length(int u) const
 {
-    return edge_length_[static_cast<std::size_t>(u)];
+    return edge_length[u];
 }
 
-inline const py::array_t<double>&
-Tree::get_edge_length() const 
+inline const std::vector<double>&
+Tree::get_edge_length_() const 
 {
     return edge_length;
+}
+
+inline py::array_t<double>
+Tree::get_edge_length() const 
+{
+    return py::array(edge_length.size(), edge_length.data());
 }
 
 inline void 
 Tree::set_edge_length(int u, double value)
 {
-    edge_length_[static_cast<std::size_t>(u)] = value;
+    edge_length[u] = value;
 }
 
 inline std::string
@@ -489,7 +518,7 @@ Tree::find_tbl(int u) const
  * @brief Construct a Tree object from a Newick format string.
  * @param newick_string The Newick string.
  * @param ensure_planted Whether to plant the tree if not already planted.
- * @return A Tree object corresponding to the Newick stirng.
+ * @return A Tree object corresponding to the Newick string.
  */
 Tree *nwk2tree(const std::string& newick_string, bool ensure_planted);
 

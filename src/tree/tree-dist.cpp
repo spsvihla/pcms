@@ -70,38 +70,47 @@ harmonic_number(int n)
     return result;
 }
 
-critical_beta_splitting_distribution::critical_beta_splitting_distribution(py::ssize_t n)
+critical_beta_splitting_distribution::critical_beta_splitting_distribution(int n)
 : n(n), pmf(n-1), cdf(n-1) 
 {
     double hn = harmonic_number(n - 1);
 
-    auto pmf_ = pmf.mutable_unchecked<1>();
-    auto cdf_ = cdf.mutable_unchecked<1>();
-
     double factor = n / (2.0 * hn);
     for(py::ssize_t i = 1; i < n; i++) 
     {
-        pmf_[i - 1] = factor / static_cast<double>(i * (n - i));
+        pmf[i - 1] = factor / static_cast<double>(i * (n - i));
     }
 
-    cdf_(0) = pmf_[0];
+    cdf[0] = pmf[0];
     for(py::ssize_t i = 1; i < n - 2; i++) 
     {
-        cdf_(i) = cdf_[i-1] + pmf_[i];
+        cdf[i] = cdf[i-1] + pmf[i];
     }
-    cdf_(n-2) = 1.0;
+    cdf[n-2] = 1.0;
 }
 
-py::array_t<double>
-critical_beta_splitting_distribution::get_pmf() const
+std::vector<double>
+critical_beta_splitting_distribution::get_pmf_() const
 {
     return pmf;
 }
 
 py::array_t<double>
-critical_beta_splitting_distribution::get_cdf() const
+critical_beta_splitting_distribution::get_pmf() const
+{
+    return py::array(pmf.size(), pmf.data());
+}
+
+std::vector<double>
+critical_beta_splitting_distribution::get_cdf_() const
 {
     return cdf;
+}
+
+py::array_t<double>
+critical_beta_splitting_distribution::get_cdf() const
+{
+    return py::array(cdf.size(), cdf.data());
 }
 
 Tree*
@@ -141,7 +150,8 @@ remy(int n_leaves, bool planted, std::optional<unsigned int> seed)
 
 // Exponential(rate=lam)
 inline double 
-rand_exponential(double lam, std::mt19937& rng) {
+rand_exponential(double lam, std::mt19937& rng) 
+{
     double U = (rng() + 0.5) * (1.0 / (rng.max() + 1.0));   // Uniform(0, 1)
     return -std::log(U) / lam;
 }

@@ -28,10 +28,15 @@
 namespace py = pybind11;
 
 
-inline py::array_t<int> 
-std_vec2py_array_t_int(const std::vector<int>& arr) 
+template <typename T>
+inline py::array_t<T> 
+std_vec2py_array_t(const std::vector<T>& arr) 
 {
-    return py::array_t<int>(arr.size(), arr.data());
+    if(arr.empty()) 
+    {
+        return py::array_t<T>();
+    }
+    return py::array_t<T>(arr.size(), arr.data());
 }
 
 
@@ -39,12 +44,10 @@ std_vec2py_array_t_int(const std::vector<int>& arr)
 Tree::Tree(int n_nodes)
 : n_nodes(n_nodes), nodes(n_nodes), names(n_nodes), edge_length(n_nodes), subtree_size(n_nodes) 
 {
-    edge_length_ = (double *)edge_length.request().ptr;
-    subtree_size_ = (int *)subtree_size.request().ptr;
     for(std::size_t i = 0; i < static_cast<std::size_t>(n_nodes); ++i)
     {
-        edge_length_[i] = 0.0;
-        subtree_size_[i] = 1.0;
+        edge_length[i] = 0.0;
+        subtree_size[i] = 1.0;
     }
 }
 
@@ -147,12 +150,7 @@ Tree::find_children_(int u) const
 py::array_t<int> 
 Tree::find_children(int u) const
 {
-    std::vector<int> children = find_children_(u);
-    if(children.empty())
-    {
-        return py::array_t<int>();
-    }
-    return std_vec2py_array_t_int(children);
+    return std_vec2py_array_t(find_children_(u));
 }
 
 std::vector<int>
@@ -169,16 +167,11 @@ Tree::find_ancestors_(int u) const
 py::array_t<int> 
 Tree::find_ancestors(int u) const
 {
-    std::vector<int> ancestors = find_ancestors_(u);
-    if(ancestors.empty())
-    {
-        return py::array_t<int>();
-    }
-    return std_vec2py_array_t_int(ancestors);
+    return std_vec2py_array_t(find_ancestors_(u));
 }
 
-std::pair<py::array_t<int>,py::array_t<int>> 
-Tree::find_path(int u, int v) const
+std::pair<std::vector<int>,std::vector<int>>
+Tree::find_path_(int u, int v) const 
 {
     std::vector<int> u_path = find_ancestors_(u);
     std::vector<int> v_path = find_ancestors_(v);
@@ -187,9 +180,16 @@ Tree::find_path(int u, int v) const
         u_path.pop_back();
         v_path.pop_back();
     }
-    return std::make_pair(
-        std_vec2py_array_t_int(u_path), 
-        std_vec2py_array_t_int(v_path)
+    return std::make_pair(u_path, v_path);
+}
+
+py::tuple
+Tree::find_path(int u, int v) const
+{
+    auto [u_path, v_path] = find_path_(u, v);
+    return py::make_tuple(
+        std_vec2py_array_t(u_path), 
+        std_vec2py_array_t(v_path)
     );
 }
 
@@ -210,7 +210,7 @@ Tree::find_root() const
 bool
 Tree::find_is_planted() const
 {
-    return (find_children(find_root()).size() == 1);
+    return (find_children_(find_root()).size() == 1);
 }
 
 std::pair<std::vector<int>, std::vector<int>>
@@ -251,8 +251,8 @@ Tree::find_leaves(int u) const
 {
     auto [leaves, depths] = find_leaves_(u);
     return py::make_tuple(
-        std_vec2py_array_t_int(leaves), 
-        std_vec2py_array_t_int(depths)
+        std_vec2py_array_t(leaves), 
+        std_vec2py_array_t(depths)
     );
 }
 
@@ -287,7 +287,7 @@ py::array_t<int>
 Tree::find_subtree_start_indices() const
 {
     std::vector<int> subtree_starts = find_subtree_start_indices_();
-    return std_vec2py_array_t_int(subtree_starts);
+    return std_vec2py_array_t(subtree_starts);
 }
 
 int 
@@ -312,7 +312,8 @@ Tree::find_n_children(int u) const
     return counter;
 }
 
-int Tree::find_n_wavelets() const
+int 
+Tree::find_n_wavelets() const
 {
     int counter = 0;
     for(int i = 0; i < get_n_nodes(); ++i)
@@ -333,35 +334,37 @@ Tree::find_epl() const
 double
 Tree::find_tbl(int u, int v) const
 {
-    auto [u_path, v_path] = find_path(u, v);
-    
-    auto u_path_ = u_path.unchecked<1>();
-    auto v_path_ = v_path.unchecked<1>();
+    auto [u_path, v_path] = find_path_(u, v);
     
     double u_sum = find_tbl(u);
     double v_sum = find_tbl(v);
-    for(py::ssize_t i = 0; i < u_path.size(); ++i)
+    for(int i = 0; i < static_cast<int>(u_path.size()); ++i)
     {
-        u_sum += find_tbl(u_path_[i]);
+        u_sum += find_tbl(u_path[i]);
     }
-    for(py::ssize_t i = 0; i < v_path.size(); ++i)
+    for(int i = 0; i < static_cast<int>(v_path.size()); ++i)
     {
-        v_sum += find_tbl(v_path_[i]);
+        v_sum += find_tbl(v_path[i]);
     }
 
     return u_sum + v_sum;
 }
 
+std::vector<double>
+Tree::find_tbl_() const 
+{
+    std::vector<double> tbl(get_n_nodes());
+    for(int i = 0; i < get_n_nodes(); ++i)
+    {
+        tbl[i] = find_tbl(i);
+    }
+    return tbl;
+}
+
 py::array_t<double>
 Tree::find_tbl() const
 {
-    py::array_t<double> tbl(n_nodes);
-    auto tbl_ = tbl.mutable_unchecked<1>();
-    for(py::ssize_t i = 0; i < static_cast<py::ssize_t>(n_nodes); ++i)
-    {
-        tbl_(i) = find_tbl(static_cast<int>(i));
-    }
-    return tbl;
+    return std_vec2py_array_t(find_tbl_());
 }
 
 py::list
@@ -490,11 +493,10 @@ Tree::to_string_(int node, const std::string& prefix, bool is_last,
         result += "X\n";
     }
 
-    py::array_t<int> children = find_children(node);
-    auto children_ = children.unchecked<1>();
+    std::vector<int> children = find_children_(node);
     for (int i = 0; i < static_cast<int>(children.size()); ++i)
     {
-        result += to_string_(children_[i], prefix + (is_last ? "    " : "│   "),
+        result += to_string_(children[i], prefix + (is_last ? "    " : "│   "),
                              i == static_cast<int>(children.size()) - 1, label);
     }
     return result;
