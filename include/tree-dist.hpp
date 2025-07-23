@@ -129,4 +129,19 @@ Tree *remy(int n_leaves, bool planted, std::optional<unsigned int> seed);
  */
 Tree *cbst(int n_leaves, bool planted, bool do_randomize_edge_lengths, std::optional<unsigned int> seed);
 
+/**
+ * @brief Batched version of cbst.
+ * 
+ * This function returns 'num_samples' independent samples from the specified
+ * critical beta-splitting tree distribution.
+ * 
+ * @param n_leaves The number of leaf nodes in the tree.
+ * @param planted Whether the tree should be planted.
+ * @param do_randomize_edge_lengths Whether to randomize edge lengths.
+ * @param num_samples The number of samples to generate.
+ * @param seed The seed for the random number generator (default is 0).
+ * @return A tuple of pybind11-wrapped trees.
+ */
+py::tuple cbst_batched(int n_leaves, bool planted, bool do_randomize_edge_lengths, int num_samples, std::optional<unsigned int> seed);
+
 #endif // TREE_DIST_H

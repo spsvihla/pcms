@@ -8,6 +8,7 @@
  */
 
 // Standard library includes
+#include <algorithm>
 #include <cassert>
 #include <chrono>
 #include <cmath>
@@ -23,6 +24,7 @@
 // Project-specific includes
 #include "tree-dist.hpp"
 #include "tree.hpp"
+#include "thread-pool.hpp"
 
 // Pybind11 includes
 #include <pybind11/numpy.h>
@@ -223,4 +225,45 @@ cbst(int n_leaves, bool planted, bool do_randomize_edge_lengths, std::optional<u
     }
 
     return tree;
+}
+
+py::tuple
+cbst_batched(int n_leaves, bool planted, bool do_randomize_edge_lengths, int num_samples, std::optional<unsigned int> seed)
+{
+    // generate random seeds
+    unsigned int seed_ = seed.value_or(std::random_device{}());
+    std::mt19937 seed_rng(seed_);
+
+    std::vector<unsigned int> seeds(num_samples);
+    for(int i = 0; i < num_samples; ++i)
+    {
+        seeds[i] = seed_rng();
+    }
+
+    // run tasks
+    std::size_t n_threads = std::thread::hardware_concurrency();
+    n_threads = (n_threads == 0) ? 4 : n_threads;
+    n_threads = std::min(n_threads, static_cast<std::size_t>(num_samples));
+
+    ThreadPool pool(n_threads);
+
+    std::vector<std::future<Tree*>> futures;
+    futures.reserve(num_samples);
+
+    for(int i = 0; i < num_samples; ++i) 
+    {
+        futures.push_back(pool.submit([=]() {
+            return cbst(n_leaves, planted, do_randomize_edge_lengths, seeds[i]);
+        }));
+    }
+
+    // collect results
+    py::tuple result(num_samples);
+    for(int i = 0; i < num_samples; ++i) 
+    {
+        Tree* tree = futures[i].get();
+        result[i] = py::cast(tree);
+    }
+
+    return result;
 }
