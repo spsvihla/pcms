@@ -257,13 +257,8 @@ PYBIND11_MODULE(_tree, m) {
         &cbst,
         py::arg("n_leaves"),
         py::arg("planted"),
+        py::arg("do_randomize_edge_lengths"),
         py::arg("seed"),
         py::return_value_policy::take_ownership
-    );
-    m.def(
-        "randomize_edge_lengths",
-        &randomize_edge_lengths,
-        py::arg("tree"),
-        py::arg("seed")
     );
 }

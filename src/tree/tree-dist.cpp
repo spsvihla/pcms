@@ -139,7 +139,25 @@ remy(int n_leaves, bool planted, std::optional<unsigned int> seed)
     return tree;
 }
 
-void 
+// Exponential(rate=lam)
+inline double 
+rand_exponential(double lam, std::mt19937& rng) {
+    double U = (rng() + 0.5) * (1.0 / (rng.max() + 1.0));   // Uniform(0, 1)
+    return -std::log(U) / lam;
+}
+
+inline void
+randomize_edge_lengths(Tree* tree, std::optional<unsigned int> seed)
+{
+    unsigned int seed_ = seed.value_or(std::random_device{}());
+    std::mt19937 rng(seed_);
+    for(int i = 0; i < tree->get_n_nodes(); ++i)
+    {
+        tree->set_edge_length(i, rand_exponential(tree->get_subtree_size(i), rng));
+    }
+}
+
+inline void 
 _cbst(Tree* tree, int start, int end, int n0, std::mt19937 &rng) 
 {
     std::stack<std::tuple<int, int, int, int>> stack;
@@ -174,7 +192,7 @@ _cbst(Tree* tree, int start, int end, int n0, std::mt19937 &rng)
 }
 
 Tree*
-cbst(int n_leaves, bool planted, std::optional<unsigned int> seed)
+cbst(int n_leaves, bool planted, bool do_randomize_edge_lengths, std::optional<unsigned int> seed)
 {
     unsigned int seed_ = seed.value_or(std::random_device{}());
     std::mt19937 rng(seed_);
@@ -188,23 +206,11 @@ cbst(int n_leaves, bool planted, std::optional<unsigned int> seed)
         tree->link(n_nodes - 2, n_nodes - 1);
     }
     _cbst(tree, 0, end, n_leaves, rng);
-    return tree;
-}
 
-// Exponential(rate=lam)
-inline double 
-rand_exponential(double lam, std::mt19937& rng) {
-    double U = (rng() + 0.5) * (1.0 / (rng.max() + 1.0));   // Uniform(0, 1)
-    return -std::log(U) / lam;
-}
-
-void
-randomize_edge_lengths(Tree* tree, std::optional<unsigned int> seed)
-{
-    unsigned int seed_ = seed.value_or(std::random_device{}());
-    std::mt19937 rng(seed_);
-    for(int i = 0; i < tree->get_n_nodes(); ++i)
+    if(do_randomize_edge_lengths)
     {
-        tree->set_edge_length(i, rand_exponential(tree->get_subtree_size(i), rng));
+        randomize_edge_lengths(tree, seed);
     }
+
+    return tree;
 }

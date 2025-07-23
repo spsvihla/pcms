@@ -114,15 +114,10 @@ Tree *remy(int n_leaves, bool planted, std::optional<unsigned int> seed);
  * 
  * @param n_leaves The number of leaf nodes in the tree.
  * @param planted Whether the tree should be planted.
+ * @param do_randomize_edge_lengths Whether to randomize edge lengths.
  * @param seed The seed for the random number generator (default is 0).
  * @return A pointer to the newly created tree.
  */
-Tree *cbst(int n_leaves, bool planted, std::optional<unsigned int> seed);
-
-/**
- * @brief Randomize edge lengths to Exp(|L(v)|)
- * @param tree The target tree.
- */
-void randomize_edge_lengths(Tree* tree, std::optional<unsigned int> seed);
+Tree *cbst(int n_leaves, bool planted, bool do_randomize_edge_lengths, std::optional<unsigned int> seed);
 
 #endif // TREE_DIST_H

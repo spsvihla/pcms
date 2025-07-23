@@ -786,7 +786,7 @@ def remy(n_leaves: int, planted: bool = True, seed: Optional[int] = None) -> Tre
     return Tree._from_cpp_tree(pcms._tree.remy(n_leaves, planted, seed))
 
 
-def cbst(n_leaves: int, planted: bool = True, randomize_edge_lengths = False, seed: Optional[int] = None) -> Tree:
+def cbst(n_leaves: int, planted: bool = True, do_randomize_edge_lengths = False, seed: Optional[int] = None) -> Tree:
     """
     Construct a random Tree object from the critical beta-splitting
     distribution.
@@ -797,7 +797,7 @@ def cbst(n_leaves: int, planted: bool = True, randomize_edge_lengths = False, se
         Number of leaves in the tree.
     planted: bool
         Whether the tree should be planted.
-    randomize_edge_lengths: bool
+    do_randomize_edge_lengths: bool
         Whether to assign exponential(|L(v)|) edge lengths.
     seed: int
         A seed for random generation.
@@ -814,7 +814,5 @@ def cbst(n_leaves: int, planted: bool = True, randomize_edge_lengths = False, se
     """
     if n_leaves < 2:
         raise ValueError("Required n_leaves >= 2.")
-    t = pcms._tree.cbst(n_leaves, planted, seed)
-    if randomize_edge_lengths:
-        pcms._tree.randomize_edge_lengths(t, seed)
+    t = pcms._tree.cbst(n_leaves, planted, do_randomize_edge_lengths, seed)
     return Tree._from_cpp_tree(t)
