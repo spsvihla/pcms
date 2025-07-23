@@ -5,35 +5,27 @@ from pybind11.setup_helpers import Pybind11Extension, build_ext
 
 
 def parse_args():
-    """Parse custom command-line args and remove them from sys.argv."""
-    debug = False
-    optimize = False
-    opt_level = None
+    """
+    Parse --build-type={debug|profile|release} (default: release).
+    Removes it from sys.argv for setuptools.
+    """
+    build_type = "release"
     filtered_args = []
 
     i = 1
     while i < len(sys.argv):
         arg = sys.argv[i]
-        if arg == "--debug":
-            debug = True
+        if arg.startswith("--build-type="):
+            build_type = arg.split("=", 1)[1].lower()
+            if build_type not in {"debug", "profile", "release"}:
+                raise ValueError(f"Unknown build type: {build_type}")
             i += 1
-        elif arg == "--optimize":
-            optimize = True
-            i += 1
-        elif arg.startswith("--opt="):
-            opt_level = arg.split("=", 1)[1]
-            i += 1
-        elif arg == "--opt":
-            if i + 1 >= len(sys.argv):
-                raise RuntimeError("--opt requires a value (e.g., --opt -O2)")
-            opt_level = sys.argv[i + 1]
-            i += 2
         else:
             filtered_args.append(arg)
             i += 1
 
     sys.argv = [sys.argv[0]] + filtered_args
-    return debug, optimize, opt_level
+    return build_type
 
 
 def get_lib_flags() -> tuple[list[str], list[str], list[str]]:
@@ -52,14 +44,10 @@ def get_lib_flags() -> tuple[list[str], list[str], list[str]]:
         raise RuntimeError("Could not find GSL using gsl-config") from e
 
     # ---- MKL ----
-    # Example for Intel oneAPI MKL
     mkl_includes = ["/opt/intel/oneapi/mkl/latest/include"]
     mkl_libdirs = ["/opt/intel/oneapi/mkl/latest/lib/intel64"]
-
-    # Common static link MKL
     mkl_libs = ["mkl_intel_lp64", "mkl_core", "mkl_sequential"]
 
-    # Always need system math lib too
     sys_libs = ["m"]
 
     include_dirs = gsl_includes + mkl_includes
@@ -69,35 +57,36 @@ def get_lib_flags() -> tuple[list[str], list[str], list[str]]:
     return include_dirs, library_dirs, libraries
 
 
-def get_compile_and_link_args(debug: bool, optimize: bool, opt_level: str | None) -> tuple[list[str], list[str]]:
+def get_compile_and_link_args(build_type: str) -> tuple[list[str], list[str]]:
     compile_args = ["-std=c++17"]
     link_args = []
 
-    if debug:
-        print("DEBUG_BUILD set: Using debug compile flags.")
-        compile_args.append("-g")
+    if build_type == "debug":
+        print("Build type: DEBUG")
+        compile_args.extend(["-g", "-O0"])
         link_args.append("-g")
-
-    if optimize:
-        compile_args.extend(["-march=native", "-flto", "-fopenmp", "-ffast-math"])
+    elif build_type == "profile":
+        print("Build type: PROFILE")
+        compile_args.extend(["-g", "-O3", "-march=native", "-flto", "-fopenmp", "-ffast-math"])
+        link_args.extend(["-g", "-flto", "-fopenmp"])
+    elif build_type == "release":
+        print("Build type: RELEASE")
+        compile_args.extend(["-O3", "-march=native", "-flto", "-fopenmp", "-ffast-math"])
         link_args.extend(["-flto", "-fopenmp"])
-
-    if opt_level:
-        compile_args.append(opt_level)
-    elif optimize:
-        compile_args.append("-O3")
     else:
-        compile_args.append("-O0")
+        raise ValueError(f"Unknown build type: {build_type}")
 
     return compile_args, link_args
 
 
 def main():
-    debug, optimize, opt_level = parse_args()
+    build_type = parse_args()
 
-    compile_args, link_args = get_compile_and_link_args(debug, optimize, opt_level)
+    compile_args, link_args = get_compile_and_link_args(build_type)
 
     include_dirs, library_dirs, libraries = get_lib_flags()
+
+    debug_macro = [("DEBUG", "1")] if build_type in {"debug", "profile"} else []
 
     ext_modules = [
         Pybind11Extension(
@@ -113,7 +102,7 @@ def main():
             extra_compile_args=compile_args,
             extra_link_args=link_args,
             language="c++",
-            define_macros=[("DEBUG", "1")] if debug else [],
+            define_macros=debug_macro,
         ),
         Pybind11Extension(
             "pcms._haar",
@@ -129,7 +118,7 @@ def main():
             extra_compile_args=compile_args,
             extra_link_args=link_args,
             language="c++",
-            define_macros=[("DEBUG", "1")] if debug else [],
+            define_macros=debug_macro,
         ),
     ]
 

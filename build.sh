@@ -3,34 +3,22 @@ set -euo pipefail
 
 PACKAGE_NAME="pcms"
 WHEEL_DIR="dist"
-DEBUG_BUILD=0
-OPTIMIZE=0
-OPT_LEVEL=""
+BUILD_TYPE="release"
 
 usage() {
-    echo "Usage: $0 [-d|--debug] [-O <level>] "
-    echo "  -d, --debug                Build with debug flags"
-    echo "  -o, --optimize             Build with optimization flags"
-    echo "  -O, --opt-level <level>    Optimization level to pass to setup.py (e.g., -O2, -O3)"
+    echo "Usage: $0 [--build-type <debug|profile|release>]"
+    echo "  --build-type   Build type: debug, profile, or release (default: release)"
     exit 1
 }
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        -d|--debug)
-            DEBUG_BUILD=1
-            shift
-            ;;
-        -o|--optimize)
-            OPTIMIZE=1
-            shift
-            ;;
-        -O|--opt-level)
+        --build-type)
             if [[ $# -lt 2 ]]; then
-                echo "Error: --opt-level requires an argument"
+                echo "Error: --build-type requires an argument"
                 usage
             fi
-            OPT_LEVEL="$2"
+            BUILD_TYPE="$2"
             shift 2
             ;;
         -*|--*)
@@ -55,14 +43,9 @@ fi
 
 echo "Building wheel distribution..."
 BUILD_CMD="python setup.py bdist_wheel"
-if [[ $DEBUG_BUILD -eq 1 ]]; then
-    BUILD_CMD+=" --debug"
-fi
-if [[ -n "$OPT_LEVEL" ]]; then
-    BUILD_CMD+=" --opt=$OPT_LEVEL"
-fi
-if [[ $OPTIMIZE -eq 1 ]]; then
-    BUILD_CMD+=" --optimize"
+
+if [[ "$BUILD_TYPE" != "release" ]]; then
+    BUILD_CMD+=" --build-type=$BUILD_TYPE"
 fi
 
 echo "Running: $BUILD_CMD"
