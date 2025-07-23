@@ -115,8 +115,27 @@ critical_beta_splitting_distribution::get_cdf() const
     return py::array(cdf.size(), cdf.data());
 }
 
+// Exponential(rate=lam)
+inline double 
+rand_exponential(double lam, std::mt19937& rng) 
+{
+    double U = (rng() + 0.5) * (1.0 / (rng.max() + 1.0));   // Uniform(0, 1)
+    return -std::log(U) / lam;
+}
+
+inline void
+randomize_edge_lengths(Tree* tree, std::optional<unsigned int> seed)
+{
+    unsigned int seed_ = seed.value_or(std::random_device{}());
+    std::mt19937 rng(seed_);
+    for(int i = 0; i < tree->get_n_nodes(); ++i)
+    {
+        tree->set_edge_length(i, rand_exponential(tree->get_subtree_size(i), rng));
+    }
+}
+
 Tree*
-remy(int n_leaves, bool planted, std::optional<unsigned int> seed)
+remy(int n_leaves, bool planted, bool do_randomize_edge_lengths, std::optional<unsigned int> seed)
 {
     unsigned int seed_ = seed.value_or(std::random_device{}());
     std::default_random_engine rng(seed_);
@@ -147,26 +166,12 @@ remy(int n_leaves, bool planted, std::optional<unsigned int> seed)
         tree->link(left_child, node);
     }
 
-    return tree;
-}
-
-// Exponential(rate=lam)
-inline double 
-rand_exponential(double lam, std::mt19937& rng) 
-{
-    double U = (rng() + 0.5) * (1.0 / (rng.max() + 1.0));   // Uniform(0, 1)
-    return -std::log(U) / lam;
-}
-
-inline void
-randomize_edge_lengths(Tree* tree, std::optional<unsigned int> seed)
-{
-    unsigned int seed_ = seed.value_or(std::random_device{}());
-    std::mt19937 rng(seed_);
-    for(int i = 0; i < tree->get_n_nodes(); ++i)
+    if(do_randomize_edge_lengths)
     {
-        tree->set_edge_length(i, rand_exponential(tree->get_subtree_size(i), rng));
+        randomize_edge_lengths(tree, seed);
     }
+
+    return tree;
 }
 
 inline void 
@@ -228,42 +233,61 @@ cbst(int n_leaves, bool planted, bool do_randomize_edge_lengths, std::optional<u
 }
 
 py::tuple
-cbst_batched(int n_leaves, bool planted, bool do_randomize_edge_lengths, int num_samples, std::optional<unsigned int> seed)
+batched_tree_generator(
+    std::function<Tree*(int, bool, bool, unsigned int)> tree_builder,
+    int n_leaves,
+    bool planted,
+    bool do_randomize_edge_lengths,
+    int n_samples,
+    std::optional<unsigned int> seed)
 {
     // generate random seeds
     unsigned int seed_ = seed.value_or(std::random_device{}());
     std::mt19937 seed_rng(seed_);
 
-    std::vector<unsigned int> seeds(num_samples);
-    for(int i = 0; i < num_samples; ++i)
-    {
+    std::vector<unsigned int> seeds(n_samples);
+    for (int i = 0; i < n_samples; ++i) {
         seeds[i] = seed_rng();
     }
 
     // run tasks
     std::size_t n_threads = std::thread::hardware_concurrency();
     n_threads = (n_threads == 0) ? 4 : n_threads;
-    n_threads = std::min(n_threads, static_cast<std::size_t>(num_samples));
+    n_threads = std::min(n_threads, static_cast<std::size_t>(n_samples));
 
     ThreadPool pool(n_threads);
 
     std::vector<std::future<Tree*>> futures;
-    futures.reserve(num_samples);
+    futures.reserve(n_samples);
 
-    for(int i = 0; i < num_samples; ++i) 
-    {
+    for (int i = 0; i < n_samples; ++i) {
         futures.push_back(pool.submit([=]() {
-            return cbst(n_leaves, planted, do_randomize_edge_lengths, seeds[i]);
+            return tree_builder(n_leaves, planted, do_randomize_edge_lengths, seeds[i]);
         }));
     }
 
     // collect results
-    py::tuple result(num_samples);
-    for(int i = 0; i < num_samples; ++i) 
-    {
+    py::tuple result(n_samples);
+    for (int i = 0; i < n_samples; ++i) {
         Tree* tree = futures[i].get();
         result[i] = py::cast(tree);
     }
 
     return result;
+}
+
+py::tuple
+cbst_batched(int n_leaves, bool planted, bool do_randomize_edge_lengths,
+             int n_samples, std::optional<unsigned int> seed)
+{
+    return batched_tree_generator(cbst, n_leaves, planted,
+                                  do_randomize_edge_lengths, n_samples, seed);
+}
+
+py::tuple
+remy_batched(int n_leaves, bool planted, bool do_randomize_edge_lengths,
+             int n_samples, std::optional<unsigned int> seed)
+{
+    return batched_tree_generator(remy, n_leaves, planted,
+                                  do_randomize_edge_lengths, n_samples, seed);
 }

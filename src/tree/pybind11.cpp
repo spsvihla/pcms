@@ -248,6 +248,18 @@ PYBIND11_MODULE(_tree, m) {
         &remy,
         py::arg("n_leaves"), 
         py::arg("planted"),
+        py::arg("do_randomize_edge_lengths"),
+        py::arg("seed"),
+        py::return_value_policy::take_ownership
+    );
+    m.def
+    (
+        "remy_batched",
+        &remy_batched,
+        py::arg("n_leaves"),
+        py::arg("planted"),
+        py::arg("do_randomize_edge_lengths"),
+        py::arg("n_samples"),
         py::arg("seed"),
         py::return_value_policy::take_ownership
     );
@@ -268,7 +280,7 @@ PYBIND11_MODULE(_tree, m) {
         py::arg("n_leaves"),
         py::arg("planted"),
         py::arg("do_randomize_edge_lengths"),
-        py::arg("num_samples"),
+        py::arg("n_samples"),
         py::arg("seed"),
         py::return_value_policy::take_ownership
     );
