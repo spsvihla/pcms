@@ -232,7 +232,7 @@ cbst(int n_leaves, bool planted, bool do_randomize_edge_lengths, std::optional<u
     return tree;
 }
 
-py::tuple
+std::vector<Tree*>
 batched_tree_generator(
     std::function<Tree*(int, bool, bool, unsigned int)> tree_builder,
     int n_leaves,
@@ -246,7 +246,8 @@ batched_tree_generator(
     std::mt19937 seed_rng(seed_);
 
     std::vector<unsigned int> seeds(n_samples);
-    for (int i = 0; i < n_samples; ++i) {
+    for(int i = 0; i < n_samples; ++i) 
+    {
         seeds[i] = seed_rng();
     }
 
@@ -260,23 +261,24 @@ batched_tree_generator(
     std::vector<std::future<Tree*>> futures;
     futures.reserve(n_samples);
 
-    for (int i = 0; i < n_samples; ++i) {
+    for(int i = 0; i < n_samples; ++i) 
+    {
         futures.push_back(pool.submit([=]() {
             return tree_builder(n_leaves, planted, do_randomize_edge_lengths, seeds[i]);
         }));
     }
 
     // collect results
-    py::tuple result(n_samples);
+    std::vector<Tree*> result(n_samples);
     for (int i = 0; i < n_samples; ++i) {
         Tree* tree = futures[i].get();
-        result[i] = py::cast(tree);
+        result[i] = tree;
     }
 
     return result;
 }
 
-py::tuple
+std::vector<Tree*>
 cbst_batched(int n_leaves, bool planted, bool do_randomize_edge_lengths,
              int n_samples, std::optional<unsigned int> seed)
 {
@@ -284,7 +286,7 @@ cbst_batched(int n_leaves, bool planted, bool do_randomize_edge_lengths,
                                   do_randomize_edge_lengths, n_samples, seed);
 }
 
-py::tuple
+std::vector<Tree*>
 remy_batched(int n_leaves, bool planted, bool do_randomize_edge_lengths,
              int n_samples, std::optional<unsigned int> seed)
 {

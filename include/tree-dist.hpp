@@ -130,7 +130,7 @@ Tree *remy(int n_leaves, bool planted, bool do_randomize_edge_lengths, std::opti
  * @param seed The seed for the random number generator (default is 0).
  * @return A pointer to the newly created tree.
  */
-py::tuple remy_batched(int n_leaves, bool planted, bool do_randomize_edge_lengths, int n_samples, std::optional<unsigned int> seed);
+std::vector<Tree*> remy_batched(int n_leaves, bool planted, bool do_randomize_edge_lengths, int n_samples, std::optional<unsigned int> seed);
 
 /**
  * @brief Samples a critical beta-splitting tree.
@@ -158,6 +158,6 @@ Tree *cbst(int n_leaves, bool planted, bool do_randomize_edge_lengths, std::opti
  * @param seed The seed for the random number generator (default is 0).
  * @return A tuple of pybind11-wrapped trees.
  */
-py::tuple cbst_batched(int n_leaves, bool planted, bool do_randomize_edge_lengths, int n_samples, std::optional<unsigned int> seed);
+std::vector<Tree*> cbst_batched(int n_leaves, bool planted, bool do_randomize_edge_lengths, int n_samples, std::optional<unsigned int> seed);
 
 #endif // TREE_DIST_H
