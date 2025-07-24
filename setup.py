@@ -47,7 +47,7 @@ def get_lib_flags(build_type: str) -> tuple[list[str], list[str], list[str]]:
     mkl_includes = ["/opt/intel/oneapi/mkl/latest/include"]
     mkl_libdirs = ["/opt/intel/oneapi/mkl/latest/lib/intel64"]
     mkl_libs = ["mkl_intel_lp64", "mkl_core"]
-    if build_type == "release":
+    if build_type in ["release", "profile"]:
         mkl_libs += ["mkl_intel_thread", "iomp5"]       # multi-threaded
     else:
         mkl_libs += ["mkl_sequential"]                  # single-threaded
