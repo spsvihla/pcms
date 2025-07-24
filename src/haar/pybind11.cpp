@@ -15,13 +15,11 @@ namespace py = pybind11;
 PYBIND11_MODULE(_haar, m) {
     m.def
     (
-        "cdf_proj_cbst",
-        &cdf_proj_cbst,
-        py::arg("ys"),
+        "sample_dh_component",
+        &sample_dh_component,
         py::arg("func"),
-        py::arg("pmf"),
-        py::arg("num_iter"),
-        py::arg("seed") = 0
+        py::arg("n_samples"),
+        py::arg("seed")
     );
     m.def
     (

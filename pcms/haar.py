@@ -4,23 +4,22 @@ haar.py
 A wrapper for the pcms._haar package.
 """
 
-from typing import Union, Sequence, Optional
+from typing import Union, Optional
 
 import numpy as np
-from scipy.special import factorial
-from scipy.stats import dirichlet
+from numpy.typing import ArrayLike
 from scipy.sparse import csc_matrix
 
 import pcms._haar 
 import pcms.tree
-from pcms.tree import CriticalBetaSplittingDistribution 
 
 
 def cdf_proj_cbst(
-    ys: Union[float, Sequence[float], np.ndarray],
-    func: Union[Sequence[float], np.ndarray],
+    ys: ArrayLike,
+    f: ArrayLike,
     eps: float = 0.005,
     delta: float = 0.001,
+    batch_size: int = 100,
     seed: Optional[int] = None
 ) -> Union[float, np.ndarray]:
     """
@@ -33,9 +32,9 @@ def cdf_proj_cbst(
 
     Parameters
     ----------
-    ys: float or array-like
+    ys: array-like
         Points at which to evaluate the CDF.
-    func: array-like
+    f: array-like
         Function values on the leaves of the tree.
     eps: float (optional, default 0.005)
         Desired precision of the estimate.
@@ -50,19 +49,20 @@ def cdf_proj_cbst(
         Estimate(s) of the CDF at the given point(s).
     """
     ys = np.atleast_1d(ys).astype(np.float64)
-    func = np.array(func, dtype=np.float64, copy=True)  # copy since f is permuted in place
-    n = func.size
-    num_iter = np.ceil(1.0 / (2 * eps**2) * np.log(2 / delta))
-    num_iter = min(factorial(n), int(num_iter))
-    pmf = CriticalBetaSplittingDistribution(n).pmf
+    f = np.array(f, dtype=np.float64)
+    n_samples = int(np.ceil(1.0 / (2 * eps**2) * np.log(2 / delta)))
     seed = int(seed) if seed is not None else None
-    result = pcms._haar.cdf_proj_cbst(ys, func, pmf, int(num_iter), seed)
-    result = np.asarray(result)
-    return result.item() if result.ndim == 0 or result.size == 1 else result
+    samples = np.zeros((n_samples,), dtype=float)
+    for i in range(0, n_samples, batch_size):
+        batch_size_ = min(batch_size, n_samples - i)
+        samples[i : i + batch_size_] = pcms._haar.sample_dh_component(f, batch_size_, seed)
+    samples.sort()
+    result = np.searchsorted(samples, ys, side='left') / n_samples
+    return result.item() if np.ndim(result) == 0 or result.size == 1 else result
 
 
 def cdf_proj_dirichlet_diff(
-    ys: Union[float, Sequence[float], np.ndarray],
+    ys: ArrayLike,
     tree: pcms.tree.Tree,
     node: int,
     eps: float = 0.005,
