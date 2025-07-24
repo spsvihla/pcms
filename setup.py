@@ -112,6 +112,7 @@ def main():
             "pcms._haar",
             sources=[
                 "src/tree/tree.cpp",
+                "src/tree/tree-dist.cpp",
                 "src/haar/haar-dist.cpp",
                 "src/haar/haar-sparsify.cpp",
                 "src/haar/pybind11.cpp",
