@@ -37,13 +37,12 @@ find_nnz(Tree* tree)
         {
             continue;
         }
-        py::array_t<int> children = tree->find_children(i);
-        auto children_ = children.unchecked<1>();
+        std::vector<int> children = tree->find_children_(i);
         int n_children = static_cast<int>(children.size());
-        nnz += tree->get_subtree_size(children_[0]) * std::max(1, n_children - 1);
+        nnz += tree->get_subtree_size(children[0]) * std::max(1, n_children - 1);
         for(int j = 1; j < n_children; ++j)
         {
-            nnz += tree->get_subtree_size(children_[j]) * (n_children - j);
+            nnz += tree->get_subtree_size(children[j]) * (n_children - j);
         }
     }
     return nnz;
@@ -74,7 +73,8 @@ py::tuple mkl2py_csc(sparse_matrix_t A)
 
     // Build indptr array from col_start and last col_end element
     std::vector<MKL_INT> indptr(cols + 1);
-    for (MKL_INT i = 0; i < cols; ++i) 
+    #pragma omp simd
+    for(MKL_INT i = 0; i < cols; ++i) 
     {
         indptr[i] = col_start[i];
     }
@@ -116,6 +116,7 @@ sparsify(Tree* tree)
     std::vector<MKL_INT> S_indptr(cols + 1);
 
     std::vector<double> trace_length(n_leaves);
+    #pragma omp simd
     for(int i = 0; i < n_leaves; ++i)
     {
         trace_length[i] = 0.0;
@@ -136,6 +137,7 @@ sparsify(Tree* tree)
         int start = subtree_starts[i];
         int size = tree->get_subtree_size(i);
         double tbl = tree->find_tbl(i);
+        #pragma omp simd
         for(int j = 0; j < size; ++j)
         {
             trace_length[start + j] += tbl;
@@ -163,6 +165,7 @@ sparsify(Tree* tree)
             double rval = -sqrt(lsize_ / (rsize_ * sum_));
 
             // left subtree
+            #pragma omp simd
             for(int j = 0; j < lsize; ++j)
             {
                 Q_values[idx] = lval;
@@ -173,6 +176,7 @@ sparsify(Tree* tree)
             }
 
             // right subtree
+            #pragma omp simd
             for(int j = lsize; j < sum; ++j)
             {
                 Q_values[idx] = rval;
@@ -200,6 +204,7 @@ sparsify(Tree* tree)
     int size = tree->get_subtree_size(root);
 
     double val = sqrt(1.0 / size);
+    #pragma omp simd
     for(int i = 0; i < size; ++i)
     {
         Q_values[idx] = val;
