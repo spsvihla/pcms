@@ -270,7 +270,8 @@ batched_tree_generator(
 
     // collect results
     std::vector<Tree*> result(n_samples);
-    for (int i = 0; i < n_samples; ++i) {
+    for(int i = 0; i < n_samples; ++i) 
+    {
         Tree* tree = futures[i].get();
         result[i] = tree;
     }
