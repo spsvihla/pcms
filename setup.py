@@ -1,6 +1,6 @@
 import sys
 import subprocess
-from setuptools import setup
+from setuptools import setup, find_packages
 from pybind11.setup_helpers import Pybind11Extension, build_ext
 
 
@@ -128,6 +128,24 @@ def main():
     ]
 
     setup(
+        name="pcms",
+        version="0.1.0",
+        description="Phylogenetic covariance matrix sparsification",
+        author="Sean Svihla",
+        license="MIT",
+        python_requires=">=3.7",
+        classifiers=[
+            "Programming Language :: Python :: 3",
+            "Operating System :: OS Independent",
+        ],
+        extras_require={
+            "notebooks": [
+                "pandas",
+                "matplotlib",
+                "jupyter",
+            ],
+        },
+        packages=find_packages(),
         ext_modules=ext_modules,
         cmdclass={"build_ext": build_ext},
     )

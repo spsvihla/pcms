@@ -6,10 +6,13 @@ WHEEL_DIR="dist"
 BUILD_TYPE="release"
 
 usage() {
-    echo "Usage: $0 [--build-type <debug|profile|release>]"
+    echo "Usage: $0 [--build-type <debug|profile|release>] [--clean]"
     echo "  --build-type   Build type: debug, profile, or release (default: release)"
+    echo "  --clean        Clean build artifacts and exit"
     exit 1
 }
+
+CLEAN=false
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -21,6 +24,10 @@ while [[ $# -gt 0 ]]; do
             BUILD_TYPE="$2"
             shift 2
             ;;
+        --clean)
+            CLEAN=true
+            shift
+            ;;
         -*|--*)
             echo "Unknown option $1"
             usage
@@ -31,8 +38,15 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+if $CLEAN; then
+    echo "Cleaning build artifacts..."
+    rm -rf build/ "$WHEEL_DIR"/ "${PACKAGE_NAME}"*.egg-info UNKNOWN.egg-info
+    echo "Clean complete."
+    exit 0
+fi
+
 echo "Cleaning previous build artifacts..."
-rm -rf build/ "$WHEEL_DIR"/ "${PACKAGE_NAME}"*.egg-info
+rm -rf build/ "$WHEEL_DIR"/ "${PACKAGE_NAME}"*.egg-info UNKNOWN.egg-info
 
 echo "Uninstalling previous installation of '$PACKAGE_NAME' (if installed)..."
 if pip show "$PACKAGE_NAME" &> /dev/null; then
@@ -42,11 +56,8 @@ else
 fi
 
 echo "Building wheel distribution..."
-BUILD_CMD="python setup.py bdist_wheel"
 
-if [[ "$BUILD_TYPE" != "release" ]]; then
-    BUILD_CMD+=" --build-type=$BUILD_TYPE"
-fi
+BUILD_CMD="python setup.py bdist_wheel --build-type=$BUILD_TYPE"
 
 echo "Running: $BUILD_CMD"
 eval "$BUILD_CMD"
