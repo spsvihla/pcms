@@ -16,6 +16,7 @@
 // Project-specific includes
 #include "haar-dist.hpp"
 #include "tree-dist.hpp"
+#include "utils.hpp"
 
 // Pybind11 includes 
 #include <pybind11/numpy.h>
@@ -180,7 +181,6 @@ sample_dh_component(const py::array_t<double>& f, int n_samples,
                     std::optional<unsigned int> seed)
 {
     unsigned int seed_ = seed.value_or(std::random_device{}());
-    std::mt19937 rng(seed_);
 
     int n_leaves = static_cast<int>(f.size());
     double* f_ = static_cast<double*>(f.request().ptr);
@@ -190,6 +190,7 @@ sample_dh_component(const py::array_t<double>& f, int n_samples,
     #pragma omp parallel for
     for(int i = 0; i < n_samples; ++i)
     {
+        std::mt19937 rng(seed_ + i);
         fisher_yates(perms.data() + i * n_leaves, n_leaves, rng);
     }
 
@@ -241,5 +242,5 @@ sample_dh_component(const py::array_t<double>& f, int n_samples,
         samples[i] = sum1 * sum1 * sum2;
     }
 
-    return py::array(samples.size(), samples.data());
+    return std_vec2py_array_t(samples);
 }

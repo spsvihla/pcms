@@ -460,12 +460,6 @@ Tree::get_subtree_size_() const
     return subtree_size;
 }
 
-inline py::array_t<int>
-Tree::get_subtree_size() const
-{
-    return py::array(subtree_size.size(), subtree_size.data());
-}
-
 inline void
 Tree::set_subtree_size(int u, int value)
 {
@@ -482,12 +476,6 @@ inline const std::vector<double>&
 Tree::get_edge_length_() const 
 {
     return edge_length;
-}
-
-inline py::array_t<double>
-Tree::get_edge_length() const 
-{
-    return py::array(edge_length.size(), edge_length.data());
 }
 
 inline void 

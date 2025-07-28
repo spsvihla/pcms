@@ -58,8 +58,7 @@ PYBIND11_MODULE(_tree, m) {
                     return py::int_(tree.get_subtree_size(u.cast<int>()));
                 }
             },
-            py::arg("u"),
-            py::return_value_policy::reference_internal
+            py::arg("u")
         )
         .def(
             "get_edge_length",
@@ -73,8 +72,7 @@ PYBIND11_MODULE(_tree, m) {
                     return py::float_(tree.get_edge_length(u.cast<int>()));
                 }
             },
-            py::arg("u"),
-            py::return_value_policy::reference_internal
+            py::arg("u")
         )
 
         .def

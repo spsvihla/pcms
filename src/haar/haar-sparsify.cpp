@@ -230,9 +230,9 @@ sparsify(Tree* tree)
         Q_values.data()
     );
 
-    sparse_matrix_t S_;
+    sparse_matrix_t R;
     mkl_sparse_d_create_csc(
-        &S_,
+        &R,
         SPARSE_INDEX_BASE_ZERO,
         rows,
         cols,
@@ -243,9 +243,14 @@ sparsify(Tree* tree)
     );
 
     sparse_matrix_t S;
-    mkl_sparse_spmm(SPARSE_OPERATION_TRANSPOSE, Q, S_, &S);
+    mkl_sparse_spmm(SPARSE_OPERATION_TRANSPOSE, Q, R, &S);
 
-    mkl_sparse_destroy(S_);
+    auto Q_py = mkl2py_csc(Q);
+    auto S_py = mkl2py_csc(S);
 
-    return py::make_tuple(mkl2py_csc(Q), mkl2py_csc(S));
+    mkl_sparse_destroy(Q);
+    mkl_sparse_destroy(R);
+    mkl_sparse_destroy(S);
+
+    return py::make_tuple(Q_py, S_py);
 }

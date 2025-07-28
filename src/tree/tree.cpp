@@ -21,23 +21,12 @@
 
 // project-specific includes
 #include "tree.hpp"
+#include "utils.hpp"
 
 // pybind11 includes
 #include <pybind11/pybind11.h>
 
 namespace py = pybind11;
-
-
-template <typename T>
-inline py::array_t<T> 
-std_vec2py_array_t(const std::vector<T>& arr) 
-{
-    if(arr.empty()) 
-    {
-        return py::array_t<T>();
-    }
-    return py::array_t<T>(arr.size(), arr.data());
-}
 
 
 // constructor
@@ -53,6 +42,21 @@ Tree::Tree(int n_nodes)
 
 // destructor
 Tree::~Tree() {}
+
+// NOTE: These getters can live here since they will never be called from 
+//       C++ code, so will never have the chance to be inlined.
+
+py::array_t<int>
+Tree::get_subtree_size() const
+{
+    return std_vec2py_array_t(subtree_size);
+}
+
+py::array_t<double>
+Tree::get_edge_length() const 
+{
+    return std_vec2py_array_t(edge_length);
+}
 
 void 
 Tree::link(int u, int v)
