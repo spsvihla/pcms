@@ -1,5 +1,11 @@
 [build-system]
-requires = ["setuptools>=61", "wheel", "pybind11>=2.13"]
+requires = [
+    "setuptools>=61", 
+    "wheel", 
+    "pybind11>=2.13",
+    "numpy",
+    "scipy"
+]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -17,8 +23,6 @@ classifiers = [
 
 [project.optional-dependencies]
 notebooks = [
-    "numpy",
-    "scipy",
     "pandas",
     "matplotlib",
     "jupyter",
