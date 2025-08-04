@@ -27,23 +27,28 @@ namespace py = pybind11;
 
 // Exponential(1.0)
 inline double 
-rand_exponential(std::mt19937& rng) {
+rand_exponential(std::mt19937& rng) 
+{
     double U = (rng() + 0.5) * (1.0 / (rng.max() + 1.0));   // Uniform(0, 1)
     return -std::log(U);
 }
 
 // Dirichlet(1,...,1)
 inline std::vector<double>
-rand_dirichlet_uniform(int N, int k, std::mt19937& rng) {
+rand_dirichlet_uniform(int N, int k, std::mt19937& rng) 
+{
     std::vector<double> samples(N * k);
-    for (int i = 0; i < N; ++i) {
+    for(int i = 0; i < N; ++i) 
+    {
         double sum = 0.0;
-        for (int j = 0; j < k; ++j) {
+        for(int j = 0; j < k; ++j) 
+        {
             double e = rand_exponential(rng);
             samples[i * k + j] = e;
             sum += e;
         }
-        for (int j = 0; j < k; ++j) {
+        for(int j = 0; j < k; ++j) 
+        {
             samples[i * k + j] /= sum;
         }
     }
@@ -108,9 +113,11 @@ fisher_yates(double* arr, int size, std::mt19937& rng)
     }
 
     // Remainder loop for leftovers
-    for (std::size_t j = (size - 1) % 4; j > 0; --j) {
+    for(std::size_t j = (size - 1) % 4; j > 0; --j) 
+    {
         std::size_t k;
-        do {
+        do 
+        {
             k = rng();
         } while (k >= max - (max % (j + 1)));
         k %= (j + 1);
