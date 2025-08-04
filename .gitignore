@@ -178,3 +178,6 @@ doc/**/*.dot
 
 # Ignore tmp directory
 tmp/
+
+# Profiling products
+perf.data
