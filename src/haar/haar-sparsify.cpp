@@ -8,6 +8,7 @@
 
 // standard library includes
 #include <algorithm>
+#include <cstring>
 #include <numeric>
 #include <stack>
 #include <vector>
