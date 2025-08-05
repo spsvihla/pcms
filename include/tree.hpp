@@ -31,6 +31,7 @@
 
 namespace py = pybind11;
 
+
 /**
  * @struct Node
  * @brief A node in a tree.

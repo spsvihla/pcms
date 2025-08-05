@@ -4,11 +4,10 @@
  */
 
 // Standard library includes
-#include <algorithm>
-#include <cmath>
-#include <numeric>
-#include <random>
-#include <vector>
+#include <algorithm>   // for std::copy, std::swap, std::max, std::fill
+#include <cmath>       // for sqrt in wavelet calculations
+#include <random>      // for std::mt19937 and std::random_device RNGs
+#include <vector>      // for std::vector container
 
 // Other includes
 #include <immintrin.h>

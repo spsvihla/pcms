@@ -24,6 +24,7 @@
  
  namespace py = pybind11;
  
+ 
  /**
   * @brief Sample the Haar-like component λ_v(Δ_v^2) where T is drawn from
   *        the critical beta-splitting distribution with Exp(|L(v)|) edge

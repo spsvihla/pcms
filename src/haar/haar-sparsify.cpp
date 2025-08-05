@@ -7,11 +7,10 @@
  */
 
 // standard library includes
-#include <algorithm>
-#include <cstring>
-#include <numeric>
-#include <stack>
-#include <vector>
+#include <algorithm>      // for std::max, used in find_nnz
+#include <cstring>        // for std::memcpy, used in mkl2py_csc for copying arrays
+#include <stack>          // for std::stack, used for subtree stacks in sparsify
+#include <vector>         // for std::vector, used extensively for arrays and buffers
 
 // external includes
 #include <mkl.h>

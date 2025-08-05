@@ -9,15 +9,16 @@
  */
 
 // standard library includes
-#include <fstream>
-#include <iostream>
-#include <numeric>
-#include <queue>
-#include <random>
-#include <stack>
-#include <string>
-#include <string_view>
-#include <vector>
+#include <algorithm>    // for std::max
+#include <cmath>        // for sqrt
+#include <numeric>      // for std::accumulate
+#include <queue>        // for std::queue
+#include <random>       // for RNG
+#include <stack>        // for std::stack
+#include <stdexcept>    // for std::runtime_error, std::invalid_argument
+#include <string>       // for std::string
+#include <string_view>  // for std::string_view
+#include <vector>       // for std::vector
 
 // project-specific includes
 #include "tree.hpp"

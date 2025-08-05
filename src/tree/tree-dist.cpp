@@ -8,15 +8,11 @@
  */
 
 // Standard library includes
-#include <algorithm>
-#include <cassert>
-#include <chrono>
-#include <cmath>
-#include <memory>
-#include <random>
-#include <stack>
-#include <tuple>
-#include <unordered_map>
+#include <algorithm>    // std::min
+#include <cmath>        // std::log, std::sqrt
+#include <random>       // std::mt19937, RNG
+#include <stack>        // std::stack
+#include <tuple>        // std::tuple, structured bindings
 
 // Project-specific includes
 #include "tree-dist.hpp"
