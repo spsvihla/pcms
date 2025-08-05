@@ -60,12 +60,27 @@ public:
      * 
      * @param n_nodes The number of nodes in the tree.
      */
-    Tree(int n_nodes);
+    explicit Tree(int n_nodes_)
+    : n_nodes(n_nodes_),
+      nodes(n_nodes_),
+      names(n_nodes_),
+      edge_length(n_nodes_, 0.0),
+      subtree_size(n_nodes_, 1.0)
+    {}
 
     /**
-     * @brief Default destructor.
+     * Default destructor and copy/move constructors 
      */
-    ~Tree();
+    Tree(const Tree&) = default;
+    Tree(Tree&&) = default;
+    Tree& operator=(const Tree&) = default;
+    Tree& operator=(Tree&&) = default;
+    ~Tree() = default;
+
+    /**
+     * @brief Reset the tree to a default state
+     */
+    void reset();
 
     /**
      * @brief Gets the number of nodes in the tree.

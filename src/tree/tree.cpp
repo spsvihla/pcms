@@ -29,19 +29,14 @@
 namespace py = pybind11;
 
 
-// constructor
-Tree::Tree(int n_nodes)
-: n_nodes(n_nodes), nodes(n_nodes), names(n_nodes), edge_length(n_nodes), subtree_size(n_nodes) 
+void
+Tree::reset()
 {
-    for(std::size_t i = 0; i < static_cast<std::size_t>(n_nodes); ++i)
-    {
-        edge_length[i] = 0.0;
-        subtree_size[i] = 1.0;
-    }
+    std::fill(edge_length.begin(), edge_length.end(), 0.0);
+    std::fill(subtree_size.begin(), subtree_size.end(), 1.0);
+    std::fill(names.begin(), names.end(), "");
+    std::fill(nodes.begin(), nodes.end(), Node{});
 }
-
-// destructor
-Tree::~Tree() {}
 
 // NOTE: These getters can live here since they will never be called from 
 //       C++ code, so will never have the chance to be inlined.
