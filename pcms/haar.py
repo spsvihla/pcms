@@ -19,6 +19,7 @@ def cdf_proj_cbst(
     f: ArrayLike,
     eps: float = 0.005,
     delta: float = 0.001,
+    n_samples: Optional[int] = None,
     batch_size: int = 100,
     seed: Optional[int] = None
 ) -> Union[float, np.ndarray]:
@@ -40,6 +41,8 @@ def cdf_proj_cbst(
         Desired precision of the estimate.
     delta: float (optional, default 0.001)
         Probability that the estimate lies within the desired precision.
+    n_samples: int (optional, default None)
+        Number of samples to draw for the estimate (overrides eps and delta).
     seed: int (optional, default None)
         Random seed.
 
@@ -50,23 +53,27 @@ def cdf_proj_cbst(
     """
     ys = np.atleast_1d(ys).astype(np.float64)
     f = np.array(f, dtype=np.float64)
-    n_samples = int(np.ceil(1.0 / (2 * eps**2) * np.log(2 / delta)))
+    n_samples = int(np.ceil(1.0 / (2 * eps**2) * np.log(2 / delta))) if n_samples is None else n_samples
+    n_nodes = 2 * f.size()  # tree is always planted
     seed = int(seed) if seed is not None else None
     samples = np.zeros((n_samples,), dtype=float)
+    buffer = pcms.tree.make_buffer(n_trees=n_samples, n_nodes=n_nodes)
     for i in range(0, n_samples, batch_size):
         batch_size_ = min(batch_size, n_samples - i)
-        samples[i : i + batch_size_] = pcms._haar.sample_dh_component(f, batch_size_, seed)
+        samples[i : i + batch_size_] = pcms._haar.sample_dh_component(f, batch_size_, seed, buffer)
     samples.sort()
     result = np.searchsorted(samples, ys, side='left') / n_samples
     return result.item() if np.ndim(result) == 0 or result.size == 1 else result
 
 
-def cdf_proj_dirichlet_diff(
+def cdf_proj_dod(
     ys: ArrayLike,
     tree: pcms.tree.Tree,
     node: int,
     eps: float = 0.005,
-    delta: float = 0.001
+    delta: float = 0.001,
+    n_samples: Optional[int] = None,
+    seed: Optional[int] = None
 ) -> float:
     """
     Evaluate the CDF of ⟨f, φ⟩ where φ is a Haar-like wavelet over a fixed split.
@@ -84,6 +91,10 @@ def cdf_proj_dirichlet_diff(
         Desired precision of the estimate.
     delta: float (optional, default 0.001)
         Probability that the estimate lies within the desired precision.
+    n_samples: int (optional, default None)
+        Number of samples to draw for the estimate (overrides eps and delta).
+    seed: int (optional, default None)
+        Random seed.
 
     Returns
     -------
@@ -92,22 +103,22 @@ def cdf_proj_dirichlet_diff(
     """
     ys = np.asarray(ys)
     n_leaves = tree.find_n_leaves()
-    num_iter = np.ceil(1.0 / (2 * eps**2) * np.log(2 / delta))
+    n_samples = np.ceil(1.0 / (2 * eps**2) * np.log(2 / delta)) if n_samples is None else n_samples
     subtree_size = tree.get_subtree_size(node)
     split_size = tree.get_subtree_size(tree.get_child(node))
     m = subtree_size - split_size
     a = np.sqrt(m / split_size / subtree_size)
     b = -np.sqrt(split_size / m / subtree_size)
     alpha = np.array([split_size, m, n_leaves - m - split_size])
-    rng = np.random.default_rng()
-    f = rng.gamma(shape=alpha, size=(int(num_iter), len(alpha)))
+    rng = np.random.default_rng(seed)
+    f = rng.gamma(shape=alpha, size=(int(n_samples), len(alpha)))
     f /= f.sum(axis=1, keepdims=True)
-    g = rng.gamma(shape=alpha, size=(int(num_iter), len(alpha)))
+    g = rng.gamma(shape=alpha, size=(int(n_samples), len(alpha)))
     g /= g.sum(axis=1, keepdims=True)
     coef = np.sqrt(m * split_size / subtree_size)
     samples = coef * (a * (f[:,0] - g[:,0]) + b * (f[:,1] - g[:,1]))
     samples.sort()
-    result = np.searchsorted(samples, ys, side='left') / num_iter
+    result = np.searchsorted(samples, ys, side='left') / n_samples
     return result.item() if np.isscalar(ys) else result
 
 

@@ -758,12 +758,17 @@ def nwk2tree(filename: str, ensure_planted: bool = False) -> Tree:
     return Tree._from_cpp_tree(pcms._tree.nwk2tree(nwk_str, ensure_planted))
 
 
+def make_buffer(n_trees: int, n_nodes: int):
+    return [pcms._tree.Tree(n_nodes) for _ in range(n_trees)]
+
+
 def remy(
     n_leaves: int,
     planted: bool = True, 
     do_randomize_edge_lengths: bool = False, 
     n_samples: int = 1, 
-    seed: Optional[int] = None
+    seed: Optional[int] = None,
+    buffer: Optional[List[Tree]] = None
 ) -> Tree:
     """
     Construct a random Tree object from the uniform distribution.
@@ -780,11 +785,13 @@ def remy(
         Number of independent samples to generate.
     seed: int
         A seed for random generation.
+    buffer: List[Tree] (optional, default None)
+        A buffer for placing generated trees.
 
     Returns
     -------
-    Tree
-        A Tree object corresponding to the Newick string.
+    Tree | List[Tree]
+        Randomly generated Tree object(s)
 
     Raises
     -------
@@ -793,13 +800,15 @@ def remy(
     """
     if n_leaves < 2:
         raise ValueError("Required n_leaves >= 2.")
+    n_nodes = 2 * n_leaves if planted else 2 * n_leaves - 1
     if n_samples > 1:
-        ts_ = pcms._tree.remy_batched(n_leaves, planted, do_randomize_edge_lengths, n_samples, seed)
-        ts = [Tree._from_cpp_tree(t) for t in ts_]
-        return ts
+        buffer = make_buffer(n_samples, n_nodes) if buffer is None else buffer
+        pcms._tree.remy_batched(buffer, n_leaves, planted, do_randomize_edge_lengths, n_samples, seed)
+        return [Tree._from_cpp_tree(t_) for t_ in buffer]
     elif n_samples == 1:
-        t = pcms._tree.remy(n_leaves, planted, do_randomize_edge_lengths, seed)
-        return Tree._from_cpp_tree(t)
+        t = pcms.tree.Tree(n_nodes)
+        pcms._tree.remy(t._tree, n_leaves, planted, do_randomize_edge_lengths, seed)
+        return t
     else:
         raise ValueError("n_samples should be at least one.")
 
@@ -809,7 +818,8 @@ def cbst(
     planted: bool = True, 
     do_randomize_edge_lengths = False, 
     n_samples: int = 1, 
-    seed: Optional[int] = None
+    seed: Optional[int] = None,
+    buffer: Optional[List[Tree]] = None
 ) -> Tree:
     """
     Construct a random Tree object from the critical beta-splitting
@@ -827,11 +837,13 @@ def cbst(
         Number of independent samples to generate.
     seed: int
         A seed for random generation.
+    buffer: List[Tree] (optional, default None)
+        A buffer for placing generated trees.
 
     Returns
     -------
     Tree | List[Tree]
-        Tree object(s) corresponding to the Newick string.
+        Randomly generated Tree object(s)
 
     Raises
     -------
@@ -840,12 +852,14 @@ def cbst(
     """
     if n_leaves < 2:
         raise ValueError("Required n_leaves >= 2.")
+    n_nodes = 2 * n_leaves if planted else 2 * n_leaves - 1
     if n_samples > 1:
-        ts_ = pcms._tree.cbst_batched(n_leaves, planted, do_randomize_edge_lengths, n_samples, seed)
-        ts = [Tree._from_cpp_tree(t) for t in ts_]
-        return ts
+        buffer = make_buffer(n_samples, n_nodes) if buffer is None else buffer
+        pcms._tree.cbst_batched(buffer, planted, do_randomize_edge_lengths, n_samples, seed)
+        return [Tree._from_cpp_tree(t_) for t_ in buffer]
     elif n_samples == 1:
-        t = pcms._tree.cbst(n_leaves, planted, do_randomize_edge_lengths, seed)
-        return Tree._from_cpp_tree(t)
+        t = pcms.tree.Tree(n_nodes)
+        pcms._tree.cbst(t._tree, planted, do_randomize_edge_lengths, seed)
+        return t
     else:
         raise ValueError("n_samples should be at least one.")

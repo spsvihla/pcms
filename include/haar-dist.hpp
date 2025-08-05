@@ -15,6 +15,9 @@
  // Standard library includes
  #include <vector>
  
+// project-specific includes
+#include "tree.hpp"
+
  // Pybind11 includes for interoperability with NumPy and Python
  #include <pybind11/numpy.h>
  #include <pybind11/pybind11.h>
@@ -34,6 +37,7 @@
   */
  py::array_t<double> sample_dh_component(const py::array_t<double>& f, 
                                          int n_samples, 
+                                         std::vector<Tree*> buffer,
                                          std::optional<unsigned int> seed);
 
  #endif // HAAR_DIST_H 

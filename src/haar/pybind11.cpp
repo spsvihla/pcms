@@ -19,7 +19,8 @@ PYBIND11_MODULE(_haar, m) {
         &sample_dh_component,
         py::arg("func"),
         py::arg("n_samples"),
-        py::arg("seed")
+        py::arg("seed"),
+        py::arg("buffer")
     );
     m.def
     (

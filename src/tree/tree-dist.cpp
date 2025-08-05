@@ -134,22 +134,21 @@ randomize_edge_lengths(Tree* tree, std::optional<unsigned int> seed)
     }
 }
 
-Tree*
-remy(int n_leaves, bool planted, bool do_randomize_edge_lengths, std::optional<unsigned int> seed)
+void
+remy(Tree* tree, bool planted, bool do_randomize_edge_lengths, std::optional<unsigned int> seed)
 {
     unsigned int seed_ = seed.value_or(std::random_device{}());
-    std::default_random_engine rng(seed_);
+    std::mt19937 rng(seed_);
     std::uniform_int_distribution<int> bern(0,1); // Bernoulli(p=0.5)
 
-    int n_nodes = planted ? 2 * n_leaves : 2 * n_leaves - 1;
+    int n_nodes = tree->get_n_nodes();
     int end = planted ? n_nodes - 2 : n_nodes - 1;
 
-    Tree* tree = new Tree(n_nodes);
     if(planted)
     {
         tree->link(n_nodes - 2, n_nodes - 1);
     }
-    
+
     for(int node = 1; node < end; node += 2)
     {
         std::uniform_int_distribution<int> unif(0, node-1);
@@ -170,12 +169,10 @@ remy(int n_leaves, bool planted, bool do_randomize_edge_lengths, std::optional<u
     {
         randomize_edge_lengths(tree, seed);
     }
-
-    return tree;
 }
 
 inline void 
-_cbst(Tree* tree, int start, int end, int n0, std::mt19937 &rng) 
+cbst_(Tree* tree, int start, int end, int n0, std::mt19937 &rng) 
 {
     std::stack<std::tuple<int, int, int, int>> stack;
     stack.push({start, end, n0, 0});
@@ -208,34 +205,32 @@ _cbst(Tree* tree, int start, int end, int n0, std::mt19937 &rng)
     }
 }
 
-Tree*
-cbst(int n_leaves, bool planted, bool do_randomize_edge_lengths, std::optional<unsigned int> seed)
+void
+cbst(Tree* tree, bool planted, bool do_randomize_edge_lengths, std::optional<unsigned int> seed)
 {
     unsigned int seed_ = seed.value_or(std::random_device{}());
     std::mt19937 rng(seed_);
 
-    int n_nodes = planted ? 2 * n_leaves : 2 * n_leaves - 1;
+    int n_nodes = tree->get_n_nodes();
+    int n_leaves = planted ? n_nodes / 2 : (n_nodes + 1) / 2;
     int end = planted ? n_nodes - 2 : n_nodes - 1;
 
-    Tree* tree = new Tree(n_nodes);
     if(planted)
     {
         tree->link(n_nodes - 2, n_nodes - 1);
     }
-    _cbst(tree, 0, end, n_leaves, rng);
+    cbst_(tree, 0, end, n_leaves, rng);
 
     if(do_randomize_edge_lengths)
     {
         randomize_edge_lengths(tree, seed);
     }
-
-    return tree;
 }
 
-std::vector<Tree*>
+void 
 batched_tree_generator(
-    std::function<Tree*(int, bool, bool, unsigned int)> tree_builder,
-    int n_leaves,
+    std::function<void(Tree*, bool, bool, std::optional<unsigned int>)> tree_builder,
+    std::vector<Tree*> buffer,
     bool planted,
     bool do_randomize_edge_lengths,
     int n_samples,
@@ -258,39 +253,35 @@ batched_tree_generator(
 
     ThreadPool pool(n_threads);
 
-    std::vector<std::future<Tree*>> futures;
+    std::vector<std::future<void>> futures;
     futures.reserve(n_samples);
 
     for(int i = 0; i < n_samples; ++i) 
     {
-        futures.push_back(pool.submit([=]() {
-            return tree_builder(n_leaves, planted, do_randomize_edge_lengths, seeds[i]);
+        futures.push_back(pool.submit([&, i]() {
+            tree_builder(buffer[i], planted, do_randomize_edge_lengths, seeds[i]);
         }));
     }
 
-    // collect results
-    std::vector<Tree*> result(n_samples);
-    for(int i = 0; i < n_samples; ++i) 
+    // wait for all
+    for(auto& f : futures)
     {
-        Tree* tree = futures[i].get();
-        result[i] = tree;
+        f.get();
     }
-
-    return result;
 }
 
-std::vector<Tree*>
-cbst_batched(int n_leaves, bool planted, bool do_randomize_edge_lengths,
+void
+cbst_batched(std::vector<Tree*> buffer, bool planted, bool do_randomize_edge_lengths,
              int n_samples, std::optional<unsigned int> seed)
 {
-    return batched_tree_generator(cbst, n_leaves, planted,
-                                  do_randomize_edge_lengths, n_samples, seed);
+    batched_tree_generator(cbst, buffer, planted, do_randomize_edge_lengths, 
+                           n_samples, seed);
 }
 
-std::vector<Tree*>
-remy_batched(int n_leaves, bool planted, bool do_randomize_edge_lengths,
+void 
+remy_batched(std::vector<Tree*> buffer, bool planted, bool do_randomize_edge_lengths,
              int n_samples, std::optional<unsigned int> seed)
 {
-    return batched_tree_generator(remy, n_leaves, planted,
-                                  do_randomize_edge_lengths, n_samples, seed);
+    batched_tree_generator(remy, buffer, planted, do_randomize_edge_lengths, 
+                           n_samples, seed);
 }

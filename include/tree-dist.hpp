@@ -109,13 +109,12 @@ private:
  * 
  * This function generates a random binary tree using a uniform distribution.
  * 
- * @param n_leaves The number of leaf nodes in the tree.
+ * @param tree A Tree object to use as a buffer.
  * @param planted Whether the tree should be planted.
  * @param do_randomize_edge_lengths Whether to randomize edge lengths.
  * @param seed The seed for the random number generator (default is 0).
- * @return A pointer to the newly created tree.
  */
-Tree *remy(int n_leaves, bool planted, bool do_randomize_edge_lengths, std::optional<unsigned int> seed);
+void remy(Tree* tree, bool planted, bool do_randomize_edge_lengths, std::optional<unsigned int> seed);
 
 /**
  * @brief Samples a uniformly random binary tree.
@@ -123,27 +122,25 @@ Tree *remy(int n_leaves, bool planted, bool do_randomize_edge_lengths, std::opti
  * This function returns 'n_samples' independent samples from the uniform
  * distribution over the specified binary trees.
  * 
- * @param n_leaves The number of leaf nodes in the tree.
+ * @param trees A vector of Tree pointers to use as a buffer.
  * @param planted Whether the tree should be planted.
  * @param do_randomize_edge_lengths Whether to randomize edge lengths.
  * @param n_samples The number of samples to generate.
  * @param seed The seed for the random number generator (default is 0).
- * @return A pointer to the newly created tree.
  */
-std::vector<Tree*> remy_batched(int n_leaves, bool planted, bool do_randomize_edge_lengths, int n_samples, std::optional<unsigned int> seed);
+void remy_batched(std::vector<Tree*> trees, bool planted, bool do_randomize_edge_lengths, int n_samples, std::optional<unsigned int> seed);
 
 /**
  * @brief Samples a critical beta-splitting tree.
  * 
  * This function generates a binary tree using the critical beta-splitting algorithm.
  * 
- * @param n_leaves The number of leaf nodes in the tree.
+ * @param tree A Tree object to use as a buffer.
  * @param planted Whether the tree should be planted.
  * @param do_randomize_edge_lengths Whether to randomize edge lengths.
  * @param seed The seed for the random number generator (default is 0).
- * @return A pointer to the newly created tree.
  */
-Tree *cbst(int n_leaves, bool planted, bool do_randomize_edge_lengths, std::optional<unsigned int> seed);
+void cbst(Tree* tree, bool planted, bool do_randomize_edge_lengths, std::optional<unsigned int> seed);
 
 /**
  * @brief Batched version of cbst.
@@ -151,13 +148,12 @@ Tree *cbst(int n_leaves, bool planted, bool do_randomize_edge_lengths, std::opti
  * This function returns 'n_samples' independent samples from the specified
  * critical beta-splitting tree distribution.
  * 
- * @param n_leaves The number of leaf nodes in the tree.
+ * @param trees A vector of Tree pointers to use as a buffer.
  * @param planted Whether the tree should be planted.
  * @param do_randomize_edge_lengths Whether to randomize edge lengths.
  * @param n_samples The number of samples to generate.
  * @param seed The seed for the random number generator (default is 0).
- * @return A tuple of pybind11-wrapped trees.
  */
-std::vector<Tree*> cbst_batched(int n_leaves, bool planted, bool do_randomize_edge_lengths, int n_samples, std::optional<unsigned int> seed);
+void cbst_batched(std::vector<Tree*> trees, bool planted, bool do_randomize_edge_lengths, int n_samples, std::optional<unsigned int> seed);
 
 #endif // TREE_DIST_H

@@ -185,7 +185,7 @@ compute_trace_length(Tree* tree, double* out)
 
 py::array_t<double>
 sample_dh_component(const py::array_t<double>& f, int n_samples, 
-                    std::optional<unsigned int> seed)
+                    std::vector<Tree*> buffer, std::optional<unsigned int> seed)
 {
     unsigned int seed_ = seed.value_or(std::random_device{}());
 
@@ -202,26 +202,20 @@ sample_dh_component(const py::array_t<double>& f, int n_samples,
     }
 
     // sample trees
-    std::vector<Tree*> trees = cbst_batched(n_leaves, true, true, n_samples, seed_);
+    cbst_batched(buffer, true, true, n_samples, seed_);
 
     std::vector<double> wavelets(n_leaves * n_samples);
     #pragma omp parallel for
     for(int i = 0; i < n_samples; ++i)
     {
-        compute_wavelet(trees[i], wavelets.data() + i * n_leaves);
+        compute_wavelet(buffer[i], wavelets.data() + i * n_leaves);
     }
 
     std::vector<double> trace_lengths(n_leaves * n_samples);
     #pragma omp parallel for
     for(int i = 0; i < n_samples; ++i)
     {
-        compute_trace_length(trees[i], trace_lengths.data() + i * n_leaves);
-    }
-
-    // clean up trees
-    for(Tree* t : trees) 
-    {
-        delete t;
+        compute_trace_length(buffer[i], trace_lengths.data() + i * n_leaves);
     }
 
     // perform element-wise operations

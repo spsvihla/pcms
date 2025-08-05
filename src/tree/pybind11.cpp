@@ -244,42 +244,38 @@ PYBIND11_MODULE(_tree, m) {
     (
         "remy", 
         &remy,
-        py::arg("n_leaves"), 
+        py::arg("tree"),
         py::arg("planted"),
         py::arg("do_randomize_edge_lengths"),
-        py::arg("seed"),
-        py::return_value_policy::take_ownership
+        py::arg("seed")
     );
     m.def
     (
         "remy_batched",
         &remy_batched,
-        py::arg("n_leaves"),
+        py::arg("buffer"),
         py::arg("planted"),
         py::arg("do_randomize_edge_lengths"),
         py::arg("n_samples"),
-        py::arg("seed"),
-        py::return_value_policy::take_ownership
+        py::arg("seed")
     );
     m.def
     (
         "cbst",
         &cbst,
-        py::arg("n_leaves"),
+        py::arg("tree"),
         py::arg("planted"),
         py::arg("do_randomize_edge_lengths"),
-        py::arg("seed"),
-        py::return_value_policy::take_ownership
+        py::arg("seed")
     );
     m.def
     (
         "cbst_batched",
         &cbst_batched,
-        py::arg("n_leaves"),
+        py::arg("buffer"),
         py::arg("planted"),
         py::arg("do_randomize_edge_lengths"),
         py::arg("n_samples"),
-        py::arg("seed"),
-        py::return_value_policy::take_ownership
+        py::arg("seed")
     );
 }
