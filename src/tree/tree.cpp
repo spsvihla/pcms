@@ -621,8 +621,8 @@ parse_newick(char c, int& curr_node, Tree* tree, std::vector<char>& char_buf,
 }
 
 // second pass: assign parent-child relationships
-Tree
-*nwk2tree(const std::string& nwk_str, bool ensure_planted)
+Tree*
+nwk2tree(const std::string& nwk_str, bool ensure_planted)
 {
     // allocate a new Tree
     auto [n_nodes, is_planted] = count_nodes(nwk_str);
