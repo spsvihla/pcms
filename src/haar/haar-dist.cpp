@@ -17,6 +17,7 @@
 #include "haar-dist.hpp"
 #include "tree-dist.hpp"
 #include "utils.hpp"
+#include "rand.hpp"
 
 // Pybind11 includes 
 #include <pybind11/numpy.h>
@@ -24,36 +25,6 @@
 
 namespace py = pybind11;
 
-
-// Exponential(1.0)
-inline double 
-rand_exponential(std::mt19937& rng) 
-{
-    double U = (rng() + 0.5) * (1.0 / (rng.max() + 1.0));   // Uniform(0, 1)
-    return -std::log(U);
-}
-
-// Dirichlet(1,...,1)
-inline std::vector<double>
-rand_dirichlet_uniform(int N, int k, std::mt19937& rng) 
-{
-    std::vector<double> samples(N * k);
-    for(int i = 0; i < N; ++i) 
-    {
-        double sum = 0.0;
-        for(int j = 0; j < k; ++j) 
-        {
-            double e = rand_exponential(rng);
-            samples[i * k + j] = e;
-            sum += e;
-        }
-        for(int j = 0; j < k; ++j) 
-        {
-            samples[i * k + j] /= sum;
-        }
-    }
-    return samples;
-}
 
 // stack copies of an array
 std::vector<double>

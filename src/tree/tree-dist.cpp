@@ -25,6 +25,7 @@
 #include "tree-dist.hpp"
 #include "tree.hpp"
 #include "thread-pool.hpp"
+#include "rand.hpp"
 
 // Pybind11 includes
 #include <pybind11/numpy.h>
@@ -113,14 +114,6 @@ py::array_t<double>
 critical_beta_splitting_distribution::get_cdf() const
 {
     return py::array(cdf.size(), cdf.data());
-}
-
-// Exponential(rate=lam)
-inline double 
-rand_exponential(double lam, std::mt19937& rng) 
-{
-    double U = (rng() + 0.5) * (1.0 / (rng.max() + 1.0));   // Uniform(0, 1)
-    return -std::log(U) / lam;
 }
 
 inline void
