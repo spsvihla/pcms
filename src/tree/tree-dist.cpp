@@ -18,9 +18,6 @@
 #include <tuple>
 #include <unordered_map>
 
-// Other system library includes
-#include <gsl/gsl_integration.h>
-
 // Project-specific includes
 #include "tree-dist.hpp"
 #include "tree.hpp"
@@ -37,83 +34,43 @@ namespace py = pybind11;
 constexpr double GAMMA = 0.57721566490153286060; // Euler-Mascheroni constant   
 
 
-// integrand to compute harmonic numbers by Euler's formula 
-double 
-integrand(double x, void* params) {
-    int n = *(int*)params;
-    return (1 - pow(x, n)) / (1 - x);
-}
-
 // compute the nth harmonic number
 double 
 harmonic_number(int n) 
 {
-    gsl_integration_workspace* workspace = gsl_integration_workspace_alloc(1000);
-
-    // define integrand
-    gsl_function F;
-    F.function = &integrand;
-    F.params = &n;
-
-    // numerical integration
-    double result, error;
-    gsl_integration_qags(
-        &F,   // Function to integrate (gsl_function struct)
-        0,    // Lower limit of integration
-        1,    // Upper limit of integration
-        1e-7, // Absolute error tolerance
-        1e-7, // Relative error tolerance
-        1000, // Maximum number of subintervals
-        workspace, // Integration workspace
-        &result,   // Pointer to store the integral result
-        &error     // Pointer to store the estimated error
-    );    
-
-    gsl_integration_workspace_free(workspace);
-    return result;
+    double hn;
+    if(n <= 1e6)
+    {
+        hn = 0.0;
+        for(int k = 1; k <= n; ++k)
+        {
+            hn += 1.0 / k;
+        }
+    }
+    else
+    {
+        hn = std::log(n) + GAMMA + 1.0 / (2 * n) - 1.0 / (12 * n * n);
+    }
+    return hn;
 }
 
-critical_beta_splitting_distribution::critical_beta_splitting_distribution(int n)
-: n(n), pmf(n-1), cdf(n-1) 
+// sample the critical beta split distribution 
+double rand_critical_beta_split(int n, std::mt19937& rng)
 {
     double hn = harmonic_number(n - 1);
-
     double factor = n / (2.0 * hn);
-    for(py::ssize_t i = 1; i < n; i++) 
+
+    double u = rand_uniform_double(0.0, 1.0, rng);
+    double cdf_val = 0.0;
+    for(int i = 1; i <= n-1; ++i)
     {
-        pmf[i - 1] = factor / static_cast<double>(i * (n - i));
+        cdf_val += factor / (i * (n - i));
+        if(cdf_val >= u)
+        {
+            return i;
+        }
     }
-
-    cdf[0] = pmf[0];
-    for(py::ssize_t i = 1; i < n - 2; i++) 
-    {
-        cdf[i] = cdf[i-1] + pmf[i];
-    }
-    cdf[n-2] = 1.0;
-}
-
-std::vector<double>
-critical_beta_splitting_distribution::get_pmf_() const
-{
-    return pmf;
-}
-
-py::array_t<double>
-critical_beta_splitting_distribution::get_pmf() const
-{
-    return py::array(pmf.size(), pmf.data());
-}
-
-std::vector<double>
-critical_beta_splitting_distribution::get_cdf_() const
-{
-    return cdf;
-}
-
-py::array_t<double>
-critical_beta_splitting_distribution::get_cdf() const
-{
-    return py::array(cdf.size(), cdf.data());
+    return n-1; // this line shouldn't be reached
 }
 
 inline void
@@ -132,7 +89,6 @@ remy(Tree* tree, bool planted, bool do_randomize_edge_lengths, std::optional<uns
 {
     unsigned int seed_ = seed.value_or(std::random_device{}());
     std::mt19937 rng(seed_);
-    std::uniform_int_distribution<int> bern(0,1); // Bernoulli(p=0.5)
 
     int n_nodes = tree->get_n_nodes();
     int end = planted ? n_nodes - 2 : n_nodes - 1;
@@ -144,9 +100,8 @@ remy(Tree* tree, bool planted, bool do_randomize_edge_lengths, std::optional<uns
 
     for(int node = 1; node < end; node += 2)
     {
-        std::uniform_int_distribution<int> unif(0, node-1);
-        int rand_node = unif(rng);
-        int b = bern(rng);
+        int rand_node = rand_uniform_int(0, node-1, rng);
+        int b = rand_uniform_int(0, 1, rng);                // Bernoulli(p=0.5)
 
         int left_child = (node + 1) * b + rand_node * (1 - b);
         int right_child = rand_node * b + (node + 1) * (1 - b);
@@ -186,8 +141,7 @@ cbst_(Tree* tree, int start, int end, int n0, std::mt19937 &rng)
             continue;
         }
 
-        critical_beta_splitting_distribution dist(n0);
-        int x = dist(rng);
+        int x = rand_critical_beta_split(n0, rng);
         int n1 = 2 * x - 1;
 
         tree->link(end - 1, end);

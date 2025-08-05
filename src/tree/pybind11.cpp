@@ -212,26 +212,6 @@ PYBIND11_MODULE(_tree, m) {
             &Tree::to_string,
             py::arg("label")
         );
-    py::class_<critical_beta_splitting_distribution>(m, "CriticalBetaSplittingDistribution")
-        .def(
-            py::init<int>(), 
-            py::arg("n")
-        )
-        .def(
-            "__call__", 
-            [](critical_beta_splitting_distribution& dist) {
-                static thread_local std::mt19937 rng(std::random_device{}());
-                return dist(rng);
-            }
-        )
-        .def(
-            "get_pmf",
-            &critical_beta_splitting_distribution::get_pmf
-        )
-        .def(
-            "get_cdf",
-            &critical_beta_splitting_distribution::get_cdf
-        );
     m.def
     (
         "nwk2tree",
