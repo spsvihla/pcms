@@ -91,7 +91,7 @@ remy(Tree* tree, bool planted, bool do_randomize_edge_lengths, std::optional<uns
 
     if(planted)
     {
-        tree->link(n_nodes - 2, n_nodes - 1);
+        tree->link_(n_nodes - 2, n_nodes - 1);
     }
 
     for(int node = 1; node < end; node += 2)
@@ -103,11 +103,13 @@ remy(Tree* tree, bool planted, bool do_randomize_edge_lengths, std::optional<uns
         int right_child = rand_node * b + (node + 1) * (1 - b);
         int parent = tree->get_parent(rand_node);
 
-        tree->cut(rand_node);
-        tree->link(node, parent);
-        tree->link(right_child, node);
-        tree->link(left_child, node);
+        tree->cut_(rand_node);
+        tree->link_(node, parent);
+        tree->link_(right_child, node);
+        tree->link_(left_child, node);
     }
+
+    tree->update_subtree_size();
 
     if(do_randomize_edge_lengths)
     {
@@ -132,16 +134,16 @@ cbst_(Tree* tree, int start, int end, int n0, std::mt19937 &rng)
         }
         if(n0 == 2) 
         {
-            tree->link(start + 1, end);
-            tree->link(start, end);
+            tree->link_(start + 1, end);
+            tree->link_(start, end);
             continue;
         }
 
         int x = rand_critical_beta_split(n0, rng);
         int n1 = 2 * x - 1;
 
-        tree->link(end - 1, end);
-        tree->link(start + n1 - 1, end);
+        tree->link_(end - 1, end);
+        tree->link_(start + n1 - 1, end);
 
         stack.push({start, start + n1 - 1, x, depth + 1});
         stack.push({start + n1, end - 1, n0 - x, depth + 1});
@@ -160,9 +162,11 @@ cbst(Tree* tree, bool planted, bool do_randomize_edge_lengths, std::optional<uns
 
     if(planted)
     {
-        tree->link(n_nodes - 2, n_nodes - 1);
+        tree->link_(n_nodes - 2, n_nodes - 1);
     }
     cbst_(tree, 0, end, n_leaves, rng);
+
+    tree->update_subtree_size();
 
     if(do_randomize_edge_lengths)
     {

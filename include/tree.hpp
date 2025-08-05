@@ -175,11 +175,21 @@ public:
     void set_name(int u, const std::string& value);
 
     /**
+     * @brief Helper for link without subtree size updates.
+     */
+    void link_(int u, int v);
+
+    /**
      * @brief Links two nodes by making one the child of the other.
      * @param u Target node index.
      * @param v Parent node.
      */
     void link(int u, int v);
+
+    /**
+     * @brief Helper for cut without subtree size updates.
+     */
+    void cut_(int u);
 
     /**
      * @brief Cuts the link between a node and its parent.
@@ -188,11 +198,21 @@ public:
     void cut(int u);
 
     /**
+     * @brief Alternative of swap without subtree size updates.
+     */
+    void swap_(int u, int v);
+
+    /**
      * @brief Swaps the positions of two nodes in the tree.
      * @param u First target node index.
      * @param v Second target node index.
      */
     void swap(int u, int v);
+
+    /**
+     * @brief Update subtree_size based on current topology.
+     */
+    void update_subtree_size();
 
     /**
      * @brief Helper for find_children to provide C++ return type.

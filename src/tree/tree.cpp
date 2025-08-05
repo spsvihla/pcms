@@ -11,7 +11,7 @@
 // standard library includes
 #include <algorithm>    // for std::max
 #include <cmath>        // for sqrt
-#include <numeric>      // for std::accumulate
+#include <numeric>      // for std::accumulate and std::transform_reduce
 #include <queue>        // for std::queue
 #include <random>       // for RNG
 #include <stack>        // for std::stack
@@ -55,14 +55,12 @@ Tree::get_edge_length() const
 }
 
 void 
-Tree::link(int u, int v)
+Tree::link_(int u, int v)
 {
     if(v == -1) 
     {
         return;
     }
-
-    int is_leaf = (get_child(v) == -1);
 
     // update pointers
     set_parent(u, v);
@@ -72,6 +70,14 @@ Tree::link(int u, int v)
     // update is_first
     set_is_first(u, true);
     set_is_first(get_sibling(u), false);
+}
+
+void
+Tree::link(int u, int v)
+{
+    link_(u, v);
+
+    int is_leaf = (get_child(v) == -1);
 
     // update subtree_size
     int diff = get_subtree_size(u) - is_leaf;
@@ -82,7 +88,7 @@ Tree::link(int u, int v)
 }
 
 void 
-Tree::cut(int u)
+Tree::cut_(int u)
 {
     int p = get_parent(u);
     
@@ -112,6 +118,18 @@ Tree::cut(int u)
         }
         set_sibling(c, get_sibling(u));
     }
+
+    set_parent(u, -1);
+    set_sibling(u, -1);
+}
+
+void 
+Tree::cut(int u)
+{
+    int p = get_parent(u);
+
+    cut_(u);
+
     int is_leaf = (get_child(p) == -1);
 
     // update subtree_size
@@ -120,9 +138,17 @@ Tree::cut(int u)
     {
         set_subtree_size(p, get_subtree_size(p) + diff);
     }
+}
 
-    set_parent(u, -1);
-    set_sibling(u, -1);
+void
+Tree::swap_(int u, int v)
+{
+    int pu = get_parent(u);
+    int pv = get_parent(v);
+    cut_(u);
+    cut_(v);
+    link_(u, pv);
+    link_(v, pu);
 }
 
 void 
@@ -134,6 +160,26 @@ Tree::swap(int u, int v)
     cut(v);
     link(u, pv);
     link(v, pu);
+}
+
+void
+Tree::update_subtree_size()
+{
+    for(int i = 0; i < n_nodes; ++i)
+    {
+        if(get_child(i) == -1)
+        {
+            set_subtree_size(i, 1);
+            continue;
+        }
+        std::vector<int> children = find_children_(i);
+        int size = std::transform_reduce(
+            children.begin(), children.end(),
+            0, std::plus<>(),
+            [&](int i) { return subtree_size[i]; }
+        );
+        set_subtree_size(i, size);
+    }
 }
 
 std::vector<int>
