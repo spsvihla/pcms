@@ -62,7 +62,7 @@ void remy(Tree* tree, bool planted, bool do_randomize_edge_lengths, std::optiona
  * @param n_samples The number of samples to generate.
  * @param seed The seed for the random number generator (default is 0).
  */
-void remy_batched(std::vector<Tree*> trees, bool planted, bool do_randomize_edge_lengths, int n_samples, std::optional<unsigned int> seed);
+void remy_batched(std::vector<Tree*>& trees, bool planted, bool do_randomize_edge_lengths, int n_samples, std::optional<unsigned int> seed);
 
 /**
  * @brief Samples a critical beta-splitting tree.
@@ -88,6 +88,6 @@ void cbst(Tree* tree, bool planted, bool do_randomize_edge_lengths, std::optiona
  * @param n_samples The number of samples to generate.
  * @param seed The seed for the random number generator (default is 0).
  */
-void cbst_batched(std::vector<Tree*> trees, bool planted, bool do_randomize_edge_lengths, int n_samples, std::optional<unsigned int> seed);
+void cbst_batched(std::vector<Tree*>& trees, bool planted, bool do_randomize_edge_lengths, int n_samples, std::optional<unsigned int> seed);
 
 #endif // TREE_DIST_H

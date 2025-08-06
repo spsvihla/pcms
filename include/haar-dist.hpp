@@ -38,7 +38,7 @@
   */
  py::array_t<double> sample_dh_component(const py::array_t<double>& f, 
                                          int n_samples, 
-                                         std::vector<Tree*> buffer,
+                                         std::vector<Tree*>& buffer,
                                          std::optional<unsigned int> seed);
 
  #endif // HAAR_DIST_H 

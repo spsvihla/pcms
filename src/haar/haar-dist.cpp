@@ -155,7 +155,7 @@ compute_trace_length(Tree* tree, double* out)
 
 py::array_t<double>
 sample_dh_component(const py::array_t<double>& f, int n_samples, 
-                    std::vector<Tree*> buffer, std::optional<unsigned int> seed)
+                    std::vector<Tree*>& buffer, std::optional<unsigned int> seed)
 {
     unsigned int seed_ = seed.value_or(std::random_device{}());
 

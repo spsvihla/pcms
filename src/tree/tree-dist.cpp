@@ -177,7 +177,7 @@ cbst(Tree* tree, bool planted, bool do_randomize_edge_lengths, std::optional<uns
 void 
 batched_tree_generator(
     std::function<void(Tree*, bool, bool, std::optional<unsigned int>)> tree_builder,
-    std::vector<Tree*> buffer,
+    std::vector<Tree*>& buffer,
     bool planted,
     bool do_randomize_edge_lengths,
     int n_samples,
@@ -218,7 +218,7 @@ batched_tree_generator(
 }
 
 void
-cbst_batched(std::vector<Tree*> buffer, bool planted, bool do_randomize_edge_lengths,
+cbst_batched(std::vector<Tree*>& buffer, bool planted, bool do_randomize_edge_lengths,
              int n_samples, std::optional<unsigned int> seed)
 {
     batched_tree_generator(cbst, buffer, planted, do_randomize_edge_lengths, 
@@ -226,7 +226,7 @@ cbst_batched(std::vector<Tree*> buffer, bool planted, bool do_randomize_edge_len
 }
 
 void 
-remy_batched(std::vector<Tree*> buffer, bool planted, bool do_randomize_edge_lengths,
+remy_batched(std::vector<Tree*>& buffer, bool planted, bool do_randomize_edge_lengths,
              int n_samples, std::optional<unsigned int> seed)
 {
     batched_tree_generator(remy, buffer, planted, do_randomize_edge_lengths, 
