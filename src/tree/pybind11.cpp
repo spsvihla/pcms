@@ -120,6 +120,13 @@ PYBIND11_MODULE(_tree, m) {
             py::arg("u"), 
             py::arg("v")
         )
+        .def 
+        (
+            "splice",
+            &Tree::splice,
+            py::arg("u"),
+            py::arg("v")
+        )
         .def
         (
             "find_children",

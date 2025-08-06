@@ -210,6 +210,18 @@ public:
     void swap(int u, int v);
 
     /**
+     * @brief Alternative of splice without subtree size updates.
+     */
+    void splice_(int u, int v);
+
+    /**
+     * @brief Cut a leaf and link it to another.
+     * @param u First target node index.
+     * @param v Second target node index.
+     */
+    void splice(int u, int v);
+
+    /**
      * @brief Update subtree_size based on current topology.
      */
     void update_subtree_size();

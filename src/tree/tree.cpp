@@ -168,6 +168,20 @@ Tree::swap(int u, int v)
     link(v, pu);
 }
 
+void 
+Tree::splice_(int u, int v)
+{
+    cut_(u);
+    link_(u, v);
+}
+
+void 
+Tree::splice(int u, int v)
+{
+    cut(u);
+    link(u, v);
+}
+
 void
 Tree::update_subtree_size()
 {

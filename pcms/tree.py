@@ -382,6 +382,25 @@ class Tree:
         """
         self._tree.swap(u, v)
 
+    @check_bounds(arg_names=("u", "v"))
+    def splice(self, u: int, v: int) -> None:
+        """
+        Splices (cuts and links) a node onto another.
+
+        Parameters
+        ----------
+        u: int
+            First target node index.
+        v: int
+            Second target node index.
+
+        Raises
+        -------
+        IndexError
+            If the node index is out of bounds.
+        """
+        self._tree.splice(u, v)
+
     @check_bounds()
     def find_children(self, u: int) -> NDArray:
         """
