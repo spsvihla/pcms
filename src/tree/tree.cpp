@@ -33,10 +33,16 @@ namespace py = pybind11;
 void
 Tree::reset()
 {
-    std::fill(edge_length.begin(), edge_length.end(), 0.0);
-    std::fill(subtree_size.begin(), subtree_size.end(), 1.0);
-    std::fill(names.begin(), names.end(), "");
-    std::fill(nodes.begin(), nodes.end(), Node{});
+    for(int i = 0; i < n_nodes; ++i)
+    {
+        set_edge_length(i, 0.0);
+        set_subtree_size(i, 1);
+        set_parent(i, -1);
+        set_child(i, -1);
+        set_sibling(i, -1);
+        set_is_first(i, true);
+        set_name(i, "");
+    }
 }
 
 // NOTE: These getters can live here since they will never be called from 
