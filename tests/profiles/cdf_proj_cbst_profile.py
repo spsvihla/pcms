@@ -8,4 +8,4 @@ f = np.random.dirichlet(alpha=np.ones((n_leaves,), dtype=float))
 g = np.random.dirichlet(alpha=np.ones((n_leaves,), dtype=float))
 func = f - g
 
-pcms.haar.cdf_proj_cbst(ys, func)
+pcms.haar.cdf_proj_cbst(ys, func, n_samples=100000, batch_size=10000)
