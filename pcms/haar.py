@@ -50,17 +50,32 @@ def cdf_proj_cbst(
     -------
     float or np.ndarray
         Estimate(s) of the CDF at the given point(s).
+
+    Raises
+    -------
+    ValueError
+        If n_samples < 1.
     """
+    # parse inputs
     ys = np.atleast_1d(ys).astype(np.float64)
     f = np.array(f, dtype=np.float64)
-    n_samples = int(np.ceil(1.0 / (2 * eps**2) * np.log(2 / delta))) if n_samples is None else n_samples
-    n_nodes = 2 * f.size()  # tree is always planted
     seed = int(seed) if seed is not None else None
+    n_samples = int(n_samples) if n_samples is not None else int(np.ceil(1.0 / (2 * eps**2) * np.log(2 / delta)))
+    if n_samples < 1:
+        raise ValueError(f"n_samples must be positive, but got {n_samples}")
+    batch_size = int(min(batch_size, n_samples)) if batch_size and batch_size > 0 else min(100, n_samples)
+
+    # generate samples
+    n_nodes = 2 * f.size
     samples = np.zeros((n_samples,), dtype=float)
-    buffer = pcms.tree.make_buffer(n_trees=n_samples, n_nodes=n_nodes)
+    buffer = pcms.tree.make_buffer(n_trees=batch_size, n_nodes=n_nodes)
     for i in range(0, n_samples, batch_size):
         batch_size_ = min(batch_size, n_samples - i)
-        samples[i : i + batch_size_] = pcms._haar.sample_dh_component(f, batch_size_, seed, buffer)
+        samples[i : i + batch_size_] = pcms._haar.sample_dh_component(f, batch_size_, buffer, seed)
+        for t in buffer: 
+            t.reset()
+
+    # compute estimate
     samples.sort()
     result = np.searchsorted(samples, ys, side='left') / n_samples
     return result.item() if np.ndim(result) == 0 or result.size == 1 else result
