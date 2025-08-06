@@ -70,10 +70,8 @@ double rand_critical_beta_split(int n, std::mt19937& rng)
 }
 
 inline void
-randomize_edge_lengths(Tree* tree, std::optional<unsigned int> seed)
+randomize_edge_lengths(Tree* tree, std::mt19937& rng)
 {
-    unsigned int seed_ = seed.value_or(std::random_device{}());
-    std::mt19937 rng(seed_);
     for(int i = 0; i < tree->get_n_nodes(); ++i)
     {
         tree->set_edge_length(i, rand_exponential(tree->get_subtree_size(i), rng));
@@ -113,7 +111,7 @@ remy(Tree* tree, bool planted, bool do_randomize_edge_lengths, std::optional<uns
 
     if(do_randomize_edge_lengths)
     {
-        randomize_edge_lengths(tree, seed);
+        randomize_edge_lengths(tree, rng);
     }
 }
 
@@ -170,7 +168,7 @@ cbst(Tree* tree, bool planted, bool do_randomize_edge_lengths, std::optional<uns
 
     if(do_randomize_edge_lengths)
     {
-        randomize_edge_lengths(tree, seed);
+        randomize_edge_lengths(tree, rng);
     }
 }
 
