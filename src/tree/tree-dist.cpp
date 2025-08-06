@@ -35,7 +35,7 @@ double
 harmonic_number(int n) 
 {
     double hn;
-    if(n <= 1e6)
+    if(n <= 30)
     {
         hn = 0.0;
         for(int k = 1; k <= n; ++k)
@@ -45,6 +45,7 @@ harmonic_number(int n)
     }
     else
     {
+        // error < 10e-8 for n > 30
         hn = std::log(n) + GAMMA + 1.0 / (2 * n) - 1.0 / (12 * n * n);
     }
     return hn;
@@ -58,12 +59,13 @@ rand_critical_beta_split(int n, std::mt19937& rng)
     double factor = n / (2.0 * hn);
 
     double u = rand_uniform_double(0.0, 1.0, rng);
+    double thresh = u / factor;
     double cdf_val = 0.0;
     for(int i = 1; i <= n - 1; ++i)
     {
         int denom = i * (n - i);
         cdf_val += 1.0 / denom;
-        if (cdf_val * factor >= u)
+        if(cdf_val >= thresh)
         {
             return i;
         }

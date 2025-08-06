@@ -30,18 +30,9 @@ def parse_args():
 
 def get_lib_flags(build_type: str) -> tuple[list[str], list[str], list[str]]:
     """
-    Get combined include_dirs, library_dirs, and libraries for GSL + MKL.
+    Get combined include_dirs, library_dirs, and libraries.
     Adjust paths to match your system!
     """
-    # ---- GSL ----
-    try:
-        gsl_libdir = subprocess.check_output(["gsl-config", "--libdir"], text=True).strip()
-        gsl_includedir = subprocess.check_output(["gsl-config", "--cflags"], text=True).strip()
-        gsl_includes = [flag[2:] for flag in gsl_includedir.split() if flag.startswith("-I")]
-        gsl_libdirs = gsl_libdir.split()
-        gsl_libs = ["gsl", "gslcblas"]
-    except Exception as e:
-        raise RuntimeError("Could not find GSL using gsl-config") from e
 
     # ---- MKL ----
     mkl_includes = ["/opt/intel/oneapi/mkl/latest/include"]
@@ -54,9 +45,9 @@ def get_lib_flags(build_type: str) -> tuple[list[str], list[str], list[str]]:
 
     sys_libs = ["m"]
 
-    include_dirs = gsl_includes + mkl_includes
-    library_dirs = ["/usr/lib", "/usr/local/lib"] + gsl_libdirs + mkl_libdirs
-    libraries = gsl_libs + mkl_libs + sys_libs
+    include_dirs = mkl_includes
+    library_dirs = ["/usr/lib", "/usr/local/lib"] + mkl_libdirs
+    libraries = mkl_libs + sys_libs
 
     return include_dirs, library_dirs, libraries
 
@@ -71,11 +62,11 @@ def get_compile_and_link_args(build_type: str) -> tuple[list[str], list[str]]:
         link_args.append("-g")
     elif build_type == "profile":
         print("Build type: PROFILE")
-        compile_args.extend(["-g", "-O3", "-march=native", "-flto", "-fopenmp", "-ffast-math"])
+        compile_args.extend(["-g", "-O3", "-march=native", "-flto", "-fopenmp", "-funroll-loops", "-ffast-math"])
         link_args.extend(["-g", "-flto", "-fopenmp"])
     elif build_type == "release":
         print("Build type: RELEASE")
-        compile_args.extend(["-O3", "-march=native", "-flto", "-fopenmp", "-ffast-math"])
+        compile_args.extend(["-O3", "-march=native", "-flto", "-fopenmp", "-funroll-loops", "-ffast-math"])
         link_args.extend(["-flto", "-fopenmp"])
     else:
         raise ValueError(f"Unknown build type: {build_type}")

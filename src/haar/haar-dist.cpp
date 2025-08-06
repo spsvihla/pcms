@@ -42,6 +42,7 @@ make_copies(double* arr, int size, int n_copies)
 inline void
 fisher_yates(double* arr, int size, std::mt19937& rng)
 {
+    // this loop might be hard to optimize -- so unroll it manually
     std::size_t max = rng.max();
     for(std::size_t j = size - 1; j + 1 >= 4; j -= 4) 
     {
