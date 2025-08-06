@@ -51,17 +51,19 @@ harmonic_number(int n)
 }
 
 // sample the critical beta split distribution 
-double rand_critical_beta_split(int n, std::mt19937& rng)
+inline double 
+rand_critical_beta_split(int n, std::mt19937& rng)
 {
     double hn = harmonic_number(n - 1);
     double factor = n / (2.0 * hn);
 
     double u = rand_uniform_double(0.0, 1.0, rng);
     double cdf_val = 0.0;
-    for(int i = 1; i <= n-1; ++i)
+    for(int i = 1; i <= n - 1; ++i)
     {
-        cdf_val += factor / (i * (n - i));
-        if(cdf_val >= u)
+        int denom = i * (n - i);
+        cdf_val += 1.0 / denom;
+        if (cdf_val * factor >= u)
         {
             return i;
         }
@@ -132,16 +134,16 @@ cbst_(Tree* tree, int start, int end, int n0, std::mt19937 &rng)
         }
         if(n0 == 2) 
         {
-            tree->link_(start + 1, end);
-            tree->link_(start, end);
+            tree->splice_(start + 1, end);
+            tree->splice_(start, end);
             continue;
         }
 
         int x = rand_critical_beta_split(n0, rng);
         int n1 = 2 * x - 1;
 
-        tree->link_(end - 1, end);
-        tree->link_(start + n1 - 1, end);
+        tree->splice_(end - 1, end);
+        tree->splice_(start + n1 - 1, end);
 
         stack.push({start, start + n1 - 1, x, depth + 1});
         stack.push({start + n1, end - 1, n0 - x, depth + 1});
@@ -160,7 +162,7 @@ cbst(Tree* tree, bool planted, bool do_randomize_edge_lengths, std::optional<uns
 
     if(planted)
     {
-        tree->link_(n_nodes - 2, n_nodes - 1);
+        tree->splice_(n_nodes - 2, n_nodes - 1);
     }
     cbst_(tree, 0, end, n_leaves, rng);
 

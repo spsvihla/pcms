@@ -131,7 +131,7 @@ inline void
 compute_trace_length(Tree* tree, double* out)
 {
     int n_leaves = tree->find_n_leaves();
-
+    int n_nodes = tree->get_n_nodes();
     std::vector<int> subtree_starts = tree->find_subtree_start_indices_();
 
     #pragma omp simd
@@ -140,13 +140,18 @@ compute_trace_length(Tree* tree, double* out)
         out[i] = 0.0;
     }
 
-    for(int i = 0; i < tree->get_n_nodes() - 2; ++i)
+    std::vector<int> subtree_sizes = tree->get_subtree_size_();
+    std::vector<double> trace_lengths = tree->find_tbl_();
+
+    #pragma omp parallel for schedule(static)
+    for(int i = 0; i < n_nodes - 2; ++i)
     {
         int start = subtree_starts[i];
-        double tbl = tree->find_tbl(i);
+        int size = subtree_sizes[i];
+        double tbl = trace_lengths[i];
 
         #pragma omp simd
-        for(int j = 0; j < tree->get_subtree_size(i); ++j)
+        for(int j = 0; j < size; ++j)
         {
             out[start + j] += tbl;
         }

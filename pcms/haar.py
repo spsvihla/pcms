@@ -5,6 +5,7 @@ A wrapper for the pcms._haar package.
 """
 
 from typing import Union, Optional
+import random
 
 import numpy as np
 from numpy.typing import ArrayLike
@@ -12,6 +13,11 @@ from scipy.sparse import csc_matrix
 
 import pcms._haar 
 import pcms.tree
+
+
+def generate_seeds(seed: int, n: int) -> list[int]:
+    rng = random.Random(seed)
+    return [rng.randint(0, 2**32 - 1) for _ in range(n)]
 
 
 def cdf_proj_cbst(
@@ -69,11 +75,11 @@ def cdf_proj_cbst(
     n_nodes = 2 * f.size
     samples = np.zeros((n_samples,), dtype=float)
     buffer = pcms.tree.make_buffer(n_trees=batch_size, n_nodes=n_nodes)
+    n_iter = n_samples // batch_size + 1
+    seeds = [None] * n_iter if seed is None else generate_seeds(seed=seed, n=n_iter)
     for i in range(0, n_samples, batch_size):
         batch_size_ = min(batch_size, n_samples - i)
-        samples[i : i + batch_size_] = pcms._haar.sample_dh_component(f, batch_size_, buffer, seed)
-        for t in buffer: 
-            t.reset()
+        samples[i : i + batch_size_] = pcms._haar.sample_dh_component(f, batch_size_, buffer, seeds[i // batch_size])
 
     # compute estimate
     samples.sort()
