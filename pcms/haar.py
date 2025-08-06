@@ -79,7 +79,7 @@ def cdf_proj_cbst(
     seeds = [None] * n_iter if seed is None else generate_seeds(seed=seed, n=n_iter)
     for i in range(0, n_samples, batch_size):
         batch_size_ = min(batch_size, n_samples - i)
-        samples[i : i + batch_size_] = pcms._haar.sample_dh_component(f, batch_size_, buffer, seeds[i // batch_size])
+        samples[i : i + batch_size_] = pcms._haar.rand_dh_component(f, batch_size_, buffer, seeds[i // batch_size])
 
     # compute estimate
     samples.sort()

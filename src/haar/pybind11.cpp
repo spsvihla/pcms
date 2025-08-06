@@ -15,8 +15,8 @@ namespace py = pybind11;
 PYBIND11_MODULE(_haar, m) {
     m.def
     (
-        "sample_dh_component",
-        &sample_dh_component,
+        "rand_dh_component",
+        &rand_dh_component,
         py::arg("func"),
         py::arg("n_samples"),
         py::arg("buffer"),

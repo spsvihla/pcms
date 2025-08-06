@@ -36,9 +36,9 @@
   * @return A 1D NumPy array of the same length as `ys`, containing estimated 
   *         CDF values.
   */
- py::array_t<double> sample_dh_component(const py::array_t<double>& f, 
-                                         int n_samples, 
-                                         std::vector<Tree*>& buffer,
-                                         std::optional<unsigned int> seed);
+ py::array_t<double> rand_dh_component(const py::array_t<double>& f, 
+                                       int n_samples, 
+                                       std::vector<Tree*>& buffer,
+                                       std::optional<unsigned int> seed);
 
  #endif // HAAR_DIST_H 
