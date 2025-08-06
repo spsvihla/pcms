@@ -19,6 +19,11 @@ PYBIND11_MODULE(_tree, m) {
         )
         .def
         (
+            "reset",
+            &Tree::reset
+        )
+        .def
+        (
             "get_n_nodes", 
             &Tree::get_n_nodes
         )
