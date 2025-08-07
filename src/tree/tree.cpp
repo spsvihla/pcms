@@ -297,13 +297,13 @@ Tree::find_leaves_(int u) const
         int depth = stack.top().second;
         stack.pop();
 
-        if(nodes[v].child == -1)
+        if(get_child(v) == -1)
         {
             leaves.emplace_back(v);
             depths.emplace_back(depth);
         }
 
-        for(int c = nodes[v].child; c != -1; c = nodes[c].sibling)
+        for(int c = get_child(v); c != -1; c = get_sibling(c))
         {
             stack.push(std::make_pair(c, depth + 1));
         }
