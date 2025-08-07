@@ -194,7 +194,7 @@ Tree::update_subtree_size()
         {
             depth_first_search(c);
         }
-        postorder.push_back(v);
+        postorder.emplace_back(v);
     };
     depth_first_search(find_root());
 
