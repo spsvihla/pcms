@@ -89,7 +89,7 @@ remy(Tree* tree, bool planted, bool do_randomize_edge_lengths, std::optional<uns
     std::mt19937 rng(seed_);
 
     int n_nodes = tree->get_n_nodes();
-    int end = planted ? n_nodes - 2 : n_nodes - 1;
+    int end = planted ? n_nodes - 1 : n_nodes;
 
     if(planted)
     {
