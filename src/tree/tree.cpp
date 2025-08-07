@@ -210,7 +210,7 @@ Tree::update_subtree_size()
         int size = std::transform_reduce(
             children.begin(), children.end(),
             0, std::plus<>(),
-            [&](int i) { return get_subtree_size(node); }
+            [&](int child) { return get_subtree_size(child); }
         );
         set_subtree_size(node, size);
     }
