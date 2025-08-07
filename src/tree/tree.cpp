@@ -185,20 +185,34 @@ Tree::splice(int u, int v)
 void
 Tree::update_subtree_size()
 {
+    std::vector<int> postorder;
+    postorder.reserve(n_nodes);
+
+    std::function<void(int)> depth_first_search = [&](int v)
+    {
+        for(int c = get_child(v); c != -1; c = get_sibling(c))
+        {
+            depth_first_search(c);
+        }
+        postorder.push_back(v);
+    };
+    depth_first_search(find_root());
+
     for(int i = 0; i < n_nodes; ++i)
     {
-        if(get_child(i) == -1)
+        int node = postorder[i];
+        if(get_child(node) == -1)
         {
-            set_subtree_size(i, 1);
+            set_subtree_size(node, 1);
             continue;
         }
-        std::vector<int> children = find_children_(i);
+        std::vector<int> children = find_children_(node);
         int size = std::transform_reduce(
             children.begin(), children.end(),
             0, std::plus<>(),
-            [&](int i) { return subtree_size[i]; }
+            [&](int i) { return get_subtree_size(node); }
         );
-        set_subtree_size(i, size);
+        set_subtree_size(node, size);
     }
 }
 
