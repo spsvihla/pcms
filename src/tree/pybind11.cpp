@@ -13,7 +13,8 @@ namespace py = pybind11;
 // Pybind11 code to expose the module to Python
 PYBIND11_MODULE(_tree, m) {
     py::class_<Tree>(m, "Tree")
-        .def(
+        .def
+        (
             py::init<int>(), 
             py::arg("n_nodes")
         )

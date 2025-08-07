@@ -98,11 +98,11 @@ remy(Tree* tree, bool planted, bool do_randomize_edge_lengths, std::optional<uns
 
     for(int node = 1; node < end; node += 2)
     {
-        int rand_node = rand_uniform_int(0, node-1, rng);
+        int rand_node = rand_uniform_int(0, node-1, rng);   // pick existing node uniformly
         int b = rand_uniform_int(0, 1, rng);                // Bernoulli(p=0.5)
 
-        int left_child = (node + 1) * b + rand_node * (1 - b);
-        int right_child = rand_node * b + (node + 1) * (1 - b);
+        int left_child =  b ? (node + 1) : rand_node;
+        int right_child = b ? rand_node  : (node + 1);
         int parent = tree->get_parent(rand_node);
 
         tree->cut_(rand_node);
