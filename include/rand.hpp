@@ -13,7 +13,7 @@ rand_uniform_double(double a, double b, std::mt19937& rng)
 }
 
 // Uniform(a, b)
-inline double 
+inline int 
 rand_uniform_int(int a, int b, std::mt19937& rng)
 {
     int range = b - a + 1;
