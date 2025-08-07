@@ -801,11 +801,11 @@ def remy(
     n_nodes = 2 * n_leaves if planted else 2 * n_leaves - 1
     if n_samples > 1:
         buffer = make_buffer(n_samples, n_nodes) if buffer is None else buffer
-        pcms._tree.remy_batched(buffer, n_leaves, planted, do_randomize_edge_lengths, n_samples, seed)
+        pcms._tree.remy_batched(buffer, planted, do_randomize_edge_lengths, n_samples, seed)
         return [Tree._from_cpp_tree(t_) for t_ in buffer]
     elif n_samples == 1:
         t = pcms.tree.Tree(n_nodes)
-        pcms._tree.remy(t._tree, n_leaves, planted, do_randomize_edge_lengths, seed)
+        pcms._tree.remy(t._tree, planted, do_randomize_edge_lengths, seed)
         return t
     else:
         raise ValueError("n_samples should be at least one.")
