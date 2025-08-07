@@ -81,12 +81,12 @@ Tree::link_(int u, int v)
 void
 Tree::link(int u, int v)
 {
+    bool is_leaf = (get_child(v) == -1);
+
     link_(u, v);
 
-    int is_leaf = (get_child(v) == -1);
-
     // update subtree_size
-    int diff = get_subtree_size(u) - is_leaf;
+    int diff = get_subtree_size(u) - (is_leaf ? 1 : 0);
     for(; v >= 0; v = get_parent(v))
     {
         set_subtree_size(v, get_subtree_size(v) + diff);
@@ -133,13 +133,19 @@ void
 Tree::cut(int u)
 {
     int p = get_parent(u);
+    if(p == -1)
+    {
+        return;
+    }
+    
+    bool was_internal = (get_child(p) != -1);
 
     cut_(u);
 
-    int is_leaf = (get_child(p) == -1);
+    bool is_leaf = (get_child(p) == -1);
 
     // update subtree_size
-    int diff = is_leaf - get_subtree_size(u);
+    int diff = (is_leaf && was_internal ? 1 : 0) - get_subtree_size(u);
     for(; p != -1; p = get_parent(p))
     {
         set_subtree_size(p, get_subtree_size(p) + diff);
@@ -681,7 +687,7 @@ parse_newick(char c, int& curr_node, Tree* tree, std::vector<char>& char_buf,
             while(!stack.empty() && stack.top() != -1) 
             {
                 int child = stack.top();
-                tree->link(child, curr_node);
+                tree->link_(child, curr_node);
                 stack.pop();
             }
             if(!stack.empty()) stack.pop(); // pop '-1'
@@ -768,8 +774,10 @@ nwk2tree(const std::string& nwk_str, bool ensure_planted)
     // plant tree
     if(do_plant)
     {
-        tree->link(tree->get_n_nodes() - 2, tree->get_n_nodes() - 1);
+        tree->link_(tree->get_n_nodes() - 2, tree->get_n_nodes() - 1);
     }
+
+    tree->update_subtree_size();
 
     if(parens > 0) 
     {
