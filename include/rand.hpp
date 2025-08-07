@@ -17,17 +17,19 @@ inline int
 rand_uniform_int(int a, int b, std::mt19937& rng)
 {
     int range = b - a + 1;
-    int max = rng.max();
-    int bucket_size = (max + 1) / range;
+    using result_t = std::mt19937::result_type;
 
-    int r;
+    result_t max = rng.max();
+    result_t bucket_size = (max + 1) / static_cast<result_t>(range);
+
+    result_t r;
     do 
     {
         r = rng();
     }
-    while(r >= bucket_size * range);
+    while(r >= bucket_size * static_cast<result_t>(range));
 
-    return r;
+    return a + static_cast<int>(r / bucket_size);
 }
 
 // Exponential(rate=lam)
