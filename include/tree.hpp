@@ -70,6 +70,13 @@ public:
     {}
 
     /**
+     * @brief Factory function that copies the tree in postorder.
+     * @param tree The target tree.
+     * @return A Tree object with the same topology and postorder memory layout.
+     */
+    static Tree* as_postorder(Tree* tree);
+
+    /**
      * Default destructor and copy/move constructors 
      */
     Tree(const Tree&) = default;

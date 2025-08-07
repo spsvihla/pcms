@@ -87,6 +87,10 @@ class Tree:
         obj._tree = tree
         obj._print_label = "none"
         return obj
+    
+    @classmethod
+    def as_postorder(cls, tree: pcms.tree.Tree) -> "Tree":
+        return cls._from_cpp_tree(pcms._tree.Tree.as_postorder(tree._tree))
 
     def __del__(self) -> None:
         """Default destructor."""

@@ -45,6 +45,49 @@ Tree::reset()
     }
 }
 
+Tree*
+Tree::as_postorder(Tree* old_tree)
+{
+    int n_nodes = old_tree->get_n_nodes();
+    Tree* new_tree = new Tree(n_nodes);
+
+    // determine postorder indexing
+    std::vector<int> postorder;
+    postorder.reserve(n_nodes);
+    std::unordered_map<int, int> forward_map;
+    std::function<void(int)> depth_first_search = [&](int v)
+    {
+        for(int c = old_tree->get_child(v); c != -1; c = old_tree->get_sibling(c))
+        {
+            depth_first_search(c);
+        }
+        forward_map[v] = static_cast<int>(postorder.size());
+        postorder.push_back(v);
+    };
+    depth_first_search(old_tree->find_root());
+
+    // build new tree
+    for(int old_node : postorder)
+    {
+        int new_node = forward_map[old_node];
+
+        new_tree->set_edge_length(new_node, old_tree->get_edge_length(old_node));
+
+        if(old_tree->get_child(old_node) == -1)
+        {
+            continue;
+        }
+
+        std::vector<int> old_children = old_tree->find_children_(old_node);
+        for(int i = static_cast<int>(old_children.size()) - 1; i >= 0; --i)
+        {
+            int new_child = forward_map[old_children[i]];
+            new_tree->link_(new_child, new_node);
+        }
+    }
+    new_tree->update_subtree_size();
+}
+
 // NOTE: These getters can live here since they will never be called from 
 //       C++ code, so will never have the chance to be inlined.
 
@@ -297,13 +340,13 @@ Tree::find_leaves_(int u) const
         int depth = stack.top().second;
         stack.pop();
 
-        if(nodes[v].child == -1)
+        if(get_child(v) == -1)
         {
             leaves.emplace_back(v);
             depths.emplace_back(depth);
         }
 
-        for(int c = nodes[v].child; c != -1; c = nodes[c].sibling)
+        for(int c = get_child(v); c != -1; c = get_sibling(c))
         {
             stack.push(std::make_pair(c, depth + 1));
         }
