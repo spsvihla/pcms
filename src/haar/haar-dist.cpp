@@ -6,6 +6,7 @@
 // Standard library includes
 #include <algorithm>   // for std::copy, std::swap, std::max, std::fill
 #include <cmath>       // for sqrt in wavelet calculations
+#include <limits>      // for std::numeric_limits<size_t>::max()
 #include <random>      // for std::mt19937 and std::random_device RNGs
 #include <vector>      // for std::vector container
 
@@ -44,7 +45,8 @@ fisher_yates(double* arr, int size, std::mt19937& rng)
 {
     // this loop might be hard to optimize -- so unroll it manually
     std::size_t max = rng.max();
-    for(std::size_t j = size - 1; j + 1 >= 4; j -= 4) 
+    std::size_t j = size - 1;
+    for(; j + 1 >= 4; j -= 4) 
     {
         // iteration 1
         std::size_t k1;
@@ -84,7 +86,7 @@ fisher_yates(double* arr, int size, std::mt19937& rng)
     }
 
     // Remainder loop for leftovers
-    for(std::size_t j = (size - 1) % 4; j > 0; --j) 
+    for(; j > 0 && j != std::numeric_limits<size_t>::max(); --j) 
     {
         std::size_t k;
         do 
@@ -94,7 +96,6 @@ fisher_yates(double* arr, int size, std::mt19937& rng)
         k %= (j + 1);
         std::swap(arr[j], arr[k]);
     }
-
 }
 
 inline void
@@ -161,7 +162,7 @@ compute_trace_length(Tree* tree, double* out)
 
 py::array_t<double>
 rand_dh_component(const py::array_t<double>& f, int n_samples, 
-                    std::vector<Tree*>& buffer, std::optional<unsigned int> seed)
+                  std::vector<Tree*>& buffer, std::optional<unsigned int> seed)
 {
     unsigned int seed_ = seed.value_or(std::random_device{}());
 
