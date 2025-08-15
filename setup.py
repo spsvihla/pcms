@@ -120,7 +120,7 @@ def main():
 
     setup(
         name="pcms",
-        version="v1.0.0-beta.1",
+        version="v1.0.0-beta.2",
         description="Phylogenetic covariance matrix sparsification",
         author="Sean Svihla",
         license="MIT",
