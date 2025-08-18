@@ -3,7 +3,7 @@ set -euo pipefail
 
 PACKAGE_NAME="pcms"
 WHEEL_DIR="dist"
-BUILD_TYPE="release"
+BUILD_TYPE="Release"   # Default: Release
 
 usage() {
     echo "Usage: $0 [--build-type <debug|profile|release>] [--clean]"
@@ -21,7 +21,12 @@ while [[ $# -gt 0 ]]; do
                 echo "Error: --build-type requires an argument"
                 usage
             fi
-            BUILD_TYPE="$2"
+            case "$2" in
+                debug) BUILD_TYPE="Debug" ;;
+                profile) BUILD_TYPE="RelWithDebInfo" ;; # map "profile" to CMake
+                release) BUILD_TYPE="Release" ;;
+                *) echo "Unknown build type: $2" ; usage ;;
+            esac
             shift 2
             ;;
         --clean)
@@ -55,12 +60,10 @@ else
     echo "Package '$PACKAGE_NAME' not currently installed."
 fi
 
-echo "Building wheel distribution..."
+echo "Building wheel distribution with CMake build type: $BUILD_TYPE"
 
-BUILD_CMD="python setup.py bdist_wheel --build-type=$BUILD_TYPE"
-
-echo "Running: $BUILD_CMD"
-eval "$BUILD_CMD"
+# Use scikit-build / pip wheel with cmake.build-type
+pip wheel . -w "$WHEEL_DIR" --config-settings=cmake.build-type="$BUILD_TYPE"
 
 echo "Installing the package from wheel..."
 WHEEL_FILE=$(ls "$WHEEL_DIR"/"${PACKAGE_NAME}"-*.whl | head -n 1)

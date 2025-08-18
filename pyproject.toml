@@ -1,0 +1,26 @@
+[build-system]
+requires = [
+    "scikit_build_core",
+    "pybind11"
+]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "pcms"
+version = "1.0.0b2"
+description = "Phylogenetic covariance matrix sparisification"
+license = { text = "MIT" }
+authors = [{ name = "Sean Svihla" }]
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "numpy",
+    "scipy"
+]
+
+[project.optional-dependencies]
+notebooks = ["pandas", "matplotlib", "jupyter"]
+test = ["pytest>6.0"]
