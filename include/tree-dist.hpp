@@ -22,8 +22,8 @@
  * 
  * @author Sean Svihla
  */
-#ifndef TREE_DIST_H
-#define TREE_DIST_H
+#ifndef TREE_DIST_HPP
+#define TREE_DIST_HPP
 
 // Standard library includes
 #include <random>
@@ -90,4 +90,4 @@ void cbst(Tree* tree, bool planted, bool do_randomize_edge_lengths, std::optiona
  */
 void cbst_batched(std::vector<Tree*>& trees, bool planted, bool do_randomize_edge_lengths, int n_samples, std::optional<unsigned int> seed);
 
-#endif // TREE_DIST_H
+#endif // TREE_DIST_HPP
