@@ -851,6 +851,7 @@ def cbst(
     if n_leaves < 2:
         raise ValueError("Required n_leaves >= 2.")
     n_nodes = 2 * n_leaves if planted else 2 * n_leaves - 1
+    n_nodes = int(n_nodes)
     if n_samples > 1:
         buffer = make_buffer(n_samples, n_nodes) if buffer is None else buffer
         pcms._tree.cbst_batched(buffer, planted, do_randomize_edge_lengths, n_samples, seed)
