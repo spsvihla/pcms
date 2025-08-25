@@ -1,3 +1,4 @@
 from ._load_gg_seq_id2otu_id_maps import load_gg_seq_id2otu_id_maps
 from ._build_gg_seq_id2leaf_idx_map import build_gg_seq_id2leaf_idx_map
 from ._load_gn_seq_id_abundances import load_gn_seq_id_abundances
+from ._build_gg_otu_id2tax_map import build_gg_otu_id2tax_map
