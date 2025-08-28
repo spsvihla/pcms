@@ -67,7 +67,7 @@ class Tree:
     This class provides a Python interface to the underlying C++ implementation
     of a tree, enabling access to tree operations and properties from Python.
     """
-    def __init__(self, n_nodes: int) -> None:
+    def __init__(self, n_nodes: int, print_label: Optional[str] = None) -> None:
         """
         Initialize a tree with the specified number of nodes.
 
@@ -79,7 +79,10 @@ class Tree:
         if not isinstance(n_nodes, int):
             raise TypeError("Expected 'n_nodes' to have type 'int'")
         self._tree = pcms._tree.Tree(n_nodes)
-        self._print_label = "none"
+        if print_label is None:
+            self.print_label = "none"
+        else:
+            self.print_label = print_label
 
     @classmethod
     def _from_cpp_tree(cls, tree: pcms._tree.Tree) -> "Tree":
