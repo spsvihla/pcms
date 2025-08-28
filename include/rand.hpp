@@ -66,7 +66,7 @@ rand_dirichlet_uniform(int N, int k, std::mt19937& rng)
 }
 
 // compute the nth harmonic number
-double 
+inline double 
 harmonic_number(int n) 
 {
     double hn;
