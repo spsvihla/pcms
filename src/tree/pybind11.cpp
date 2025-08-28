@@ -163,6 +163,11 @@ PYBIND11_MODULE(_tree, m) {
             py::arg("u")
         )
         .def(
+            "find_interior_nodes",
+            &Tree::find_interior_nodes,
+            py::arg("u")
+        )
+        .def(
             "find_subtree_start_indices",
             &Tree::find_subtree_start_indices
         )

@@ -496,7 +496,7 @@ class Tree:
         return self._tree.find_is_planted()
 
     @check_bounds(lambda self: self.find_root())
-    def find_leaves(self, u: Optional[int] = None, return_depths = True) -> Union[NDArray, Tuple[NDArray, NDArray]]:
+    def find_leaves(self, u: Optional[int] = None, return_depths = False) -> Union[NDArray, Tuple[NDArray, NDArray]]:
         """
         Finds the leaf nodes and their depths beneath a specified node.
 
@@ -504,7 +504,7 @@ class Tree:
         ----------
         u: int (optional, default None)
             The index of the node.
-        return_depths: bool (optional, default True)
+        return_depths: bool (optional, default False)
             Whether to return depths of leaves.
 
         Returns
@@ -524,7 +524,7 @@ class Tree:
         return (leaves, depths) if return_depths else leaves
 
     @check_bounds(lambda self: self.find_root())
-    def find_interior_nodes(self, u: Optional[int] = None) -> NDArray:
+    def find_interior_nodes(self, u: Optional[int] = None, return_depths = False) -> Union[NDArray, Tuple[NDArray, NDArray]]:
         """
         Finds the interior nodes beneath a specified node.
 
@@ -532,23 +532,24 @@ class Tree:
         ----------
         u: int (optional, default None)
             The index of the node.
+        return_depths: bool (optional, default False)
+            Whether to return depths of leaves.
 
         Returns
         -------
-        np.ndarray
-            The indices of the interior nodes of the (sub)tree.
+        Tuple[np.ndarray, np.ndarray]
+            A pair of vectors: the first contains the interior node indices,
+            and the second contains their corresponding depths. If None is
+            given, the interior of the entire tree are returned.
 
         Raises
         -------
         IndexError
             If the node index if out of bounds.
         """
-        leaves = self.find_leaves(u, return_depths=False)
-        nodes = np.arange(leaves[0], u+1)
-        idx = np.searchsorted(leaves, nodes)
-        idx[idx == len(leaves)] = len(leaves) - 1
-        mask = leaves[idx] == nodes
-        return nodes[~mask]
+        interior_nodes, depths = self._tree.find_interior_nodes(u)
+        interior_nodes = np.flip(interior_nodes)
+        return (interior_nodes, depths) if return_depths else interior_nodes
 
     def find_subtree_start_indices(self) -> NDArray:
         """

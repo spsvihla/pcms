@@ -290,6 +290,19 @@ public:
      */
     py::tuple find_leaves(int u) const;
 
+     /**
+     * @brief Helper for find_interior_nodes to provide C++ return type.
+     */
+    std::pair<std::vector<int>, std::vector<int>> find_interior_nodes_(int u) const;
+
+    /**
+     * @brief Finds the interior nodes and their depths beneath a specified node.
+     * @param u The index of the node.
+     * @return A pair of vectors: the first contains the interior node indices,
+     *         and the second contains their corresponding depths.
+     */
+    py::tuple find_interior_nodes(int u) const;
+
     /**
      * @brief Helper for find_subtree_start_indices to provide C++ return type.
      */

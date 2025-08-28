@@ -342,6 +342,49 @@ Tree::find_leaves(int u) const
     );
 }
 
+std::pair<std::vector<int>, std::vector<int>>
+Tree::find_interior_nodes_(int u) const 
+{
+    std::vector<int> interior_nodes;
+    std::vector<int> depths;
+
+    interior_nodes.reserve(get_subtree_size(u));
+    depths.reserve(get_subtree_size(u));
+
+    // depth-first search
+    std::stack<std::pair<int, int>> stack;
+    stack.push(std::make_pair(u, 0));
+    while(!stack.empty())
+    {
+        int v = stack.top().first;
+        int depth = stack.top().second;
+        stack.pop();
+
+        if(get_child(v) != -1)
+        {
+            interior_nodes.emplace_back(v);
+            depths.emplace_back(depth);
+        }
+
+        for(int c = get_child(v); c != -1; c = get_sibling(c))
+        {
+            stack.push(std::make_pair(c, depth + 1));
+        }
+    }
+
+    return std::make_pair(interior_nodes, depths);
+}
+
+py::tuple
+Tree::find_interior_nodes(int u) const
+{
+    auto [interior_nodes, depths] = find_interior_nodes_(u);
+    return py::make_tuple(
+        std_vec2py_array_t(interior_nodes), 
+        std_vec2py_array_t(depths)
+    );
+}
+
 std::vector<int>
 Tree::find_subtree_start_indices_() const
 {
