@@ -30,7 +30,8 @@ def cdf_proj_cbst(
     seed: Optional[int] = None
 ) -> Union[float, np.ndarray]:
     """
-    Evaluate the CDF of ⟨f, φ⟩ for a Haar-like wavelet φ on a critical beta-splitting tree.
+    Evaluate the CDF of (λ_v * Δ_v^2) for a Haar-like wavelet φ on a critical 
+    beta-splitting tree.
 
     φ is associated with an interior node v of a critical beta-splitting tree T,
     and f is a non-random function on the leaves of the subtree T(v). The split 
