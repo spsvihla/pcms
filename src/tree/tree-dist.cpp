@@ -130,7 +130,7 @@ cbst(Tree* tree, bool planted, bool do_randomize_edge_lengths, std::optional<uns
     }
 }
 
-void 
+inline void 
 batched_tree_generator(
     std::function<void(Tree*, bool, bool, std::optional<unsigned int>)> tree_builder,
     std::vector<Tree*>& buffer,
