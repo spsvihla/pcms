@@ -746,6 +746,32 @@ def make_buffer(n_trees: int, n_nodes: int):
     return [pcms._tree.Tree(n_nodes) for _ in range(n_trees)]
 
 
+def _random_tree_generator(
+    sampler: callable,
+    batched_sampler: callable,
+    n_leaves: int,
+    planted: bool, 
+    do_randomize_edge_lengths: bool, 
+    n_samples: int, 
+    seed: Optional[int] = None,
+    buffer: Optional[List[Tree]] = None,
+):
+    if n_leaves < 2:
+        raise ValueError("Required n_leaves >= 2.")
+    n_nodes = 2 * n_leaves if planted else 2 * n_leaves - 1
+    n_nodes = int(n_nodes)
+    if n_samples > 1:
+        buffer = make_buffer(n_samples, n_nodes) if buffer is None else buffer
+        batched_sampler(buffer, planted, do_randomize_edge_lengths, n_samples, seed)
+        return [Tree._from_cpp_tree(t_) for t_ in buffer]
+    elif n_samples == 1:
+        t = pcms.tree.Tree(n_nodes)
+        sampler(t._tree, planted, do_randomize_edge_lengths, seed)
+        return t
+    else:
+        raise ValueError("n_samples should be at least one.")
+
+
 def remy(
     n_leaves: int,
     planted: bool = True, 
@@ -782,19 +808,9 @@ def remy(
     ValueError
         If n_leaves < 2.
     """
-    if n_leaves < 2:
-        raise ValueError("Required n_leaves >= 2.")
-    n_nodes = 2 * n_leaves if planted else 2 * n_leaves - 1
-    if n_samples > 1:
-        buffer = make_buffer(n_samples, n_nodes) if buffer is None else buffer
-        pcms._tree.remy_batched(buffer, planted, do_randomize_edge_lengths, n_samples, seed)
-        return [Tree._from_cpp_tree(t_) for t_ in buffer]
-    elif n_samples == 1:
-        t = pcms.tree.Tree(n_nodes)
-        pcms._tree.remy(t._tree, planted, do_randomize_edge_lengths, seed)
-        return t
-    else:
-        raise ValueError("n_samples should be at least one.")
+    return _random_tree_generator(pcms._tree.remy, pcms._tree.remy_batched,
+                                  n_leaves, planted, do_randomize_edge_lengths,
+                                  n_samples, seed, buffer)
 
 
 def cbst(
@@ -834,17 +850,6 @@ def cbst(
     ValueError
         If n_leaves < 2.
     """
-    if n_leaves < 2:
-        raise ValueError("Required n_leaves >= 2.")
-    n_nodes = 2 * n_leaves if planted else 2 * n_leaves - 1
-    n_nodes = int(n_nodes)
-    if n_samples > 1:
-        buffer = make_buffer(n_samples, n_nodes) if buffer is None else buffer
-        pcms._tree.cbst_batched(buffer, planted, do_randomize_edge_lengths, n_samples, seed)
-        return [Tree._from_cpp_tree(t_) for t_ in buffer]
-    elif n_samples == 1:
-        t = pcms.tree.Tree(n_nodes)
-        pcms._tree.cbst(t._tree, planted, do_randomize_edge_lengths, seed)
-        return t
-    else:
-        raise ValueError("n_samples should be at least one.")
+    return _random_tree_generator(pcms._tree.cbst, pcms._tree.cbst_batched,
+                                  n_leaves, planted, do_randomize_edge_lengths,
+                                  n_samples, seed, buffer)
