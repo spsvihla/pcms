@@ -179,7 +179,17 @@ rand_dh_component(const py::array_t<double>& f, int n_samples,
     }
 
     // sample trees
-    cbst_batched(buffer, true, true, n_samples, seed_);
+    cbst_batched(buffer, true, n_samples, seed_);
+    #pragma omp parallel for
+    for(int i = 0; i < n_samples; ++i)
+    {
+        std::mt19937 rng(seed_ + i);
+        for(int j = 0; j < buffer[i]->get_n_nodes(); ++j)
+        {
+            double lam = buffer[i]->get_subtree_size(j);
+            buffer[i]->set_edge_length(j, rand_exponential(lam, rng));
+        }
+    }
 
     std::vector<double> wavelets(n_leaves * n_samples);
     #pragma omp parallel for

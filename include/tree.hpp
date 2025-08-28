@@ -363,15 +363,6 @@ public:
 
     /**
      * @brief Finds supports of wavelets associated to an interior node. 
-     * 
-     * Note that the first returned vector contains a list of the indices of 
-     * all nodes in the support of all wavelets associated with the target 
-     * node. The second vector contains the boundary indices of a partition
-     * into each support.
-     * 
-     * For example, the the ith wavelet associated with 'u' takes on its 
-     * left-value on leaves partition[i] to partition[i+1].
-     * 
      * @param u Target node index.
      * @return A list of vectors, each containing the leaf-indices of the 
      *         supports of the wavelets associated with node 'u'

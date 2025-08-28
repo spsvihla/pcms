@@ -27,17 +27,8 @@
 namespace py = pybind11;
 
 
-inline void
-randomize_edge_lengths(Tree* tree, std::mt19937& rng)
-{
-    for(int i = 0; i < tree->get_n_nodes(); ++i)
-    {
-        tree->set_edge_length(i, rand_exponential(tree->get_subtree_size(i), rng));
-    }
-}
-
 void
-remy(Tree* tree, bool planted, bool do_randomize_edge_lengths, std::optional<unsigned int> seed)
+remy(Tree* tree, bool planted, std::optional<unsigned int> seed)
 {
     unsigned int seed_ = seed.value_or(std::random_device{}());
     std::mt19937 rng(seed_);
@@ -66,11 +57,6 @@ remy(Tree* tree, bool planted, bool do_randomize_edge_lengths, std::optional<uns
     }
 
     tree->update_subtree_size();
-
-    if(do_randomize_edge_lengths)
-    {
-        randomize_edge_lengths(tree, rng);
-    }
 }
 
 inline void 
@@ -107,7 +93,7 @@ cbst_(Tree* tree, int start, int end, int n0, std::mt19937 &rng)
 }
 
 void
-cbst(Tree* tree, bool planted, bool do_randomize_edge_lengths, std::optional<unsigned int> seed)
+cbst(Tree* tree, bool planted, std::optional<unsigned int> seed)
 {
     unsigned int seed_ = seed.value_or(std::random_device{}());
     std::mt19937 rng(seed_);
@@ -123,19 +109,13 @@ cbst(Tree* tree, bool planted, bool do_randomize_edge_lengths, std::optional<uns
     cbst_(tree, 0, end, n_leaves, rng);
 
     tree->update_subtree_size();
-
-    if(do_randomize_edge_lengths)
-    {
-        randomize_edge_lengths(tree, rng);
-    }
 }
 
 inline void 
 batched_tree_generator(
-    std::function<void(Tree*, bool, bool, std::optional<unsigned int>)> tree_builder,
+    std::function<void(Tree*, bool, std::optional<unsigned int>)> tree_builder,
     std::vector<Tree*>& buffer,
     bool planted,
-    bool do_randomize_edge_lengths,
     int n_samples,
     std::optional<unsigned int> seed)
 {
@@ -162,7 +142,7 @@ batched_tree_generator(
     for(int i = 0; i < n_samples; ++i) 
     {
         futures.push_back(pool.submit([&, i]() {
-            tree_builder(buffer[i], planted, do_randomize_edge_lengths, seeds[i]);
+            tree_builder(buffer[i], planted, seeds[i]);
         }));
     }
 
@@ -174,17 +154,15 @@ batched_tree_generator(
 }
 
 void
-cbst_batched(std::vector<Tree*>& buffer, bool planted, bool do_randomize_edge_lengths,
-             int n_samples, std::optional<unsigned int> seed)
+cbst_batched(std::vector<Tree*>& buffer, bool planted, int n_samples, 
+             std::optional<unsigned int> seed)
 {
-    batched_tree_generator(cbst, buffer, planted, do_randomize_edge_lengths, 
-                           n_samples, seed);
+    batched_tree_generator(cbst, buffer, planted, n_samples, seed);
 }
 
 void 
-remy_batched(std::vector<Tree*>& buffer, bool planted, bool do_randomize_edge_lengths,
-             int n_samples, std::optional<unsigned int> seed)
+remy_batched(std::vector<Tree*>& buffer, bool planted, int n_samples, 
+             std::optional<unsigned int> seed)
 {
-    batched_tree_generator(remy, buffer, planted, do_randomize_edge_lengths, 
-                           n_samples, seed);
+    batched_tree_generator(remy, buffer, planted, n_samples, seed);
 }

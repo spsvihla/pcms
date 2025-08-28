@@ -33,11 +33,6 @@ def cdf_proj_cbst(
     Evaluate the CDF of (λ_v * Δ_v^2) for a Haar-like wavelet φ on a critical 
     beta-splitting tree.
 
-    φ is associated with an interior node v of a critical beta-splitting tree T,
-    and f is a non-random function on the leaves of the subtree T(v). The split 
-    below φ is sampled randomly according to the critical beta-splitting 
-    distribution q(n, i).
-
     Parameters
     ----------
     ys: array-like

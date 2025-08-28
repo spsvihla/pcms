@@ -751,7 +751,6 @@ def _random_tree_generator(
     batched_sampler: callable,
     n_leaves: int,
     planted: bool, 
-    do_randomize_edge_lengths: bool, 
     n_samples: int, 
     seed: Optional[int] = None,
     buffer: Optional[List[Tree]] = None,
@@ -762,11 +761,11 @@ def _random_tree_generator(
     n_nodes = int(n_nodes)
     if n_samples > 1:
         buffer = make_buffer(n_samples, n_nodes) if buffer is None else buffer
-        batched_sampler(buffer, planted, do_randomize_edge_lengths, n_samples, seed)
+        batched_sampler(buffer, planted, n_samples, seed)
         return [Tree._from_cpp_tree(t_) for t_ in buffer]
     elif n_samples == 1:
         t = pcms.tree.Tree(n_nodes)
-        sampler(t._tree, planted, do_randomize_edge_lengths, seed)
+        sampler(t._tree, planted, seed)
         return t
     else:
         raise ValueError("n_samples should be at least one.")
@@ -775,7 +774,6 @@ def _random_tree_generator(
 def remy(
     n_leaves: int,
     planted: bool = True, 
-    do_randomize_edge_lengths: bool = False, 
     n_samples: int = 1, 
     seed: Optional[int] = None,
     buffer: Optional[List[Tree]] = None
@@ -789,8 +787,6 @@ def remy(
         Number of leaves in the tree.
     planted: bool
         Whether the tree should be planted.
-    do_randomize_edge_lengths: bool
-        Whether to assign exponential(|L(v)|) edge lengths.
     n_samples: int
         Number of independent samples to generate.
     seed: int
@@ -809,14 +805,12 @@ def remy(
         If n_leaves < 2.
     """
     return _random_tree_generator(pcms._tree.remy, pcms._tree.remy_batched,
-                                  n_leaves, planted, do_randomize_edge_lengths,
-                                  n_samples, seed, buffer)
+                                  n_leaves, planted, n_samples, seed, buffer)
 
 
 def cbst(
     n_leaves: int, 
     planted: bool = True, 
-    do_randomize_edge_lengths = False, 
     n_samples: int = 1, 
     seed: Optional[int] = None,
     buffer: Optional[List[Tree]] = None
@@ -831,8 +825,6 @@ def cbst(
         Number of leaves in the tree.
     planted: bool
         Whether the tree should be planted.
-    do_randomize_edge_lengths: bool
-        Whether to assign exponential(|L(v)|) edge lengths.
     n_samples: int
         Number of independent samples to generate.
     seed: int
@@ -851,5 +843,4 @@ def cbst(
         If n_leaves < 2.
     """
     return _random_tree_generator(pcms._tree.cbst, pcms._tree.cbst_batched,
-                                  n_leaves, planted, do_randomize_edge_lengths,
-                                  n_samples, seed, buffer)
+                                  n_leaves, planted, n_samples, seed, buffer)

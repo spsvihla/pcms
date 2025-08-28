@@ -239,7 +239,6 @@ PYBIND11_MODULE(_tree, m) {
         &remy,
         py::arg("tree"),
         py::arg("planted"),
-        py::arg("do_randomize_edge_lengths"),
         py::arg("seed")
     );
     m.def
@@ -248,7 +247,6 @@ PYBIND11_MODULE(_tree, m) {
         &remy_batched,
         py::arg("buffer"),
         py::arg("planted"),
-        py::arg("do_randomize_edge_lengths"),
         py::arg("n_samples"),
         py::arg("seed")
     );
@@ -258,7 +256,6 @@ PYBIND11_MODULE(_tree, m) {
         &cbst,
         py::arg("tree"),
         py::arg("planted"),
-        py::arg("do_randomize_edge_lengths"),
         py::arg("seed")
     );
     m.def
@@ -267,7 +264,6 @@ PYBIND11_MODULE(_tree, m) {
         &cbst_batched,
         py::arg("buffer"),
         py::arg("planted"),
-        py::arg("do_randomize_edge_lengths"),
         py::arg("n_samples"),
         py::arg("seed")
     );

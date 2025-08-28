@@ -45,10 +45,9 @@ namespace py = pybind11;
  * 
  * @param tree A Tree object to use as a buffer.
  * @param planted Whether the tree should be planted.
- * @param do_randomize_edge_lengths Whether to randomize edge lengths.
  * @param seed The seed for the random number generator (default is 0).
  */
-void remy(Tree* tree, bool planted, bool do_randomize_edge_lengths, std::optional<unsigned int> seed);
+void remy(Tree* tree, bool planted, std::optional<unsigned int> seed);
 
 /**
  * @brief Samples a uniformly random binary tree.
@@ -58,11 +57,10 @@ void remy(Tree* tree, bool planted, bool do_randomize_edge_lengths, std::optiona
  * 
  * @param trees A vector of Tree pointers to use as a buffer.
  * @param planted Whether the tree should be planted.
- * @param do_randomize_edge_lengths Whether to randomize edge lengths.
  * @param n_samples The number of samples to generate.
  * @param seed The seed for the random number generator (default is 0).
  */
-void remy_batched(std::vector<Tree*>& trees, bool planted, bool do_randomize_edge_lengths, int n_samples, std::optional<unsigned int> seed);
+void remy_batched(std::vector<Tree*>& trees, bool planted, int n_samples, std::optional<unsigned int> seed);
 
 /**
  * @brief Samples a critical beta-splitting tree.
@@ -71,10 +69,9 @@ void remy_batched(std::vector<Tree*>& trees, bool planted, bool do_randomize_edg
  * 
  * @param tree A Tree object to use as a buffer.
  * @param planted Whether the tree should be planted.
- * @param do_randomize_edge_lengths Whether to randomize edge lengths.
  * @param seed The seed for the random number generator (default is 0).
  */
-void cbst(Tree* tree, bool planted, bool do_randomize_edge_lengths, std::optional<unsigned int> seed);
+void cbst(Tree* tree, bool planted, std::optional<unsigned int> seed);
 
 /**
  * @brief Batched version of cbst.
@@ -84,10 +81,9 @@ void cbst(Tree* tree, bool planted, bool do_randomize_edge_lengths, std::optiona
  * 
  * @param trees A vector of Tree pointers to use as a buffer.
  * @param planted Whether the tree should be planted.
- * @param do_randomize_edge_lengths Whether to randomize edge lengths.
  * @param n_samples The number of samples to generate.
  * @param seed The seed for the random number generator (default is 0).
  */
-void cbst_batched(std::vector<Tree*>& trees, bool planted, bool do_randomize_edge_lengths, int n_samples, std::optional<unsigned int> seed);
+void cbst_batched(std::vector<Tree*>& trees, bool planted, int n_samples, std::optional<unsigned int> seed);
 
 #endif // TREE_DIST_HPP
