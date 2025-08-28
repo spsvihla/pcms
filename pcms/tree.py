@@ -711,23 +711,6 @@ class Tree:
         supports = self._tree.compute_supports(u)
         return supports if len(supports) > 1 else supports[0]
 
-    def find_nnz_max(self) -> int:
-        """
-        Find an upper bound on the number of non-zero entries in 
-        sparsified matrix.
-
-        Returns
-        -------
-        int
-            The number of non-zero entries in sparsified matrix.
-
-        Raises
-        -------
-        IndexError
-            If the node index is out of bounds.
-        """
-        return self._tree.find_nnz_max()
-
 
 def nwk2tree(filename: str, ensure_planted: bool = False) -> Tree:
     """
