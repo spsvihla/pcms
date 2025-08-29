@@ -51,7 +51,7 @@ def get_relative_abundances_below_lcr(taxonomies: pd.DataFrame, lcr: str) -> pd.
 
 def build_gg_otu_id2tax_map(tree: Tree, tax_filepath: str, node: int) -> dict:
     table = load_tax_filepath(tax_filepath=tax_filepath)
-    leaves = tree.find_leaves(return_depths=False)
+    leaves = tree.find_leaves()
     otus = np.array([tree.get_name(i) for i in leaves]).astype(int)
     interior_nodes = tree.find_interior_nodes()
     subtree_sizes = tree.get_subtree_size()

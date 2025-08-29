@@ -17,7 +17,7 @@ def build_gg_seq_id2leaf_idx_map(tree: Tree) -> pd.Series:
     pd.Series
         Leaf indexes indexed by sequence id.
     """
-    leaves, _ = tree.find_leaves()
+    leaves = tree.find_leaves()
     seq_ids = []
     leaf_idxs = []
     for leaf_idx, node_idx in enumerate(leaves):
