@@ -166,4 +166,6 @@ def sparsify(input: pcms.tree.Tree | str) -> csc_matrix:
     n_wavelets = tree.find_n_wavelets()
     Q = csc_matrix(Q, shape=(n_leaves, n_wavelets))
     S = csc_matrix(S, shape=(n_wavelets, n_wavelets))
+    Q.eliminate_zeros()
+    S.eliminate_zeros()
     return Q, S
