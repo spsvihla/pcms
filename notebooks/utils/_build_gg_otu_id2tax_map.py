@@ -57,8 +57,8 @@ def build_gg_otu_id2tax_map(tree: Tree, tax_filepath: str, node: int) -> dict:
     subtree_sizes = tree.get_subtree_size()
     subtree_starts = tree.find_subtree_start_indices()
 
-    if node not in interior_nodes:
-        raise ValueError("Node must be an interior node!")
+    # if node not in interior_nodes:
+    #     raise ValueError("Node must be an interior node!")
     clade = np.arange(subtree_starts[node], subtree_starts[node]+subtree_sizes[node])
     taxonomies = table.loc[otus[clade]]
     lcr = get_lowest_common_rank(taxonomies=taxonomies)
