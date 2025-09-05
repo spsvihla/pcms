@@ -66,7 +66,7 @@ public:
       nodes(n_nodes_),
       names(n_nodes_),
       edge_length(n_nodes_, 0.0),
-      subtree_size(n_nodes_, 1.0)
+      subtree_size(n_nodes_, 1)
     {}
 
     /**
