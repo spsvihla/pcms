@@ -59,7 +59,7 @@ def cdf_proj_cbst(
         If n_samples < 1.
     """
     # parse inputs
-    ys = np.atleast_1d(ys).astype(np.float64)
+    ys = ys.toarray().ravel().astype(np.float64)
     f = np.array(f, dtype=np.float64)
     seed = int(seed) if seed is not None else None
     n_samples = int(n_samples) if n_samples is not None else int(np.ceil(1.0 / (2 * eps**2) * np.log(2 / delta)))
@@ -118,7 +118,7 @@ def cdf_proj_dod(
     float or np.ndarray
         Value(s) of the CDF at the specified point(s).
     """
-    ys = np.asarray(ys)
+    ys = ys.toarray().ravel().astype(np.float64)
     n_leaves = tree.find_n_leaves()
     n_samples = np.ceil(1.0 / (2 * eps**2) * np.log(2 / delta)) if n_samples is None else n_samples
     subtree_size = tree.get_subtree_size(node)
