@@ -1,6 +1,5 @@
 // Project-specific includes
 #include "tree.hpp"
-#include "haar-dist.hpp"
 #include "haar-sparsify.hpp"
 
 // Pybind11 includes
@@ -13,15 +12,6 @@ namespace py = pybind11;
 
 // Pybind11 code to expose the module to Python
 PYBIND11_MODULE(_haar, m) {
-    m.def
-    (
-        "rand_dh_component",
-        &rand_dh_component,
-        py::arg("func"),
-        py::arg("n_samples"),
-        py::arg("buffer"),
-        py::arg("seed")
-    );
     m.def
     (
         "sparsify",

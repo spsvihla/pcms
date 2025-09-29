@@ -66,8 +66,7 @@ pybind11_add_module(_haar
                     src/haar/pybind11.cpp
                     src/tree/tree.cpp 
                     src/tree/tree-dist.cpp
-                    src/haar/haar-sparsify.cpp
-                    src/haar/haar-dist.cpp)
+                    src/haar/haar-sparsify.cpp)
 target_include_directories(_haar
                            PRIVATE 
                            ${CMAKE_CURRENT_SOURCE_DIR}/include)
