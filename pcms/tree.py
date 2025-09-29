@@ -1,7 +1,7 @@
 """
-tree.py
-
-A wrapper for the pcms._tree package.
+@file tree.py
+@brief A wrapper for the pcms._tree package.
+@author Sean Svihla
 """
 
 from typing import Optional, Union, List, Tuple
