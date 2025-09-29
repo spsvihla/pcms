@@ -27,16 +27,37 @@ def get_lowest_common_rank(taxonomies: pd.DataFrame) -> str:
     return ';'.join(lca)
 
 
-def get_relative_abundances_below_lcr(taxonomies: pd.DataFrame, lcr: str) -> pd.Series:
+def get_relative_abundances_below_lcr(
+    taxonomies: pd.DataFrame, lcr: str, abunds: np.ndarray
+) -> pd.DataFrame:
     """
-    Given a set of taxonomy strings and the LCR, compute the relative abundances
-    of the taxa at the rank just below the LCR.
+    Given a set of taxonomy strings and the LCR, compute both the reference
+    (count-based) fractions and the abundance-weighted fractions of the taxa
+    at the rank just below the LCR.
+
+    Parameters
+    ----------
+    taxonomies : pd.DataFrame
+        DataFrame with a 'Taxonomy' column containing semicolon-separated taxonomy strings.
+    lcr : str
+        Lowest common rank string.
+    abunds : np.ndarray
+        Abundance values aligned with `taxonomies`.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame indexed by taxa just below the LCR with two columns:
+        - 'ref_fracs'   : frequency-based fractions
+        - 'abund_fracs': abundance-weighted fractions
     """
     if not lcr:
-        return pd.Series(dtype=float)
+        return pd.DataFrame(columns=['ref_fracs', 'abund_fracs'], dtype=float)
+
     lcr_levels = lcr.split(';')
     lcr_depth = len(lcr_levels)
 
+    # Extract taxa just below LCR
     next_level_taxa = []
     for tax in taxonomies['Taxonomy']:
         split_tax = tax.split(';')
@@ -45,22 +66,33 @@ def get_relative_abundances_below_lcr(taxonomies: pd.DataFrame, lcr: str) -> pd.
         else:
             next_level_taxa.append('unclassified')
 
-    counts = pd.Series(next_level_taxa).value_counts(normalize=True)
-    return counts
+    # Count-based fractions
+    ref_fracs = pd.Series(next_level_taxa).value_counts(normalize=True)
+
+    # Abundance-weighted fractions
+    df = pd.DataFrame({'taxon': next_level_taxa, 'abund': abunds})
+    abund_sums = df.groupby('taxon')['abund'].sum()
+    abund_fracs = abund_sums
+
+    # Combine into one DataFrame
+    result = pd.concat([ref_fracs, abund_fracs], axis=1)
+    result.columns = ['ref_fracs', 'abund_fracs']
+
+    return result
 
 
-def build_gg_otu_id2tax_map(tree: Tree, tax_filepath: str, node: int) -> dict:
+def build_gg_otu_id2tax_map(tree: Tree, tax_filepath: str, node: int, abunds: np.ndarray) -> dict:
+    # interior_nodes = tree.find_interior_nodes()
+    # if node not in interior_nodes:
+    #     raise ValueError("Node must be an interior node!")
+
     table = load_tax_filepath(tax_filepath=tax_filepath)
     leaves = tree.find_leaves()
     otus = np.array([tree.get_name(i) for i in leaves]).astype(int)
-    interior_nodes = tree.find_interior_nodes()
-    subtree_sizes = tree.get_subtree_size()
-    subtree_starts = tree.find_subtree_start_indices()
+    start = tree.find_subtree_start_indices()[node]
+    size = tree.get_subtree_size()[node]
 
-    # if node not in interior_nodes:
-    #     raise ValueError("Node must be an interior node!")
-    clade = np.arange(subtree_starts[node], subtree_starts[node]+subtree_sizes[node])
-    taxonomies = table.loc[otus[clade]]
+    taxonomies = table.loc[otus[start:start+size]]
     lcr = get_lowest_common_rank(taxonomies=taxonomies)
-    rel_abund = get_relative_abundances_below_lcr(taxonomies, lcr)
-    return {'LCR': lcr, 'RelAbundances': rel_abund}
+    fracs = get_relative_abundances_below_lcr(taxonomies, lcr, abunds[start:start+size])
+    return {'LCR': lcr, 'Fracs': fracs}
