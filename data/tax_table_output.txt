@@ -133,3 +133,109 @@ Left subtree                               Right subtree
  o__H39:0.03 (+0.000)                                                                 
  o__pLW-97:0.01 (+0.000)                                                              
 
+Node 68277
+Left subtree                               Right subtree                              
+--------------------------------------------------------------------------------------
+ c__Anaerolineae                            p__Chloroflexi                            
+ o__SBR1031:0.21 (+0.023)                   c__Chloroflexi:0.83 (-0.055)              
+ o__Anaerolineales:0.13 (+0.000)            c__SAR202:0.16 (+0.000)                   
+ o__OPB11:0.13 (+0.209)                     c__:0.01 (+0.000)                         
+ o__GCA004:0.07 (+0.000)                                                              
+ o__Caldilineales:0.07 (-0.001)                                                       
+ o__DRC31:0.06 (+0.000)                                                               
+ o__S0208:0.05 (+0.005)                                                               
+ o__:0.05 (+0.000)                                                                    
+ o__SHA-20:0.05 (+0.000)                                                              
+ o__envOPS12:0.03 (+0.000)                                                            
+ o__SB-34:0.02 (+0.000)                                                               
+ o__A31:0.02 (+0.000)                                                                 
+ o__SJA-15:0.02 (+0.000)                                                              
+ o__Ardenscatenales:0.01 (+0.000)                                                     
+ o__WCHB1-50:0.01 (+0.000)                                                            
+ o__MSB-1E9:0.01 (+0.069)                                                             
+ o__CFB-26:0.01 (+0.000)                                                              
+ o__H39:0.01 (+0.000)                                                                 
+ o__O4D2Z37:0.01 (+0.004)                                                             
+ o__pLW-97:0.01 (+0.000)                                                              
+
+Node 71165
+Left subtree                               Right subtree                              
+--------------------------------------------------------------------------------------
+k__Bacteria                                k__Bacteria                                
+ p__Acidobacteria:0.49 (+0.001)             p__Actinobacteria:0.36 (-0.012)           
+ p__Spirochaetes:0.20 (-0.013)              p__Planctomycetes:0.23 (+0.009)           
+ p__Proteobacteria:0.19 (+0.009)            p__Chloroflexi:0.21 (+0.252)              
+ p__Nitrospirae:0.07 (+0.000)               p__Verrucomicrobia:0.09 (-0.002)          
+ p__NKB19:0.02 (+0.000)                     p__Armatimonadetes:0.02 (+0.004)          
+ p__Firmicutes:0.02 (+0.000)                p__Lentisphaerae:0.01 (+0.005)            
+ p__:0.01 (+0.002)                          p__Elusimicrobia:0.01 (+0.000)            
+                                            p__OP8:0.01 (+0.008)                      
+                                            p__WPS-2:0.01 (+0.000)                    
+
+Node 5920
+Left subtree                               Right subtree                              
+--------------------------------------------------------------------------------------
+ o__Chroococcales                           f__Phormidiaceae                          
+ f__Cyanobacteriaceae:0.94 (-0.038)         g__Microcoleus:0.85 (-0.337)              
+ f__:0.06 (+0.000)                          g__:0.15 (-0.002)                         
+
+Node 6132
+Left subtree                               Right subtree                              
+--------------------------------------------------------------------------------------
+ p__Cyanobacteria                           p__Cyanobacteria                          
+ c__4C0d-2:0.83 (+0.001)                    c__Chloroplast:0.39 (-0.030)              
+ c__ML635J-21:0.17 (+0.000)                 c__Synechococcophycideae:0.23 (-0.043)    
+                                            c__Oscillatoriophycideae:0.23 (-0.388)    
+                                            c__Nostocophycideae:0.09 (-0.001)         
+                                            c__:0.04 (+0.000)                         
+                                            c__Gloeobacterophycideae:0.01 (-0.002)    
+
+Node 69413
+Left subtree                               Right subtree                              
+--------------------------------------------------------------------------------------
+ p__Chloroflexi                             p__Chloroflexi                            
+ c__Anaerolineae:0.89 (+0.310)              c__Dehalococcoidetes:0.34 (+0.000)        
+ c__Chloroflexi:0.09 (-0.055)               c__Ktedonobacteria:0.18 (+0.000)          
+ c__SAR202:0.02 (+0.000)                    c__SAR202:0.13 (+0.000)                   
+                                            c__S085:0.07 (+0.000)                     
+                                            c__Thermomicrobia:0.07 (-0.001)           
+                                            c__TK10:0.05 (+0.000)                     
+                                            c__TK17:0.03 (+0.000)                     
+                                            c__Ellin6529:0.03 (+0.000)                
+                                            c__SHA-26:0.03 (+0.000)                   
+                                            c__C0119:0.01 (+0.000)                    
+                                            c__P2-11E:0.01 (+0.000)                   
+                                            c__:0.01 (+0.000)                         
+                                            c__[Thermobacula]:0.01 (+0.000)           
+                                            c__MVP-21:0.01 (-0.002)                   
+                                            c__Gitt-GS-136:0.01 (+0.000)              
+
+Node 42745
+Left subtree                               Right subtree                              
+--------------------------------------------------------------------------------------
+ o__Bacteroidales                           o__Bacteroidales                          
+ f__:0.88 (+0.073)                          f__Prevotellaceae:0.19 (+0.000)           
+ f__SB-1:0.12 (+0.000)                      f__Bacteroidaceae:0.18 (+0.000)           
+                                            f__S24-7:0.17 (+0.000)                    
+                                            f__:0.16 (+0.000)                         
+                                            f__Porphyromonadaceae:0.13 (+0.000)       
+                                            f__[Paraprevotellaceae]:0.05 (+0.000)     
+                                            f__Rikenellaceae:0.04 (+0.000)            
+                                            f__Marinilabiaceae:0.02 (+0.000)          
+                                            f__BS11:0.02 (+0.000)                     
+                                            f__[Odoribacteraceae]:0.01 (+0.000)       
+                                            f__[Barnesiellaceae]:0.01 (+0.000)        
+                                            f__RF16:0.01 (+0.000)                     
+
+Node 66749
+Left subtree                               Right subtree                              
+--------------------------------------------------------------------------------------
+ s__                                        s__                                       
+unclassified:1.00 (+0.069)                 unclassified:1.00 (+0.140)                 
+
+Node 5874
+Left subtree                               Right subtree                              
+--------------------------------------------------------------------------------------
+ s__                                        s__                                       
+unclassified:1.00 (-0.001)                 unclassified:1.00 (-0.129)                 
+
