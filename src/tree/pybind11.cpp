@@ -18,6 +18,10 @@ PYBIND11_MODULE(_tree, m) {
             py::init<int>(), 
             py::arg("n_nodes")
         )
+        .def(
+            py::init<const Tree&>(),
+            py::arg("tree")
+        )
         .def
         (
             "reset",
