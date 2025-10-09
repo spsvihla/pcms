@@ -134,6 +134,16 @@ PYBIND11_MODULE(_tree, m) {
         )
         .def
         (
+            "find_postorder",
+            &Tree::find_postorder
+        )
+        .def
+        (
+            "find_mirror_postorder",
+            &Tree::find_mirror_postorder
+        )
+        .def
+        (
             "find_children",
             &Tree::find_children,
             py::arg("u")

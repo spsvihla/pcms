@@ -188,8 +188,8 @@ Tree::splice(int u, int v)
     link(u, v);
 }
 
-void
-Tree::update_subtree_size()
+std::vector<int>
+Tree::find_postorder_() const
 {
     std::vector<int> postorder;
     postorder.reserve(n_nodes);
@@ -202,7 +202,43 @@ Tree::update_subtree_size()
         postorder.emplace_back(v);
     };
     depth_first_search(find_root());
+    return postorder;
+}
 
+py::array_t<int>
+Tree::find_postorder() const
+{
+    return std_vec2py_array_t(find_postorder_());
+}
+
+std::vector<int>
+Tree::find_mirror_postorder_() const
+{
+    std::vector<int> mirror_postorder;
+    mirror_postorder.reserve(n_nodes);
+    std::function<void(int)> mirror_depth_first_search = [&](int v)
+    {
+        std::vector<int> children = find_children_(v);
+        for(std::size_t i = children.size() - 1; i-- > 0;)
+        {
+            mirror_depth_first_search(children[i]);
+        }
+        mirror_postorder.emplace_back(v);
+    };
+    mirror_depth_first_search(find_root());
+    return mirror_postorder;
+}
+
+py::array_t<int>
+Tree::find_mirror_postorder() const
+{
+    return std_vec2py_array_t(find_mirror_postorder_());
+}
+
+void
+Tree::update_subtree_size()
+{
+    std::vector<int> postorder = find_postorder_();
     for(int i = 0; i < n_nodes; ++i)
     {
         int node = postorder[i];

@@ -222,6 +222,28 @@ public:
     void splice(int u, int v);
 
     /**
+     * @brief Helper for find_postorder to provide C++ return type.
+     */
+    std::vector<int> find_postorder_() const;
+
+    /**
+     * @brief Finds the postorder indexing of the tree.
+     * @return A vector of node indices in postorder.
+     */
+    py::array_t<int> find_postorder() const;
+
+    /**
+     * @brief Helper for find_mirror_postorder to provide C++ return type.
+     */
+    std::vector<int> find_mirror_postorder_() const;
+
+    /**
+     * @brief Finds the mirrored postorder indexing of the tree.
+     * @return A vector of node indices in mirror postorder.
+     */
+    py::array_t<int> find_mirror_postorder() const;
+
+    /**
      * @brief Update subtree_size based on current topology.
      */
     void update_subtree_size();

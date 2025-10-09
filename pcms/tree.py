@@ -404,6 +404,24 @@ class Tree:
         """
         self._tree.splice(u, v)
 
+    def find_postorder(self) -> NDArray:
+        """
+        Returns
+        -------
+        NDArray
+            Node indices in postorder.
+        """
+        return self._tree.find_postorder()
+    
+    def find_mirror_postorder(self) -> NDArray:
+        """
+        Returns
+        -------
+        NDArray
+            Node indices in mirror postorder.
+        """
+        return self._tree.find_mirror_postorder()
+
     @check_bounds()
     def find_children(self, u: int) -> NDArray:
         """
