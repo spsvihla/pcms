@@ -1,11 +1,10 @@
-# utils/_load_gn_seq_id_abundances.py
+# utils/_load_seq_id_abundances_from_biom_tsv.py
 import pandas as pd
-from typing import Tuple
 
 
-def load_gn_seq_id_abundances(
+def load_seq_id_abundances_from_biom_tsv(
     table_filepath: str,
-) -> Tuple[pd.DataFrame, pd.DataFrame]:
+) -> pd.DataFrame:
     """
     Load sequence abundance data and associated metadata from TSV files.
 
