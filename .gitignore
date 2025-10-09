@@ -182,3 +182,6 @@ tmp/
 # Profiling products
 perf.data
 perf.data.old
+
+# Ignore data directory
+data/
