@@ -70,7 +70,7 @@ public:
     {}
 
     /**
-     * Default destructor and copy/move constructors 
+     * Default destructor and copy/move constructors.
      */
     Tree(const Tree&) = default;
     Tree(Tree&&) = default;
@@ -79,7 +79,7 @@ public:
     ~Tree() = default;
 
     /**
-     * @brief Reset the tree to a default state
+     * @brief Reset the tree to a default state.
      */
     void reset();
 

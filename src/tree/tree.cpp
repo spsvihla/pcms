@@ -193,7 +193,6 @@ Tree::update_subtree_size()
 {
     std::vector<int> postorder;
     postorder.reserve(n_nodes);
-
     std::function<void(int)> depth_first_search = [&](int v)
     {
         for(int c = get_child(v); c != -1; c = get_sibling(c))
