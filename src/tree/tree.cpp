@@ -9,7 +9,7 @@
  */
 
 // standard library includes
-#include <algorithm>    // for std::max
+#include <algorithm>    // for std::max and std::binary_search
 #include <cmath>        // for sqrt
 #include <numeric>      // for std::accumulate and std::transform_reduce
 #include <queue>        // for std::queue
@@ -189,7 +189,7 @@ Tree::splice(int u, int v)
 }
 
 std::vector<int>
-Tree::find_postorder_() const
+Tree::find_postorder_(int u) const
 {
     std::vector<int> postorder;
     postorder.reserve(n_nodes);
@@ -201,44 +201,112 @@ Tree::find_postorder_() const
         }
         postorder.emplace_back(v);
     };
-    depth_first_search(find_root());
+    depth_first_search(u);
     return postorder;
 }
 
 py::array_t<int>
-Tree::find_postorder() const
+Tree::find_postorder(int u) const
 {
-    return std_vec2py_array_t(find_postorder_());
+    return std_vec2py_array_t(find_postorder_(u));
 }
 
 std::vector<int>
-Tree::find_mirror_postorder_() const
+Tree::find_mirror_postorder_(int u) const
 {
     std::vector<int> mirror_postorder;
     mirror_postorder.reserve(n_nodes);
     std::function<void(int)> mirror_depth_first_search = [&](int v)
     {
         std::vector<int> children = find_children_(v);
-        for(std::size_t i = children.size() - 1; i-- > 0;)
+        for(std::size_t i = children.size(); i-- > 0;)
         {
             mirror_depth_first_search(children[i]);
         }
         mirror_postorder.emplace_back(v);
     };
-    mirror_depth_first_search(find_root());
+    mirror_depth_first_search(u);
     return mirror_postorder;
 }
 
 py::array_t<int>
-Tree::find_mirror_postorder() const
+Tree::find_mirror_postorder(int u) const
 {
-    return std_vec2py_array_t(find_mirror_postorder_());
+    return std_vec2py_array_t(find_mirror_postorder_(u));
+}
+
+Tree*
+Tree::prune(std::vector<int> keep) const
+{
+    Tree tree_copy(*this);  // heap members are handled properly
+
+    int root = tree_copy.find_root();
+    auto [leaves, leaf_depths] = tree_copy.find_leaves_(root);
+    auto [intr_nodes, intr_node_depths] = tree_copy.find_interior_nodes_(root);
+
+    for(int leaf : leaves)
+    {
+        if(!std::binary_search(keep.begin(), keep.end(), leaf))
+        {
+            tree_copy.cut_(leaf);
+        }
+    }
+
+    for(int node : intr_nodes)
+    {
+        if(node == root)
+        {
+            // do not prune the root
+            continue;
+        }
+
+        int child = tree_copy.get_child(node);
+        if(child == -1)
+        {
+            tree_copy.cut_(node);
+            continue;
+        }
+
+        int sibling = tree_copy.get_sibling(child);
+        if(sibling == -1)
+        {
+            int parent = tree_copy.get_parent(node);
+            tree_copy.cut_(node);
+            tree_copy.cut_(child);
+            double edge_length = tree_copy.get_edge_length(child) 
+                                    + tree_copy.get_edge_length(node);
+            tree_copy.set_edge_length(child, edge_length);
+            tree_copy.link_(child, parent);
+        }
+    }
+
+    std::vector<int> postorder = tree_copy.find_postorder_(root);
+    std::unordered_map<int, int> inverse_postorder;
+    for(std::size_t i = 0; i < postorder.size(); ++i) 
+    {
+        inverse_postorder[postorder[i]] = static_cast<int>(i);
+    }
+
+    int pruned_n_nodes = static_cast<int>(postorder.size());
+    Tree* pruned_tree = new Tree(pruned_n_nodes);
+    for(int old_idx : tree_copy.find_mirror_postorder_(root))
+    {
+        int new_idx = inverse_postorder[old_idx];
+        int old_idx_parent = tree_copy.get_parent(old_idx);
+        int new_idx_parent = old_idx_parent == -1 ? -1 : inverse_postorder[old_idx_parent];
+        pruned_tree->set_edge_length(new_idx, tree_copy.get_edge_length(old_idx));
+        pruned_tree->link_(new_idx, new_idx_parent);
+    }
+
+    pruned_tree->update_subtree_size();
+
+    return pruned_tree;
 }
 
 void
 Tree::update_subtree_size()
 {
-    std::vector<int> postorder = find_postorder_();
+    std::vector<int> postorder = find_postorder_(find_root());
     for(int i = 0; i < n_nodes; ++i)
     {
         int node = postorder[i];

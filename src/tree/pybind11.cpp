@@ -135,12 +135,21 @@ PYBIND11_MODULE(_tree, m) {
         .def
         (
             "find_postorder",
-            &Tree::find_postorder
+            &Tree::find_postorder,
+            py::arg("u")
         )
         .def
         (
             "find_mirror_postorder",
-            &Tree::find_mirror_postorder
+            &Tree::find_mirror_postorder,
+            py::arg("u")
+        )
+        .def
+        (
+            "prune",
+            &Tree::prune,
+            py::arg("keep"),
+            py::return_value_policy::take_ownership
         )
         .def
         (

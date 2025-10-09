@@ -8,7 +8,7 @@ from typing import Optional, Union, List, Tuple
 from functools import wraps
 
 import numpy as np
-from numpy.typing import NDArray
+from numpy.typing import NDArray, ArrayLike
 
 import pcms._tree
 
@@ -59,7 +59,6 @@ def check_bounds(default=None, arg_names=("u",), constraints=None):
     return decorator
 
 
-
 class Tree:
     """
     Wrapper class for `pcms._tree.Tree`.
@@ -98,6 +97,39 @@ class Tree:
     def __str__(self):
         return self._tree.to_string(self._print_label)
 
+    def copy(self):
+        """
+        Returns
+        -------
+        pcms.tree.Tree
+            A copy of the current tree.
+        """
+        return Tree._from_cpp_tree(pcms._tree.Tree(self._tree))
+
+    def prune(self, keep: ArrayLike, is_leaf_idx: bool = True) -> "Tree":
+        """
+        Prunes leaves of the tree and returns a copy of the new tree. The
+        original tree is not modified.
+
+        Parameters
+        ----------
+        keep: NDArray
+            The leaves to keep in the new tree.
+
+        Returns
+        -------
+        pcms.tree.Tree
+            The pruned tree.
+        """
+        keep = np.asarray(keep)
+        leaves = self.find_leaves()
+        if is_leaf_idx:
+            keep = leaves[keep]
+        if not np.all(np.isin(keep, leaves)):
+            raise ValueError("Some values in 'keep' are not leaves.")
+        keep = np.sort(keep)
+        return Tree._from_cpp_tree(self._tree.prune(keep))
+
     @property
     def print_label(self) -> str:
         """Return the label format used when printing the tree."""
@@ -110,7 +142,7 @@ class Tree:
 
         Parameters
         ----------
-        value : str
+        value: str
             One of 'index', 'name', or 'none'.
 
         Raises
@@ -404,17 +436,29 @@ class Tree:
         """
         self._tree.splice(u, v)
 
-    def find_postorder(self) -> NDArray:
+    @check_bounds(default=lambda self: self.find_root())
+    def find_postorder(self, u: int) -> NDArray:
         """
+        Parameters
+        ----------
+        u: int 
+            The target node.
+
         Returns
         -------
         NDArray
             Node indices in postorder.
         """
-        return self._tree.find_postorder()
-    
-    def find_mirror_postorder(self) -> NDArray:
+        return self._tree.find_postorder(u)
+
+    @check_bounds(default=lambda self: self.find_root())
+    def find_mirror_postorder(self, u: int) -> NDArray:
         """
+        Parameters
+        ----------
+        u: int 
+            The target node.
+
         Returns
         -------
         NDArray
