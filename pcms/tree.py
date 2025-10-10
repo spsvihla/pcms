@@ -128,7 +128,8 @@ class Tree:
         if not np.all(np.isin(keep, leaves)):
             raise ValueError("Some values in 'keep' are not leaves.")
         keep = np.sort(keep)
-        return Tree._from_cpp_tree(self._tree.prune(keep))
+        pruned_tree, inverse_postorder = self._tree.prune(keep)
+        return Tree._from_cpp_tree(pruned_tree), inverse_postorder
 
     @property
     def print_label(self) -> str:

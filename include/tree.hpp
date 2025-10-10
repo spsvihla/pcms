@@ -246,9 +246,10 @@ public:
     /**
      * @brief Returns a copy of the tree pruned to a subset of its leaves.
      * @param keep A sorted array of the leaves to keep.
-     * @return A pruned tree.
+     * @return A tuple containing the pruned tree and the mapping from the old
+     *         to new indexing.
      */
-    Tree* prune(std::vector<int> keep) const;
+    std::tuple<Tree*, std::unordered_map<int,int>> prune(std::vector<int> keep) const;
 
     /**
      * @brief Update subtree_size based on current topology.

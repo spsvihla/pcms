@@ -235,7 +235,7 @@ Tree::find_mirror_postorder(int u) const
     return std_vec2py_array_t(find_mirror_postorder_(u));
 }
 
-Tree*
+std::tuple<Tree*, std::unordered_map<int,int>>
 Tree::prune(std::vector<int> keep) const
 {
     Tree tree_copy(*this);  // heap members are handled properly
@@ -300,7 +300,7 @@ Tree::prune(std::vector<int> keep) const
 
     pruned_tree->update_subtree_size();
 
-    return pruned_tree;
+    return std::make_tuple(pruned_tree, std::move(inverse_postorder));
 }
 
 void
