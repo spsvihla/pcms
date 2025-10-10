@@ -464,7 +464,7 @@ class Tree:
         NDArray
             Node indices in mirror postorder.
         """
-        return self._tree.find_mirror_postorder()
+        return self._tree.find_mirror_postorder(u)
 
     @check_bounds()
     def find_children(self, u: int) -> NDArray:
@@ -582,8 +582,6 @@ class Tree:
             If the node index is out of bounds.
         """
         leaves, depths = self._tree.find_leaves(u)
-        leaves = np.flip(leaves)
-        depths = np.flip(depths)
         return (leaves, depths) if return_depths else leaves
 
     @check_bounds(lambda self: self.find_root())
@@ -611,8 +609,6 @@ class Tree:
             If the node index if out of bounds.
         """
         interior_nodes, depths = self._tree.find_interior_nodes(u)
-        interior_nodes = np.flip(interior_nodes)
-        depths = np.flip(depths)
         return (interior_nodes, depths) if return_depths else interior_nodes
 
     def find_subtree_start_indices(self) -> NDArray:

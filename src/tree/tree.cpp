@@ -411,26 +411,20 @@ Tree::find_leaves_(int u) const
     leaves.reserve(get_subtree_size(u));
     depths.reserve(get_subtree_size(u));
 
-    // depth-first search
-    std::stack<std::pair<int, int>> stack;
-    stack.push(std::make_pair(u, 0));
-    while(!stack.empty())
+    std::function<void(int, int)> depth_first_search = [&](int v, int depth)
     {
-        int v = stack.top().first;
-        int depth = stack.top().second;
-        stack.pop();
-
+        for(int c = get_child(v); c != -1; c = get_sibling(c))
+        {
+            depth_first_search(c, depth + 1);
+        }
         if(get_child(v) == -1)
         {
             leaves.emplace_back(v);
             depths.emplace_back(depth);
         }
+    };
 
-        for(int c = get_child(v); c != -1; c = get_sibling(c))
-        {
-            stack.push(std::make_pair(c, depth + 1));
-        }
-    }
+    depth_first_search(u, 0);
 
     return std::make_pair(leaves, depths);
 }
@@ -448,34 +442,28 @@ Tree::find_leaves(int u) const
 std::pair<std::vector<int>, std::vector<int>>
 Tree::find_interior_nodes_(int u) const 
 {
-    std::vector<int> interior_nodes;
+    std::vector<int> intr_nodes;
     std::vector<int> depths;
 
-    interior_nodes.reserve(get_subtree_size(u));
+    intr_nodes.reserve(get_subtree_size(u));
     depths.reserve(get_subtree_size(u));
 
-    // depth-first search
-    std::stack<std::pair<int, int>> stack;
-    stack.push(std::make_pair(u, 0));
-    while(!stack.empty())
+    std::function<void(int, int)> depth_first_search = [&](int v, int depth)
     {
-        int v = stack.top().first;
-        int depth = stack.top().second;
-        stack.pop();
-
-        if(get_child(v) != -1)
-        {
-            interior_nodes.emplace_back(v);
-            depths.emplace_back(depth);
-        }
-
         for(int c = get_child(v); c != -1; c = get_sibling(c))
         {
-            stack.push(std::make_pair(c, depth + 1));
+            depth_first_search(c, depth + 1);
         }
-    }
+        if(get_child(v) != -1)
+        {
+            intr_nodes.emplace_back(v);
+            depths.emplace_back(depth);
+        }
+    };
 
-    return std::make_pair(interior_nodes, depths);
+    depth_first_search(u, 0);
+
+    return std::make_pair(intr_nodes, depths);
 }
 
 py::tuple
