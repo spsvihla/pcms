@@ -178,13 +178,13 @@ sparsify(Tree* tree)
 
             // right subtree
             #pragma omp simd
-            for(int j = lsize; j < sum; ++j)
+            for(int j = 0; j < rsize; ++j)
             {
                 int local_idx = idx + j;
                 Q_values[local_idx] = rval;
-                R_values[local_idx] = rval * trace_length[start + j];
-                Q_indices[local_idx] = start + j;
-                R_indices[local_idx] = start + j;
+                R_values[local_idx] = rval * trace_length[start + lsize + j];
+                Q_indices[local_idx] = start + lsize + j;
+                R_indices[local_idx] = start + lsize + j;
             }
             idx += rsize;
 
