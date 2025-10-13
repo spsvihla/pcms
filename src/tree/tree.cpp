@@ -236,27 +236,18 @@ Tree::find_mirror_postorder(int u) const
 }
 
 std::tuple<Tree*, std::unordered_map<int,int>>
-Tree::prune(std::vector<int> keep) const
+Tree::condense() const
 {
     Tree tree_copy(*this);  // heap members are handled properly
 
+    // establish condensed connections
     int root = tree_copy.find_root();
-    auto [leaves, leaf_depths] = tree_copy.find_leaves_(root);
     auto [intr_nodes, intr_node_depths] = tree_copy.find_interior_nodes_(root);
-
-    for(int leaf : leaves)
-    {
-        if(!std::binary_search(keep.begin(), keep.end(), leaf))
-        {
-            tree_copy.cut_(leaf);
-        }
-    }
 
     for(int node : intr_nodes)
     {
         if(node == root)
         {
-            // do not prune the root
             continue;
         }
 
@@ -274,12 +265,13 @@ Tree::prune(std::vector<int> keep) const
             tree_copy.cut_(node);
             tree_copy.cut_(child);
             double edge_length = tree_copy.get_edge_length(child) 
-                                    + tree_copy.get_edge_length(node);
+                               + tree_copy.get_edge_length(node);
             tree_copy.set_edge_length(child, edge_length);
             tree_copy.link_(child, parent);
         }
     }
 
+    // create new tree
     std::vector<int> postorder = tree_copy.find_postorder_(root);
     std::unordered_map<int, int> inverse_postorder;
     for(std::size_t i = 0; i < postorder.size(); ++i) 
@@ -301,6 +293,25 @@ Tree::prune(std::vector<int> keep) const
     pruned_tree->update_subtree_size();
 
     return std::make_tuple(pruned_tree, std::move(inverse_postorder));
+}
+
+std::tuple<Tree*, std::unordered_map<int,int>>
+Tree::prune(std::vector<int> keep) const
+{
+    Tree tree_copy(*this);  // heap members are handled properly
+
+    int root = tree_copy.find_root();
+    auto [leaves, leaf_depths] = tree_copy.find_leaves_(root);
+
+    for(int leaf : leaves)
+    {
+        if(!std::binary_search(keep.begin(), keep.end(), leaf))
+        {
+            tree_copy.cut_(leaf);
+        }
+    }
+
+    return tree_copy.condense();
 }
 
 void

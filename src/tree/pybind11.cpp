@@ -146,6 +146,12 @@ PYBIND11_MODULE(_tree, m) {
         )
         .def
         (
+            "condense",
+            &Tree::condense,
+            py::return_value_policy::take_ownership
+        )
+        .def
+        (
             "prune",
             &Tree::prune,
             py::arg("keep"),

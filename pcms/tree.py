@@ -106,6 +106,19 @@ class Tree:
         """
         return Tree._from_cpp_tree(pcms._tree.Tree(self._tree))
 
+    def condense(self) -> "Tree":
+        """
+        Returns a copy of the tree where interior nodes with out-degree one
+        are condensed into a single edge.
+
+        Returns
+        -------
+        pcms.tree.Tree
+            The condensed tree.
+        """
+        condensed_tree, inverse_postorder = self._tree.condense()
+        return Tree._from_cpp_tree(condensed_tree), inverse_postorder
+
     def prune(self, keep: ArrayLike, is_leaf_idx: bool = True) -> "Tree":
         """
         Prunes leaves of the tree and returns a copy of the new tree. The

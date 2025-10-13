@@ -244,6 +244,14 @@ public:
     py::array_t<int> find_mirror_postorder(int u) const;
 
     /**
+     * @brief Returns a copy of the tree where interior nodes with out-degree 
+     *        one are condensed into a single edge.
+     * @return A tuple containing the condensed tree and the mapping from the 
+     *         old to new indexing.
+     */
+    std::tuple<Tree*, std::unordered_map<int,int>> condense() const;
+
+    /**
      * @brief Returns a copy of the tree pruned to a subset of its leaves.
      * @param keep A sorted array of the leaves to keep.
      * @return A tuple containing the pruned tree and the mapping from the old
