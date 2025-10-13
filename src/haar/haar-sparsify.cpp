@@ -209,12 +209,13 @@ sparsify(Tree* tree)
     #pragma omp simd
     for(int i = 0; i < size; ++i)
     {
-        Q_values[idx] = val;
-        R_values[idx] = val * trace_length[i];
-        Q_indices[idx] = i;
-        R_indices[idx] = i;
-        idx++;
+        int local_idx = idx + i;
+        Q_values[local_idx] = val;
+        R_values[local_idx] = val * trace_length[i];
+        Q_indices[local_idx] = i;
+        R_indices[local_idx] = i;
     }
+    idx += size;
 
     col++;
     Q_indptr[col] = idx;
