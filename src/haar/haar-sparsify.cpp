@@ -111,9 +111,9 @@ sparsify(Tree* tree)
     std::vector<MKL_INT> Q_indices(nnz);
     std::vector<MKL_INT> Q_indptr(cols + 1);
 
-    std::vector<double> S_values(nnz);
-    std::vector<MKL_INT> S_indices(nnz);
-    std::vector<MKL_INT> S_indptr(cols + 1);
+    std::vector<double> R_values(nnz);
+    std::vector<MKL_INT> R_indices(nnz);
+    std::vector<MKL_INT> R_indptr(cols + 1);
 
     std::vector<double> trace_length(n_leaves);
     #pragma omp simd
@@ -129,7 +129,7 @@ sparsify(Tree* tree)
     std::stack<int> subtree_size_stack;
 
     Q_indptr[0] = 0;
-    S_indptr[0] = 0;
+    R_indptr[0] = 0;
 
     for(int i = 0; i < n_nodes - 1; ++i)
     {
@@ -168,27 +168,29 @@ sparsify(Tree* tree)
             #pragma omp simd
             for(int j = 0; j < lsize; ++j)
             {
-                Q_values[idx] = lval;
-                S_values[idx] = lval * trace_length[start + j];
-                Q_indices[idx] = start + j;
-                S_indices[idx] = start + j;
-                idx++;
+                int local_idx = idx + j;
+                Q_values[local_idx] = lval;
+                R_values[local_idx] = lval * trace_length[start + j];
+                Q_indices[local_idx] = start + j;
+                R_indices[local_idx] = start + j;
             }
+            idx += lsize;
 
             // right subtree
             #pragma omp simd
             for(int j = lsize; j < sum; ++j)
             {
-                Q_values[idx] = rval;
-                S_values[idx] = rval * trace_length[start + j];
-                Q_indices[idx] = start + j;
-                S_indices[idx] = start + j;
-                idx++;
+                int local_idx = idx + j;
+                Q_values[local_idx] = rval;
+                R_values[local_idx] = rval * trace_length[start + j];
+                Q_indices[local_idx] = start + j;
+                R_indices[local_idx] = start + j;
             }
+            idx += rsize;
 
             col++;
             Q_indptr[col] = idx;
-            S_indptr[col] = idx;
+            R_indptr[col] = idx;
 
             subtree_size_stack.top() = sum;
         }
@@ -208,15 +210,15 @@ sparsify(Tree* tree)
     for(int i = 0; i < size; ++i)
     {
         Q_values[idx] = val;
-        S_values[idx] = val * trace_length[i];
+        R_values[idx] = val * trace_length[i];
         Q_indices[idx] = i;
-        S_indices[idx] = i;
+        R_indices[idx] = i;
         idx++;
     }
 
     col++;
     Q_indptr[col] = idx;
-    S_indptr[col] = idx;
+    R_indptr[col] = idx;
 
     sparse_matrix_t Q;
     mkl_sparse_d_create_csc(
@@ -236,10 +238,10 @@ sparsify(Tree* tree)
         SPARSE_INDEX_BASE_ZERO,
         rows,
         cols,
-        S_indptr.data(),
-        S_indptr.data() + 1,
-        S_indices.data(),
-        S_values.data()
+        R_indptr.data(),
+        R_indptr.data() + 1,
+        R_indices.data(),
+        R_values.data()
     );
 
     sparse_matrix_t S;
