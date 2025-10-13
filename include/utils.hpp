@@ -26,4 +26,16 @@ std_vec2py_array_t(const std::vector<T>& arr)
     return py_arr;
 }
 
+template <typename T>
+py::list std_vecvec2py_list_array_t(const std::vector<std::vector<T>>& vv)
+{
+    py::list result;
+    for(const auto& vec : vv)
+    {
+        py::array_t<T> arr(vec.size(), vec.data());
+        result.append(arr);
+    }
+    return result;
+}
+
 #endif // UTILS_HPP

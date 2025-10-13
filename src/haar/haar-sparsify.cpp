@@ -18,6 +18,7 @@
 // project-specific includes
 #include "tree.hpp"
 #include "haar-sparsify.hpp"
+#include "utils.hpp"
 
 // pybind11 and numpy includes
 #include <pybind11/numpy.h>
@@ -25,6 +26,49 @@
 
 namespace py = pybind11;
 
+
+py::array_t<double>
+components(Tree* tree, py::array_t<double> x)
+{
+    int n_leaves = tree->find_n_leaves();
+    std::vector<int> subtree_starts = tree->find_subtree_start_indices_();
+
+    std::vector<double> trace_length(n_leaves);
+    #pragma omp simd
+    for(int i = 0; i < n_leaves; ++i)
+    {
+        trace_length[i] = 0.0;
+    }
+
+    std::vector<double> y(n_leaves);
+
+    for(int i = 0; i < tree->get_n_nodes(); ++i)
+    {
+        int start = subtree_starts[i];
+        int size = tree->get_subtree_size(i);
+
+        if(tree->get_child(i) != -1)
+        {
+            std::vector<std::vector<double>> wavelets = tree->compute_wavelets_(i);
+            std::vector<std::vector<int>> supports = tree->compute_supports_(i);
+
+            for(std::size_t j = 0; j < wavelets.size(); ++j)
+            {
+                // TODO
+            }
+        }
+
+        // accumulate trace branch length
+        double tbl = tree->find_tbl(i);
+        #pragma omp simd
+        for(int j = 0; j < size; ++j)
+        {
+            trace_length[start + j] += tbl;
+        }
+    }
+
+    return std_vec2py_array_t(y);
+}
 
 // compute number of non-zero entries in wavelet basis matrix
 int
