@@ -48,7 +48,8 @@ find_nnz(Tree* tree)
     return nnz;
 }
 
-py::tuple mkl2py_csc(sparse_matrix_t A) 
+py::tuple 
+mkl2py_csc(sparse_matrix_t A) 
 {
     sparse_index_base_t indexing;
     MKL_INT rows, cols;
@@ -92,6 +93,23 @@ py::tuple mkl2py_csc(sparse_matrix_t A)
     std::memcpy(indptr_array.mutable_data(), indptr.data(), sizeof(MKL_INT) * indptr.size());
 
     return py::make_tuple(values_array, indices_array, indptr_array);
+}
+
+inline void
+fill_block(int idx, int start, int offset, int size, double val, 
+           const std::vector<double>& trace_length,
+           std::vector<double>& Q_values, std::vector<MKL_INT>& Q_indices, 
+           std::vector<double>& R_values, std::vector<MKL_INT>& R_indices)
+{
+    #pragma omp simd
+    for(int j = 0; j < size; ++j)
+    {
+        int local_idx = idx + j;
+        Q_values[local_idx] = val;
+        R_values[local_idx] = val * trace_length[start + offset + j];
+        Q_indices[local_idx] = start + offset + j;
+        R_indices[local_idx] = start + offset + j;
+    }
 }
 
 py::tuple
@@ -161,31 +179,14 @@ sparsify(Tree* tree)
             double lsize_ = static_cast<double>(lsize);
             double sum_ = static_cast<double>(sum);
 
-            double lval =  sqrt(rsize_ / (lsize_ * sum_));
-            double rval = -sqrt(lsize_ / (rsize_ * sum_));
-
             // left subtree
-            #pragma omp simd
-            for(int j = 0; j < lsize; ++j)
-            {
-                int local_idx = idx + j;
-                Q_values[local_idx] = lval;
-                R_values[local_idx] = lval * trace_length[start + j];
-                Q_indices[local_idx] = start + j;
-                R_indices[local_idx] = start + j;
-            }
+            fill_block(idx, start, 0, lsize, sqrt(rsize_/(lsize_ * sum_)), 
+                       trace_length, Q_values, Q_indices, R_values, R_indices);
             idx += lsize;
 
             // right subtree
-            #pragma omp simd
-            for(int j = 0; j < rsize; ++j)
-            {
-                int local_idx = idx + j;
-                Q_values[local_idx] = rval;
-                R_values[local_idx] = rval * trace_length[start + lsize + j];
-                Q_indices[local_idx] = start + lsize + j;
-                R_indices[local_idx] = start + lsize + j;
-            }
+            fill_block(idx, start, lsize, rsize, -sqrt(lsize_/(rsize_ * sum_)), 
+                       trace_length, Q_values, Q_indices, R_values, R_indices);
             idx += rsize;
 
             col++;
@@ -202,20 +203,9 @@ sparsify(Tree* tree)
     }
 
     // mother wavelet
-    int root = tree->find_root();
-    int size = tree->get_subtree_size(root);
-
-    double val = sqrt(1.0 / size);
-    #pragma omp simd
-    for(int i = 0; i < size; ++i)
-    {
-        int local_idx = idx + i;
-        Q_values[local_idx] = val;
-        R_values[local_idx] = val * trace_length[i];
-        Q_indices[local_idx] = i;
-        R_indices[local_idx] = i;
-    }
-    idx += size;
+    fill_block(idx, 0, 0, n_leaves, sqrt(1.0 / n_leaves), trace_length,
+               Q_values, Q_indices, R_values, R_indices);
+    idx += n_leaves;
 
     col++;
     Q_indptr[col] = idx;

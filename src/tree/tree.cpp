@@ -598,33 +598,24 @@ Tree::find_tbl() const
     return std_vec2py_array_t(find_tbl_());
 }
 
-py::list
-Tree::compute_wavelets(int u) const
+std::vector<std::vector<double>>
+Tree::compute_wavelets_(int u) const
 {
     std::vector<int> children = find_children_(u);
-
-    py::list wavelets;
+    std::vector<std::vector<double>> wavelets;
 
     int l0 = get_subtree_size(children[0]);
 
     // mother wavelet
     if(children.size() == 1)
     {
-        double val = 1.0 / sqrt(l0);
-        
-        py::array_t<double> wavelet(static_cast<py::ssize_t>(l0));
-        auto wavelet_ = wavelet.mutable_unchecked<1>();
-        for(py::ssize_t j = 0; j < static_cast<py::ssize_t>(l0); ++j)
-        {
-            wavelet_(j) = val;
-        }
-
-        wavelets.append(wavelet);
+        std::vector<double> w(l0, 1.0 / std::sqrt(l0));
+        wavelets.push_back(std::move(w));
         return wavelets;
     }
 
-    // daughter wavelet
-    for(py::ssize_t i = 1; i < static_cast<py::ssize_t>(children.size()); ++i)
+    // daughter wavelets
+    for(size_t i = 1; i < children.size(); ++i)
     {
         int l1 = get_subtree_size(children[i]);
         int s = l0 + l1;
@@ -633,67 +624,61 @@ Tree::compute_wavelets(int u) const
         double l1_ = static_cast<double>(l1);
         double s_  = static_cast<double>(s);
 
-        double val0 =  sqrt(l1_ / (l0_ * s_));
-        double val1 = -sqrt(l0_ / (l1_ * s_));
+        double val0 =  std::sqrt(l1_ / (l0_ * s_));
+        double val1 = -std::sqrt(l0_ / (l1_ * s_));
 
-        py::array_t<double> wavelet(static_cast<py::ssize_t>(s));
-        auto wavelet_ = wavelet.mutable_unchecked<1>();
-        for(py::ssize_t j = 0; j < static_cast<py::ssize_t>(l0); ++j)
-        {
-            wavelet_(j) = val0;
-        }
-        for(py::ssize_t j = l0; j < static_cast<py::ssize_t>(s); ++j)
-        {
-            wavelet_(j) = val1;
-        }
+        std::vector<double> w(s);
+        std::fill(w.begin(), w.begin() + l0, val0);
+        std::fill(w.begin() + l0, w.end(), val1);
 
-        wavelets.append(wavelet);
+        wavelets.push_back(std::move(w));
         l0 += l1;
     }
+
     return wavelets;
+}
+
+py::list
+Tree::compute_wavelets(int u) const
+{
+    auto wavelets_cpp = compute_wavelets_(u);
+    return std_vecvec2py_list_array_t(wavelets_cpp);
+}
+
+std::vector<std::vector<int>>
+Tree::compute_supports_(int u) const
+{
+    auto [leaves, depths] = find_leaves_(u);
+    std::vector<int> children = find_children_(u);
+
+    std::vector<std::vector<int>> supports;
+
+    int size = get_subtree_size(children[0]);
+
+    // mother support
+    if(children.size() == 1)
+    {
+        std::vector<int> sup(leaves.begin(), leaves.begin() + size);
+        supports.push_back(std::move(sup));
+        return supports;
+    }
+
+    // daughter supports
+    for(size_t i = 1; i < children.size(); ++i)
+    {
+        size += get_subtree_size(children[i]);
+        std::vector<int> sup(leaves.begin(), leaves.begin() + size);
+        supports.push_back(std::move(sup));
+    }
+
+    return supports;
 }
 
 py::list
 Tree::compute_supports(int u) const
 {
-    auto [leaves, depths] = find_leaves_(u);
-
-    std::vector<int> children = find_children_(u);
-
-    py::list supports;
-
-    int size = get_subtree_size(children[0]);
-
-    // mother wavelet
-    if(children.size() == 1)
-    {
-        py::array_t<int> support(size);
-        auto support_ = support.mutable_unchecked<1>();
-        for(py::ssize_t j = 0; j < static_cast<py::ssize_t>(size); ++j)
-        {
-            support_(j) = leaves[j];
-        }
-
-        supports.append(support);
-        return supports;
-    }
-
-    // daughter wavelet
-    for(py::ssize_t i = 1; i < static_cast<py::ssize_t>(children.size()); ++i)
-    {
-        size += get_subtree_size(children[i]);
-
-        py::array_t<int> support(size);
-        auto support_ = support.mutable_unchecked<1>();
-        for(py::ssize_t j = 0; j < static_cast<py::ssize_t>(size); ++j)
-        {
-            support_(j) = leaves[j];
-        }
-
-        supports.append(support);
-    }
-
-    return supports;
+    auto supports_cpp = compute_supports_(u);
+    return std_vecvec2py_list_array_t(supports_cpp);
 }
 
 std::string
