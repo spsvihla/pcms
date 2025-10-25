@@ -61,6 +61,27 @@ target_link_libraries(_tree
                       PRIVATE ${MKL_LIBS} ${SYSTEM_LIBS})
 install(TARGETS _tree LIBRARY DESTINATION pcms)
 
+if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+    message(STATUS "Enabling performance optimizations for ${CMAKE_BUILD_TYPE} build...")
+
+    # Add compiler-specific optimization flags
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(_tree PRIVATE
+            -O3                 # Full optimization
+            -march=native       # Use all CPU features available on this machine
+            -ffast-math         # Allow unsafe but faster math
+            -funroll-loops      # Unroll loops for performance
+            -fomit-frame-pointer
+        )
+    elseif(MSVC)
+        target_compile_options(_tree PRIVATE
+            /O2                 # Optimize for speed
+            /fp:fast            # Fast math
+            /openmp             # Enable OpenMP
+        )
+    endif()
+endif()
+
 # --- pcms._haar module ---
 pybind11_add_module(_haar 
                     src/haar/pybind11.cpp
@@ -75,3 +96,33 @@ target_compile_definitions(_haar
 target_link_libraries(_haar
                       PRIVATE ${MKL_LIBS} ${SYSTEM_LIBS})
 install(TARGETS _haar LIBRARY DESTINATION pcms)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+    message(STATUS "Enabling performance optimizations for ${CMAKE_BUILD_TYPE} build...")
+
+    # Try to enable OpenMP
+    find_package(OpenMP)
+    if(OpenMP_CXX_FOUND)
+        message(STATUS "OpenMP found — enabling parallelization")
+        target_link_libraries(_haar PRIVATE OpenMP::OpenMP_CXX)
+    else()
+        message(WARNING "OpenMP not found — continuing without parallelization")
+    endif()
+
+    # Add compiler-specific optimization flags
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(_haar PRIVATE
+            -O3                 # Full optimization
+            -march=native       # Use all CPU features available on this machine
+            -ffast-math         # Allow unsafe but faster math
+            -funroll-loops      # Unroll loops for performance
+            -fomit-frame-pointer
+        )
+    elseif(MSVC)
+        target_compile_options(_haar PRIVATE
+            /O2                 # Optimize for speed
+            /fp:fast            # Fast math
+            /openmp             # Enable OpenMP
+        )
+    endif()
+endif()
