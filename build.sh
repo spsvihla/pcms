@@ -99,24 +99,6 @@ echo "Installed '$PACKAGE_NAME' from: $WHEEL_FILE"
 if [[ -n "$EXTRAS" ]]; then
     echo "Installing extras: [$EXTRAS]"
     pip install ".[${EXTRAS}]"
-
-    # Handle special-case extras
-    IFS=',' read -ra EXTRA_LIST <<< "$EXTRAS"
-    for extra in "${EXTRA_LIST[@]}"; do
-        case "$extra" in
-            notebooks)
-                echo "Cloning and building extra repo for notebooks..."
-                mkdir -p lib
-                if [[ ! -d lib/ks-perm-test ]]; then
-                    git clone https://github.com/spsvihla/ks-perm-test.git lib/
-                fi
-                (cd lib/ks-perm-test && ./build.sh && ./build.sh --clean)
-                ;;
-            *)
-                echo "No special handling for extra: $extra"
-                ;;
-        esac
-    done
 fi
 
 echo "Done."

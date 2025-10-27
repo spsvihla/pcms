@@ -9,6 +9,14 @@ To install the pcms package, clone this GitHub repository and, inside the reposi
 ./build.sh && ./build.sh --clean
 ```
 
+This package requires the `mvhg` [package](https://github.com/spsvihla/mvhg), which can be installed with
+
+```bash
+mkdir -p lib/ && cd lib/
+git clone git@github.com:spsvihla/mvhg.git && cd mvhg/
+./build.sh && ./build.sh -- clean
+```
+
 ## Datasets
 
 ### Greengenes reference database and phylogeny
