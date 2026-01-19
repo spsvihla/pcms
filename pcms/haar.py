@@ -3,11 +3,15 @@
 @brief A wrapper for the pcms._haar package.
 @author Sean Svihla
 """
-
+from numpy.typing import NDArray
 from scipy.sparse import csc_matrix
 
 import pcms._haar 
 import pcms.tree
+
+
+def components(input: pcms.tree.Tree | str) -> NDArray:
+    pass
 
 
 def sparsify(input: pcms.tree.Tree | str) -> csc_matrix:
