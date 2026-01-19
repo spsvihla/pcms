@@ -405,12 +405,22 @@ public:
     py::array_t<double> find_tbl() const;
 
     /**
+     * @brief Helper for compute_wavelets to provide C++ return type.
+     */
+    std::vector<std::vector<double>> compute_wavelets_(int u) const;
+
+    /**
      * @brief Constructs wavelets associated to an interior node.
      * @param u Target node index.
      * @return A list of NumPy arrays, each containing the values of a wavelet
      *         associated with the Target node index.
      */
     py::list compute_wavelets(int u) const;
+
+    /**
+     * @brief Helper for compute_supports to provide C++ return type.
+     */
+    std::vector<std::vector<int>> compute_supports_(int u) const;
 
     /**
      * @brief Finds supports of wavelets associated to an interior node. 
