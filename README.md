@@ -57,6 +57,10 @@ $DATA/
     └── ...
 ```
 
+## Other Information
+
+We have provided a [Mathematica notebook](https://drive.google.com/file/d/1DCYi6A4dRPyst1LvJSTARhLdZLP85fAd/view?usp=sharing) used in the original publication of this work.
+
 ## References
 
 1. McDonald, D. et al. Greengenes2 unifies microbial data in a single reference tree. Nat Biotechnol 42, 715–718 (2024). [https://doi.org/10.1038/s41587-023-01845-1](https://doi.org/10.1038/s41587-023-01845-1)
