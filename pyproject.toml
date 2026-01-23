@@ -7,7 +7,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "pcms"
-version = "1.0.0b2"
+version = "1.0.0"
 description = "Phylogenetic covariance matrix sparisification"
 license = { text = "MIT" }
 authors = [{ name = "Sean Svihla" }]
