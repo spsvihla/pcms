@@ -4,3 +4,4 @@ from ._load_seq_id_abundances_from_biom_tsv import load_seq_id_abundances_from_b
 from ._build_gg_otu_id2tax_map import build_gg_otu_id2tax_map
 from ._load_bs_samp2site_map import load_bs_samp2site_map
 from . import plot
+from ._moment_asymptotics import *
