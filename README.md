@@ -3,19 +3,44 @@ Phylogenetic Covariance Matrix Sparisifcation
 
 ## Installation
 
-To install the pcms package, clone this GitHub repository and, inside the repository, run
+The package and its dependencies can then be installed as follows:
 
-```bash
-./build.sh && ./build.sh --clean
-```
+1. The sparsification algorithm requires the Intel Math Kernel Library (MKL). See installation instructions [here](https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl-download.html?operatingsystem=linux&linux-install=apt).
 
-This package requires the `mvhg` [package](https://github.com/spsvihla/mvhg), which can be installed with
+1. The permutation test requires the `mvhg` [package](https://github.com/spsvihla/mvhg), which should be installed into `pcms/lib/`. First clone the `pcms` repository
 
-```bash
-mkdir -p lib/ && cd lib/
-git clone git@github.com:spsvihla/mvhg.git && cd mvhg/
-./build.sh && ./build.sh -- clean
-```
+    ```bash
+    git clone https://github.com/spsvihla/pcms.git
+    ```
+
+    To avoid issues, it is recommended to install this package in a new virtual environment inside `pcms/`.
+
+    ```bash
+    cd pcms/
+    python -m venv .venv
+    ```
+
+    Now install the `mvhg` package in `pcms/lib/`.
+
+    ```bash
+    mkdir -p lib/ && cd lib/
+    git clone git@github.com:spsvihla/mvhg.git && cd mvhg/
+    ./build.sh && ./build.sh -- clean
+    ```
+
+1. Finally, to install the `pcms` package itself, run
+
+    ```bash
+    ./build.sh && ./build.sh --clean
+    ```
+
+    The remaining Python dependencies are included in `pyptoject.toml`. 
+
+1. The Python dependencies installed by default are only those required to run the package itself. If you wish to run notebooks, you must install aditional Python dependencies with the command 
+
+    ```bash
+    pip install ".[notebooks]"
+    ```
 
 ## Datasets
 
