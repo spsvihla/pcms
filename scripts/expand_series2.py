@@ -51,6 +51,6 @@ def print_ordered_results(expr, k):
     print(" + ".join(full_latex).replace("+ -", "- ") + r" + O(\log^{-1}(n))")
 
 if __name__ == "__main__":
-    k_val = 6
+    k_val = 2
     result = get_expansion(k_val)
     print_ordered_results(result, k_val)

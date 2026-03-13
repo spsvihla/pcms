@@ -1,40 +1,42 @@
 import sympy as sp
+import pickle
 
-gamma, z2, z3, z4, theta_n, b0 = sp.symbols('gamma zeta_2 zeta_3 zeta_4 Theta_n b_0')
+# Define symbols
+gamma, zeta_2, zeta_3, zeta_4, Theta_n, b_0, ln2 = sp.symbols('gamma zeta_2 zeta_3 zeta_4 Theta_n b_0 ln2')
+ln_n = sp.symbols('ln_n')
 
-# E constants
-E2 = 1 / (2 * z2)
-E1 = (gamma * z2 + z3) / (z2**2)
-# E0 = gamma**2 / (2 * z2) + (gamma * z3) / (z2**2) + (z3**2) / (z2**3) + sp.Rational(1, 10)
-E0 = b0
+# Expansions
+E = {2: 1/(2*zeta_2), 1: (gamma*zeta_2 + zeta_3)/(zeta_2**2), 0: b_0}
+D = {
+    4: 1/(4*zeta_2**2),
+    3: (gamma*zeta_2 + zeta_3)/zeta_2**3,
+    2: -sp.Rational(9, 10)/zeta_2 + (3*gamma**2 + 4*zeta_3)/(2*zeta_2**2) + (3*gamma*zeta_3)/(zeta_2**3) + (2*zeta_3**2)/(zeta_2**4),
+    1: 1 - (9*gamma + 20*zeta_3)/(5*zeta_2) + (5*gamma**3 + 20*zeta_3*gamma + 21*zeta_3 - 30*zeta_4)/(5*zeta_2**2) + (3*zeta_3*gamma**2 + 4*zeta_3**2)/(zeta_2**3) + (4*zeta_3**2*gamma)/(zeta_2**4) + (2*zeta_3**3)/(zeta_2**5),
+    0: -b_0**2
+}
+M = {1: 1/ln2, 0: Theta_n}
 
-# D constants
-D2 = (-sp.Rational(9, 10) / z2 + 
-      (3 * gamma**2 + 4 * z3) / (2 * z2**2) + 
-      (3 * gamma * z3) / (z2**3) + 
-      (2 * z3**2) / (z2**4))
+# Build polynomials
+poly_D = sum(D[i] * ln_n**i for i in D)
+poly_E = sum(E[i] * ln_n**i for i in E)
+poly_M = sum(M[i] * ln_n**i for i in M)
 
-D1 = (1 - (9 * gamma + 20 * z3) / (5 * z2) + 
-      (5 * gamma**3 + 20 * z3 * gamma + 21 * z3 - 30 * z4) / (5 * z2**2) + 
-      (3 * z3 * gamma**2 + 4 * z3**2) / (z2**3) + 
-      (4 * z3**2 * gamma) / (z2**4) + 
-      (2 * z3**3) / (z2**5))
+# Final calculation
+final_expr = sp.simplify(poly_D - 2*poly_M*poly_E + poly_M**2)
+poly_final = sp.Poly(final_expr, ln_n)
 
-D0 = -E0**2
+# Dictionary for pickle
+coeff_dict = {i: poly_final.coeff_monomial(ln_n**i) for i in range(poly_final.degree() + 1)}
 
-# Formulating Primes
-D2_prime_raw = D2 - 2*E1 - 2*E2*theta_n + 1
-D1_prime_raw = D1 - 2*E0 - 2*E1*theta_n + 2*theta_n
-D0_prime_raw = D0 - 2*E0*theta_n + theta_n**2
+# Output LaTeX
+print("--- LaTeX Coefficients ---")
+for deg in range(poly_final.degree(), -1, -1):
+    coeff = coeff_dict.get(deg, 0)
+    print(f"Coefficient of ln(n)^{{{deg}}}:")
+    print(f"$$ {sp.latex(sp.cancel(coeff))} $$\n")
 
-# Using cancel() for best fraction simplification
-D2_final = sp.cancel(D2_prime_raw)
-D1_final = sp.cancel(D1_prime_raw)
-D0_final = sp.cancel(D0_prime_raw)
+# Save to pickle
+with open('coefficients.pkl', 'wb') as f:
+    pickle.dump(coeff_dict, f)
 
-print("--- D2 PRIME ---")
-sp.pprint(D2_final)
-print("\n--- D1 PRIME ---")
-sp.pprint(D1_final)
-print("\n--- D0 PRIME ---")
-sp.pprint(D0_final)
+print("Coefficients saved to coefficients.pkl")
