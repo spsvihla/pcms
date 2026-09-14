@@ -28,8 +28,8 @@ find_package(pybind11 CONFIG REQUIRED)
 # Release: full optimization
 # RelWithDebInfo: optimization + debug info
 set(CMAKE_CXX_FLAGS_DEBUG   "-g -O0")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native -flto -fopenmp -funroll-loops -ffast-math")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -O3 -march=native -flto -fopenmp -funroll-loops -ffast-math")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native -flto -funroll-loops -ffast-math")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -O3 -march=native -flto -funroll-loops -ffast-math")
 
 message(STATUS "CMake build type: ${CMAKE_BUILD_TYPE}")
 
@@ -42,7 +42,15 @@ if(BUILD_TYPE_UPPER STREQUAL "DEBUG")
 else()
     list(APPEND MKL_LIBS "mkl_intel_thread" "iomp5")    # multi-threaded
 endif()
+
+# Locate libatomic and add it to system dependencies
+find_library(ATOMIC_LIB atomic)
 set(SYSTEM_LIBS "m")
+if(ATOMIC_LIB)
+    list(APPEND SYSTEM_LIBS ${ATOMIC_LIB})
+else()
+    list(APPEND SYSTEM_LIBS "atomic")
+endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${MKL_INCLUDE_DIRS})
 link_directories(${MKL_LIBRARY_DIRS} /usr/lib /usr/local/lib)
