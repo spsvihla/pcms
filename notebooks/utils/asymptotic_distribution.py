@@ -17,7 +17,7 @@ def _integrand(x, n):
     return (1 - x**n) / (1 - x)
 
 
-def _harmonic_number(n):
+def harmonic_number(n):
     hn, _ = quad(_integrand, 0, 1, args=(n,))
     return hn
 
@@ -30,7 +30,7 @@ def compute_xn(n, k=25, m=5):
             continue
 
         s = sum(x_cache[(current_n - i, k, m)] / i for i in range(1, current_n - k))
-        s /= _harmonic_number(current_n - 1)
+        s /= harmonic_number(current_n - 1)
         x_cache[(current_n, k, m)] = s
 
     return x_cache[(n, k, m)]
